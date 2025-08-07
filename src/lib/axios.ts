@@ -10,7 +10,6 @@ const apiClient = axios.create({
    timeout: 10000,
    headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer YOUR_MANUAL_TOKEN_HERE`,
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN}`
    }
 });
