@@ -3,14 +3,13 @@ import axios from 'axios';
 
 // --- Temporary Setup ---
 // TODO: Replace with actual base URL and auth logic
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001/api'; // Example local dev URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL; // Example local dev URL
 
-const apiClient = axios.create({
+const Axios = axios.create({
    baseURL: API_BASE_URL,
    timeout: 10000,
    headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer YOUR_MANUAL_TOKEN_HERE`,
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN}`
    }
 });
@@ -41,4 +40,4 @@ apiClient.interceptors.response.use(
 );
 */
 
-export default apiClient;
+export default Axios;
