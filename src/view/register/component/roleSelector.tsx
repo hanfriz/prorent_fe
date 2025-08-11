@@ -25,9 +25,9 @@ export default function RoleSelector({ control }: RoleSelectorProps) {
           <FormControl>
             <Select
               value={field.value}
-              onValueChange={field.onChange}
-              placeholder="Select your role"
-              options={roleOptions}
+              onValueChange={field.onChange}              
+              // placeholder="Select your role"
+              // options={roleOptions}
             />
           </FormControl>
           <FormMessage />
