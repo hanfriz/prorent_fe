@@ -7,6 +7,7 @@ import PaymentInfoCard from "./component/paymentInfoCard";
 import DateSelectionSection from "./component/dateSelectionSection";
 import SubmitButton from "./component/submitButton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 
 const mockReservationData = {
   userId: "GTrOzXbTNxts",
@@ -24,6 +25,8 @@ export default function CreateReservationPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   // Simulate loading data
   useState(() => {
@@ -43,6 +46,22 @@ export default function CreateReservationPage() {
     setStartDate(date);
     if (endDate && date && date >= endDate) {
       setEndDate(undefined);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isFormValid()) return;
+    
+    setIsSubmitting(true);
+    try {
+      // Submit the form using tanstack form's handleSubmit
+      await form.handleSubmit();
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -92,8 +111,8 @@ export default function CreateReservationPage() {
       <SubmitButton
         form={form}
         isValid={isFormValid()}
-        onSubmit={form.handleSubmit}
-        isPending={isLoading}        
+        onSubmit={handleSubmit}
+        isPending={isSubmitting}
       />
     </div>
   );
