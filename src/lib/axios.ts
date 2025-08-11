@@ -9,7 +9,6 @@ const Axios = axios.create({
    baseURL: API_BASE_URL,
    timeout: 10000,
    headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN}`
    }
 });
