@@ -1,4 +1,5 @@
-import { ReservationWithPayment, RPResponse } from '@/interface/paymentInterface';
+import { ReservationWithPayment, RPResPagination, RPResponse } from '@/interface/paymentInterface';
+import { GetUserReservationsParams } from '@/interface/queryInterface';
 import { ReservationResponse } from '@/interface/reservationInterface';
 import Axios from '@/lib/axios';
 import { paymentProofBrowserFileSchema, uploadPaymentProofFormSchema } from '@/validation/paymentProofValidation';
@@ -50,15 +51,79 @@ export function getReservationWithPayment (reservationId: string) {
    });
 }
 
-export function useReservationOptions () {
+export function getUserReservation (params?: GetUserReservationsParams) {
    return useQuery({
-      queryKey: [ 'reservation-options' ],
+      queryKey: [
+         'reservation',
+         params?.page,
+         params?.limit,
+         params?.sortBy,
+         params?.sortOrder,
+         params?.status,
+         params?.startDate,
+         params?.endDate,
+         params?.search,
+         params?.minAmount,
+         params?.maxAmount
+      ],
       queryFn: async () => {
-         const [ properties, roomTypes ] = await Promise.all([
-            Axios.get('/properties').then(r => r.data),
-            Axios.get('/room-types').then(r => r.data)
-         ]);
-         return { properties, roomTypes };
+         const res = await Axios.get<RPResPagination>(`/reservation/user`, {
+            params: {
+               page: params?.page || 1,
+               limit: params?.limit || 10,
+               sortBy: params?.sortBy || 'createdAt',
+               sortOrder: params?.sortOrder || 'desc',
+               status: params?.status,
+               startDate: params?.startDate,
+               endDate: params?.endDate,
+               search: params?.search,
+               minAmount: params?.minAmount,
+               maxAmount: params?.maxAmount
+            }
+         });
+         const reservation = res.data;
+         return reservation;
       }
    });
+}
+
+export function getOwnerReservation (params?: GetUserReservationsParams) {
+   return useQuery({
+      queryKey: [
+         'reservation',
+         params?.page,
+         params?.limit,
+         params?.sortBy,
+         params?.sortOrder,
+         params?.status,
+         params?.startDate,
+         params?.endDate,
+         params?.search,
+         params?.minAmount,
+         params?.maxAmount
+      ],
+      queryFn: async () => {
+         const res = await Axios.get<RPResPagination>(`/reservation/owner`, {
+            params: {
+               page: params?.page || 1,
+               limit: params?.limit || 10,
+               sortBy: params?.sortBy || 'createdAt',
+               sortOrder: params?.sortOrder || 'desc',
+               status: params?.status,
+               startDate: params?.startDate,
+               endDate: params?.endDate,
+               search: params?.search,
+               minAmount: params?.minAmount,
+               maxAmount: params?.maxAmount
+            }
+         });
+         const reservation = res.data;
+         return reservation;
+      }
+   });
+}
+
+export async function cancelReservationByUser (reservationId: string) {
+   const response = await Axios.post(`/reservation/${reservationId}/cancel`);
+   return response.data;
 }

@@ -48,6 +48,17 @@ export interface RPResponse {
    message: string;
 }
 
+export interface RPResPagination {
+   reservations: ReservationWithPayment[];
+   pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalCount: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+   };
+}
+
 export interface PaymentState {
    reservation: ReservationWithPayment | null; // Data reservasi yang dimuat
    isLoading: boolean; // Status loading
