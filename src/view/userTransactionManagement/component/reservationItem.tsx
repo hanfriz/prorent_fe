@@ -2,9 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-// Assuming you have the correct interface for a single reservation item
-// Update the import path and interface name as needed
-import { ReservationWithPayment } from '@/interface/paymentInterface'; // Or wherever your single reservation interface is
+import { ReservationWithPayment } from '@/interface/paymentInterface'; 
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -17,29 +15,22 @@ import { MoreHorizontal, Eye, CreditCard, XCircle, RefreshCw } from 'lucide-reac
 import { toast } from "sonner";
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // Import Link for navigation
-import CancelReservationDialog from './cancelReservationDialog'; // Assuming this is the correct path/name
+import Link from 'next/link'; 
+import CancelReservationDialog from './cancelReservationDialog';
 
-// --- Correct the Prop Type ---
 interface ReservationItemProps {
-  // reservation should be a single item, not the whole paginated response
-  reservation: ReservationWithPayment;
-  // If you still need onDelete for cancelling (though using mutation is better):
-  // onDelete: (id: string) => void;
+  reservation: ReservationWithPayment; 
 }
 
-export function ReservationItem({ reservation }: ReservationItemProps) { // Remove onDelete from props if using mutation
+export function ReservationItem({ reservation }: ReservationItemProps) { 
   const router = useRouter();
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
-  // --- Corrected Data Mapping (Access properties directly on 'reservation') ---
   const orderId = reservation.id;
-  // Use optional chaining (?.) to safely access nested properties
   const propertyName = reservation.RoomType?.property?.name || 'N/A';
   const roomTypeName = reservation.RoomType?.name || 'N/A';
   const displayProduct = `${propertyName} - ${roomTypeName}`;
 
-  // Format dates (ensure dates are valid before formatting)
   let formattedStartDate = 'N/A';
   let formattedEndDate = 'N/A';
   let displayDate = 'N/A';
@@ -56,8 +47,7 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
     displayDate = 'Invalid Date';
   }
 
-  // Access payment amount
-  const price = reservation.payment?.amount ?? 0; // Default to 0 if undefined
+  const price = reservation.payment?.amount ?? 0;
   const formattedPrice = new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
@@ -110,17 +100,11 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
 
   const { label: statusLabel, className: statusBadgeClass } = getStatusInfo(status);
 
-  // --- Action Handlers ---
   const handleViewClick = () => {
     toast.info(`Viewing details for Reservation ${orderId}`);
-    // Example navigation to a details page
-    // router.push(`/reservations/${orderId}`);
   };
 
-  // Pay Now button logic (conditionally rendered)
   const isPaymentButtonActive = status === 'PENDING_PAYMENT';
-
-  // Cancel button logic (conditionally rendered)
   const isCancelButtonActive = status === 'PENDING_PAYMENT' || status === 'PENDING_CONFIRMATION';
 
   const handleCancelClick = () => {
@@ -130,24 +114,17 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
   };
 
   const handleConfirmCancel = () => {
-    // Trigger the cancel mutation here, or call a function passed down if preferred
-    // For example, if using the mutation hook in the parent list component:
-    // onCancel(reservation.id);
     toast.promise(
-      // Simulate an API call or call the actual mutation function
       new Promise((resolve) => setTimeout(resolve, 1000)),
       {
         loading: 'Cancelling reservation...',
         success: () => {
           setIsCancelDialogOpen(false);
-          // Optionally, invalidate queries here or let parent handle it
-          // queryClient.invalidateQueries({ queryKey: ['reservations'] });
           return `Reservation ${orderId} cancelled.`;
         },
         error: 'Failed to cancel reservation.',
       }
     );
-    // setIsCancelDialogOpen(false); // Handled in toast.promise success
   };
 
   const handleOrderAgainClick = () => {
@@ -155,7 +132,6 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
     // router.push(`/book?propertyId=${reservation.propertyId}&roomTypeId=${reservation.roomTypeId}`);
   };
 
-  // If using the dialog for cancel confirmation:
   const handleCancelDialogClose = () => {
     setIsCancelDialogOpen(false);
   };
@@ -163,10 +139,8 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
 
   return (
     <tr className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-      {/* Product/Reservation Info */}
       <th scope="row" className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
         <div className="flex items-center">
-          {/* Placeholder for property image - ideally use an actual image URL */}
           <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex items-center justify-center text-xs text-gray-500">
             Img
           </div>
@@ -176,18 +150,14 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
           </div>
         </div>
       </th>
-      {/* Date */}
       <td className="px-4 py-3">{displayDate}</td>
-      {/* Price */}
       <td className="px-4 py-3">{formattedPrice}</td>
-      {/* Status */}
       <td className="px-4 py-3">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadgeClass}`}>
           {statusLabel}
         </span>
       </td>
-      {/* Actions */}
-      <td className="px-4 py-3 flex items-center justify-end space-x-1"> {/* Add space between buttons */}
+      <td className="px-4 py-3 flex items-center justify-end space-x-1">
          {/* Pay Now Button - Only active for PENDING_PAYMENT */}
          {isPaymentButtonActive && (
           <Link href={`/payment/${orderId}`}> {/* Adjust path as needed */}
@@ -232,8 +202,6 @@ export function ReservationItem({ reservation }: ReservationItemProps) { // Remo
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
-
-      {/* Cancel Confirmation Dialog */}
 <CancelReservationDialog
   isOpen={isCancelDialogOpen}
   onClose={handleCancelDialogClose}

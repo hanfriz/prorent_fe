@@ -1,7 +1,7 @@
 // components/reservations/ReservationActions.tsx
 "use client";
 
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,12 +10,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { cancelReservationByUser } from '@/service/reservationService'; // You need to implement this service
-import CancelReservationDialog from './cancelReservationDialog';
-import { RPResPagination, ReservationWithPayment } from '@/interface/paymentInterface'; // Import ReservationStatus
-import Link from 'next/link'; // For navigation to payment page
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { cancelReservationByUser } from "@/service/reservationService"; // You need to implement this service
+import CancelReservationDialog from "./cancelReservationDialog";
+import {
+  RPResPagination,
+  ReservationWithPayment,
+} from "@/interface/paymentInterface"; // Import ReservationStatus
+import Link from "next/link"; // For navigation to payment page
 
 interface ReservationActionsProps {
   reservation: ReservationWithPayment; // Pass the full reservation object
@@ -28,15 +31,16 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
   // Mutation for cancelling reservation
   const cancelMutation = useMutation({
     mutationFn: cancelReservationByUser, // Implement this function in your service
-    onSuccess: (_, cancelledReservationId) => { // Access the ID passed to mutate
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      toast.success('Reservation cancelled successfully');
+    onSuccess: (_, cancelledReservationId) => {
+      // Access the ID passed to mutate
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      toast.success("Reservation cancelled successfully");
       // Optional: Close dialog on success
       setIsCancelDialogOpen(false);
     },
     onError: (error: any) => {
-      toast.error('Failed to cancel reservation', {
-        description: error.message || 'An unknown error occurred',
+      toast.error("Failed to cancel reservation", {
+        description: error.message || "An unknown error occurred",
       });
     },
   });
@@ -50,19 +54,18 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
   };
 
   // Determine if payment button should be active
-  const isPaymentButtonActive = reservation.orderStatus === 'PENDING_PAYMENT';
+  const isPaymentButtonActive = reservation.orderStatus === "PENDING_PAYMENT";
 
   return (
     <>
       <div className="flex items-center justify-end space-x-2">
-        {/* Pay Now Button - Only active for PENDING_PAYMENT */}
-        {isPaymentButtonActive && (
-          <Link href={`/payment/${reservation.id}`}> {/* Adjust path as needed */}
+        {/* {isPaymentButtonActive && (
+          <Link href={`/payment/${reservation.id}`}> 
             <Button size="sm">
-              Pay Now
+              upload payment proof
             </Button>
           </Link>
-        )}
+        )} */}
 
         {/* Actions Dropdown Menu */}
         <DropdownMenu>
@@ -73,21 +76,27 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => console.log('View details', reservation.id)} // Implement view details
-            >
+            <DropdownMenuItem>
+              <Link href={`/reservation/${reservation.id}`} className="capitalize font-semibold">
               View Details
+              </Link>
             </DropdownMenuItem>
-            {/* Conditionally render Cancel based on status */}
-            {(reservation.orderStatus === 'PENDING_PAYMENT' ||
-              reservation.orderStatus === 'PENDING_CONFIRMATION') && (
-                <DropdownMenuItem
-                  onClick={handleCancelClick}
-                  className="text-red-600 focus:text-red-600"
-                >
-                  Cancel Reservation
-                </DropdownMenuItem>
-              )}
+            {isPaymentButtonActive && (
+              <DropdownMenuItem>
+                <Link href={`/payment/${reservation.id}`} className="capitalize font-semibold">
+                  upload payment proof
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {(reservation.orderStatus === "PENDING_PAYMENT" ||
+              reservation.orderStatus === "PENDING_CONFIRMATION") && (
+              <DropdownMenuItem
+                onClick={handleCancelClick}
+                className="text-red-600 focus:text-red-600 font-semibold"
+              >
+                Cancel Reservation
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

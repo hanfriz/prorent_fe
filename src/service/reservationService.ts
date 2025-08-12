@@ -40,6 +40,16 @@ export const uploadPaymentProof = async (reservationId: string, file: File) => {
    }
 };
 
+export async function fetchReservationWithPayment (reservationId: string) {
+   try {
+      const response = await Axios.get<ReservationWithPayment>(`/reservation/${reservationId}`);
+      return response.data;
+   } catch (error) {
+      console.error('Error fetching reservation:', error);
+      return null;
+   }
+}
+
 export function getReservationWithPayment (reservationId: string) {
    return useQuery({
       queryKey: [ 'reservation', reservationId ],
