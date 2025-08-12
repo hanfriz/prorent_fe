@@ -43,3 +43,19 @@ export interface ErrorResponse {
   success: false;
   message: string;
 }
+
+export interface VerifyEmailRequest {
+  token: string;
+  password: string;
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    userId: string;
+    email: string;
+    role: Role;
+    isVerified: boolean;
+  };
+}
