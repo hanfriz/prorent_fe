@@ -15,10 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { RPResPagination, ReservationWithPayment } from '@/interface/paymentInterface';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
-import DeleteReservationDialog from '@/view/userTransactionManagement/component/cancelReservationDialog';
 import ReservationActions from '@/view/userTransactionManagement/component/reservationAction';
 import {ReservationStatus } from '@/interface/enumInterface';
-import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface ReservationTableProps {
   reservations: ReservationWithPayment[];
@@ -39,10 +38,39 @@ const ReservationTable = ({
 }: ReservationTableProps) => {
   const { sortBy = 'createdAt', sortOrder = 'desc' } = currentParams;
 
-  const handleSort = (column: string) => {
-    const newSortOrder = sortBy === column && sortOrder === 'asc' ? 'desc' : 'asc';
-    onSortChange(column, newSortOrder);
-  };
+const handleSort = (column: string) => {
+  let backendSortBy: string | null = null;
+  switch (column) {
+    case 'startDate':
+    case 'endDate':
+    case 'createdAt':
+    case 'orderStatus':
+      backendSortBy = column;
+      break;
+    case 'payment.invoiceNumber':
+      backendSortBy = 'invoiceNumber';
+      break;
+    case 'payment.amount':
+      backendSortBy = 'totalAmount';
+      break;
+    case 'id':
+      backendSortBy = 'reservationNumber';
+      break;
+
+    case 'property.name':
+    case 'RoomType.name':
+      console.warn(`Sorting by '${column}' is disabled.`);
+      return; 
+
+    default:
+      console.warn(`Unknown column for sorting: ${column}`);
+      return;
+  }
+  if (backendSortBy) {
+    const newSortOrder = (sortBy === backendSortBy && sortOrder === 'asc') ? 'desc' : 'asc';
+    onSortChange(backendSortBy, newSortOrder);
+  }
+};
 
 const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specific type
   switch (status) {
@@ -69,7 +97,7 @@ const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specif
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">ID</TableHead>
+            <TableHead onClick={() => handleSort('payment.invoiceNumber')} className="w-[100px] cursor-pointer">Invoice Number</TableHead>
             <TableHead onClick={() => handleSort('property.name')} className="cursor-pointer">
               Property {renderSortIndicator('property.name')}
             </TableHead>
