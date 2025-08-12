@@ -45,6 +45,8 @@ const handleSort = (column: string) => {
     case 'endDate':
     case 'createdAt':
     case 'orderStatus':
+    case 'property.name':
+    case 'RoomType.name':
       backendSortBy = column;
       break;
     case 'payment.invoiceNumber':
@@ -57,10 +59,9 @@ const handleSort = (column: string) => {
       backendSortBy = 'reservationNumber';
       break;
 
-    case 'property.name':
-    case 'RoomType.name':
-      console.warn(`Sorting by '${column}' is disabled.`);
-      return; 
+
+      // console.warn(`Sorting by '${column}' is disabled.`);
+      // return; 
 
     default:
       console.warn(`Unknown column for sorting: ${column}`);
