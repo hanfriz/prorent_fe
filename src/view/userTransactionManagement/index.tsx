@@ -12,14 +12,6 @@ import ReservationTable from './component/reservationTable'; // Adjust path
 import ReservationFilters from './component/reservationList'; // Adjust path
 import ReservationSkeleton from './component/reservationSkeleton'; // Adjust path
 
-// Props interface for ReservationList
-// interface ReservationListProps {
-//   searchTerm: string;
-//   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-//   statusFilter: string | null;
-//   setStatusFilter: React.Dispatch<React.SetStateAction<string | null>>;
-// }
-
 // Main ReservationList component
 const ReservationList = () => {
       const [searchTerm, setSearchTerm] = useState<string>('');
