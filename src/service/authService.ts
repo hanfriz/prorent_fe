@@ -4,6 +4,8 @@ import {
   RegisterResponse,
   LoginRequest,
   LoginResponse,
+  VerifyEmailRequest,
+  VerifyEmailResponse,
 } from "@/interface/authInterface";
 
 export const authService = {
@@ -23,6 +25,13 @@ export const authService = {
 
   refreshToken: async (refreshToken: string): Promise<LoginResponse> => {
     const response = await Axios.post("/auth/refresh", { refreshToken });
+    return response.data;
+  },
+
+  verifyEmail: async (
+    data: VerifyEmailRequest
+  ): Promise<VerifyEmailResponse> => {
+    const response = await Axios.post("/auth/verify-email", data);
     return response.data;
   },
 };
