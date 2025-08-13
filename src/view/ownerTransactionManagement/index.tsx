@@ -7,19 +7,16 @@ import { toast } from 'sonner';
 import { RPResPagination } from '@/interface/paymentInterface';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
 import { getOwnerReservation } from '@/service/reservationService';
-import { useReservationStore } from '@/lib/stores/reservationStore'; // Adjust path
-import ReservationTable from '../userTransactionManagement/component/reservationTable'; // Adjust path
-import ReservationFilters from '../userTransactionManagement/component/reservationList'; // Adjust path
-import ReservationSkeleton from '../userTransactionManagement/component/reservationSkeleton'; // Adjust path
+import { useReservationStore } from '@/lib/stores/reservationStore';
+import ReservationTable from '../userTransactionManagement/component/reservationTable'; 
+import ReservationFilters from '../userTransactionManagement/component/reservationList'; 
+import ReservationSkeleton from '../userTransactionManagement/component/reservationSkeleton';
 
-// Main ReservationList component
 const ReservationList = () => {
       const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  // Get pagination/sorting params from Zustand store
   const { reservationParams, updateReservationParams } = useReservationStore();
 
-  // --- Handlers for filter changes ---
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     updateReservationParams({ search: term || undefined, page: 1 });
@@ -30,7 +27,6 @@ const ReservationList = () => {
     updateReservationParams({ status: status || undefined, page: 1 });
   };
 
-  // --- Handlers for pagination/sorting passed to table ---
   const handlePageChange = (newPage: number) => {
     updateReservationParams({ page: newPage });
   };
@@ -43,7 +39,6 @@ const ReservationList = () => {
     updateReservationParams({ sortBy, sortOrder, page: 1 });
   };
 
-  // --- Combine local state with Zustand params for the query ---
   const effectiveParams = useMemo<GetUserReservationsParams>(() => {
     return {
       ...reservationParams,
@@ -52,11 +47,9 @@ const ReservationList = () => {
     };
   }, [reservationParams, searchTerm, statusFilter]);
 
-  // --- TanStack Query for fetching reservations ---
   const { data, isLoading, isError, error } = getOwnerReservation(effectiveParams);
   
 
-  // --- Handle query errors ---
   if (isError) {
     toast.error('Failed to load reservations', {
       description: error instanceof Error ? error.message : 'Unknown error',
@@ -75,14 +68,13 @@ const ReservationList = () => {
         currentStatus={statusFilter || undefined}
       />
 
-      {/* Render Table or Skeleton based on loading state */}
       {isLoading ? (
         <ReservationSkeleton />
       ) : (
       <ReservationTable
-        // --- Correctly access properties of data, handling potential undefined ---
-        reservations={data?.reservations ?? []} // Use optional chaining (?.) and nullish coalescing (??)
-        pagination={data?.pagination}           // Pass pagination object directly, undefined is okay for the table if it handles it
+
+        reservations={data?.reservations ?? []}
+        pagination={data?.pagination}          
         onPageChange={handlePageChange}
         onLimitChange={handleLimitChange}
         onSortChange={handleSortChange}
