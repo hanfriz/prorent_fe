@@ -11,7 +11,11 @@ import {
 import { authService } from "@/service/authService";
 import { Role } from "@/interface/enumInterface";
 
-export const useRegisterForm = () => {
+interface UseRegisterFormProps {
+  role?: Role;
+}
+
+export const useRegisterForm = ({ role }: UseRegisterFormProps = {}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +28,7 @@ export const useRegisterForm = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: undefined,
+      role: role || undefined,
     },
   });
 
