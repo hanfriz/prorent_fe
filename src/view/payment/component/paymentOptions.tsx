@@ -29,7 +29,7 @@ export default function PaymentOptions({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadError, clearError } = usePaymentProofUpload();
   const reservation = usePaymentStore(state => state.reservation);
-  const isPaymentProofUploaded = !!reservation?.paymentProof;
+  const isPaymentProofUploaded = !!reservation?.PaymentProof;
 
   const handleMethodChange = (method: "manual" | "gateway") => {
     setSelectedMethod(method);

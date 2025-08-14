@@ -4,9 +4,6 @@ import { ReservationItem } from "@/view/userTransactionManagement/component/rese
 import {
   Table,
   TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -15,7 +12,7 @@ import {
 export default async function ReservationDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const reservation = await fetchReservationWithPayment((await params).id);
 

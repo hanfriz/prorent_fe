@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'; 
-import CancelReservationDialog from '../../../components/reservations/ReservationDialog';
+import { ReservationDialog } from '@/components/reservations/ReservationDialog';
 
 interface ReservationItemProps {
   reservation: ReservationWithPayment; 
@@ -24,7 +24,8 @@ interface ReservationItemProps {
 
 export function ReservationItem({ reservation }: ReservationItemProps) { 
   const router = useRouter();
-  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState<'cancel' | 'reject' | 'confirm' | null>(null);
 
   const orderId = reservation.id;
   const propertyName = reservation.RoomType?.property?.name || 'N/A';
@@ -54,10 +55,8 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
     minimumFractionDigits: 0,
   }).format(price);
 
-  // Use orderStatus
   const status = reservation.orderStatus;
 
-  // --- Status Handling ---
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'PENDING_PAYMENT':
@@ -107,9 +106,11 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
   const isPaymentButtonActive = status === 'PENDING_PAYMENT';
   const isCancelButtonActive = status === 'PENDING_PAYMENT' || status === 'PENDING_CONFIRMATION';
 
+  // Dialog handlers
   const handleCancelClick = () => {
     if (isCancelButtonActive) {
-       setIsCancelDialogOpen(true);
+      setDialogAction('cancel');
+      setIsDialogOpen(true);
     }
   };
 
@@ -119,7 +120,8 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
       {
         loading: 'Cancelling reservation...',
         success: () => {
-          setIsCancelDialogOpen(false);
+          setIsDialogOpen(false);
+          setDialogAction(null);
           return `Reservation ${orderId} cancelled.`;
         },
         error: 'Failed to cancel reservation.',
@@ -129,13 +131,12 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
 
   const handleOrderAgainClick = () => {
     toast.success(`Booking again ${displayProduct}!`);
-    // router.push(`/book?propertyId=${reservation.propertyId}&roomTypeId=${reservation.roomTypeId}`);
   };
 
-  const handleCancelDialogClose = () => {
-    setIsCancelDialogOpen(false);
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setDialogAction(null);
   };
-
 
   return (
     <tr className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -145,7 +146,7 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
             Img
           </div>
           <div className="ml-4">
-            <div className="text-base font-semibold">{orderId.substring(0, 8)}...</div> {/* Truncate ID */}
+            <div className="text-base font-semibold">{orderId.substring(0, 8)}...</div>
             <div className="font-normal text-gray-500">{displayProduct}</div>
           </div>
         </div>
@@ -158,13 +159,10 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
         </span>
       </td>
       <td className="px-4 py-3 flex items-center justify-end space-x-1">
-         {/* Pay Now Button - Only active for PENDING_PAYMENT */}
-         {isPaymentButtonActive && (
-          <Link href={`/payment/${orderId}`}> {/* Adjust path as needed */}
-            <Button size="sm" className="h-8"> {/* Adjust size if needed */}
-              Pay Now
-            </Button>
-          </Link>
+        {isPaymentButtonActive && (
+                <Link href={`/payment/${reservation.id}`} className="capitalize font-semibold">
+                  Upload Payment Proof
+                </Link>
         )}
 
         <DropdownMenu>
@@ -180,7 +178,6 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
               <span>View Details</span>
             </DropdownMenuItem>
 
-            {/* Conditionally render Cancel based on status */}
             {isCancelButtonActive && (
               <DropdownMenuItem onClick={handleCancelClick} className="text-red-600 focus:text-red-600">
                 <XCircle className="mr-2 h-4 w-4" />
@@ -193,21 +190,20 @@ export function ReservationItem({ reservation }: ReservationItemProps) {
               <RefreshCw className="mr-2 h-4 w-4" />
               <span>Book Again</span>
             </DropdownMenuItem>
-            {/* Remove or disable the Delete option if not needed */}
-            {/* <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleDeleteClick} className="text-red-600">
-              <XCircle className="mr-2 h-4 w-4" />
-              <span>Delete</span>
-            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
-<CancelReservationDialog
-  isOpen={isCancelDialogOpen}
-  onClose={handleCancelDialogClose}
-  onConfirm={handleConfirmCancel}  
-  reservationId={orderId}
-/>
+      
+      {/* Unified Reservation Dialog */}
+      {dialogAction && (
+        <ReservationDialog
+          isOpen={isDialogOpen}
+          onClose={handleCloseDialog}
+          onConfirm={handleConfirmCancel}
+          reservationId={orderId}
+          actionType={dialogAction}
+        />
+      )}
     </tr>
   );
 }

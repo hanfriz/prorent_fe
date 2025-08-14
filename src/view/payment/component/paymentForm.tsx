@@ -57,7 +57,7 @@ export default function PaymentForm() {
     },
   });
 
-  const isPaymentProofUploaded = !!reservationData?.paymentProof;
+  const isPaymentProofUploaded = !!reservationData?.PaymentProof;
 
   if (!reservationId) {
     return <ErrorMessage message="Error: Reservation ID not found in URL." />;
