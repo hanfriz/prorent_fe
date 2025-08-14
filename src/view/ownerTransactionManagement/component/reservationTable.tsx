@@ -1,7 +1,7 @@
 // components/reservations/ReservationTable.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -15,9 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { RPResPagination, ReservationWithPayment } from '@/interface/paymentInterface';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
-import ReservationActions from '@/view/userTransactionManagement/component/reservationAction';
+import { ImageModal } from './imageModal'; // Make sure this path is correct
+import ReservationActions from './reservationAction';
 import {ReservationStatus } from '@/interface/enumInterface';
-
 
 interface ReservationTableProps {
   reservations: ReservationWithPayment[];
@@ -36,61 +36,69 @@ const ReservationTable = ({
   onSortChange,
   currentParams
 }: ReservationTableProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
+  
   const { sortBy = 'createdAt', sortOrder = 'desc' } = currentParams;
 
-const handleSort = (column: string) => {
-  let backendSortBy: string | null = null;
-  switch (column) {
-    case 'startDate':
-    case 'endDate':
-    case 'createdAt':
-    case 'orderStatus':
-    case 'property.name':
-    case 'RoomType.name':
-      backendSortBy = column;
-      break;
-    case 'payment.invoiceNumber':
-      backendSortBy = 'invoiceNumber';
-      break;
-    case 'payment.amount':
-      backendSortBy = 'totalAmount';
-      break;
-    case 'id':
-      backendSortBy = 'reservationNumber';
-      break;
+  const handleSort = (column: string) => {
+    let backendSortBy: string | null = null;
+    switch (column) {
+      case 'startDate':
+      case 'endDate':
+      case 'createdAt':
+      case 'orderStatus':
+      case 'property.name':
+      case 'RoomType.name':
+        backendSortBy = column;
+        break;
+      case 'payment.invoiceNumber':
+        backendSortBy = 'invoiceNumber';
+        break;
+      case 'payment.amount':
+        backendSortBy = 'totalAmount';
+        break;
+      case 'id':
+        backendSortBy = 'reservationNumber';
+        break;
+      default:
+        console.warn(`Unknown column for sorting: ${column}`);
+        return;
+    }
+    if (backendSortBy) {
+      const newSortOrder = (sortBy === backendSortBy && sortOrder === 'asc') ? 'desc' : 'asc';
+      onSortChange(backendSortBy, newSortOrder);
+    }
+  };
 
-
-      // console.warn(`Sorting by '${column}' is disabled.`);
-      // return; 
-
-    default:
-      console.warn(`Unknown column for sorting: ${column}`);
-      return;
-  }
-  if (backendSortBy) {
-    const newSortOrder = (sortBy === backendSortBy && sortOrder === 'asc') ? 'desc' : 'asc';
-    onSortChange(backendSortBy, newSortOrder);
-  }
-};
-
-const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specific type
-  switch (status) {
-    case 'PENDING_PAYMENT':
-      return 'destructive'; // Red badge
-    case 'PENDING_CONFIRMATION':
-      return 'secondary'; // Gray badge
-    case 'CONFIRMED':
-      return 'default'; // Blue badge (or 'success' if you add it)
-    case 'CANCELLED':
-      return 'outline'; // White badge with border
-    default:
-      return 'default'; // Fallback
-  }
-};
+  const getStatusBadgeVariant = (status: ReservationStatus) => {
+    switch (status) {
+      case 'PENDING_PAYMENT':
+        return 'destructive';
+      case 'PENDING_CONFIRMATION':
+        return 'secondary';
+      case 'CONFIRMED':
+        return 'default';
+      case 'CANCELLED':
+        return 'outline';
+      default:
+        return 'default';
+    }
+  };
 
   const renderSortIndicator = (column: string) => {
     if (sortBy !== column) return null;
     return sortOrder === 'asc' ? '↑' : '↓';
+  };
+
+  const openImageModal = (url: string, alt: string) => {
+    setSelectedImage({ url, alt });
+    setIsModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
   };
 
   return (
@@ -98,18 +106,23 @@ const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specif
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead onClick={() => handleSort('payment.invoiceNumber')} className="w-[100px] cursor-pointer">Invoice Number</TableHead>
+            <TableHead onClick={() => handleSort('payment.invoiceNumber')} className="w-[100px] cursor-pointer">Invoice Number
+              {renderSortIndicator('payment.invoiceNumber')}
+            </TableHead>
             <TableHead onClick={() => handleSort('property.name')} className="cursor-pointer">
               Property {renderSortIndicator('property.name')}
             </TableHead>
             <TableHead onClick={() => handleSort('RoomType.name')} className="cursor-pointer">
               Room Type {renderSortIndicator('RoomType.name')}
             </TableHead>
+            <TableHead className="cursor-pointer">
+              Payment Proof
+            </TableHead>
             <TableHead onClick={() => handleSort('startDate')} className="cursor-pointer">
-              Start Date {renderSortIndicator('startDate')}
+              CheckIn {renderSortIndicator('startDate')}
             </TableHead>
             <TableHead onClick={() => handleSort('endDate')} className="cursor-pointer">
-              End Date {renderSortIndicator('endDate')}
+              CheckOut {renderSortIndicator('endDate')}
             </TableHead>
             <TableHead onClick={() => handleSort('payment.amount')} className="cursor-pointer">
               Amount {renderSortIndicator('payment.amount')}
@@ -123,7 +136,7 @@ const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specif
         <TableBody>
           {reservations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                 No reservations found.
               </TableCell>
             </TableRow>
@@ -133,6 +146,21 @@ const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specif
                 <TableCell className="font-medium">{reservation.payment?.invoiceNumber}</TableCell>
                 <TableCell>{reservation.Property?.name || 'N/A'}</TableCell>
                 <TableCell>{reservation.RoomType?.name || 'N/A'}</TableCell>
+                <TableCell>
+                  {reservation.PaymentProof?.picture?.url ? (
+                    <button
+                      onClick={() => openImageModal(
+                        reservation.PaymentProof!.picture!.url!, 
+                        reservation.PaymentProof!.picture!.alt || 'Payment Proof'
+                      )}
+                      className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
+                      {reservation.PaymentProof?.picture?.alt || 'View Proof'}
+                    </button>
+                  ) : (
+                    'N/A'
+                  )}
+                </TableCell>
                 <TableCell>{reservation.startDate ? format(new Date(reservation.startDate), 'PPP') : 'N/A'}</TableCell>
                 <TableCell>{reservation.endDate ? format(new Date(reservation.endDate), 'PPP') : 'N/A'}</TableCell>
                 <TableCell>
@@ -145,13 +173,20 @@ const getStatusBadgeVariant = (status: ReservationStatus) => { // Use the specif
                 </TableCell>
                 <TableCell className="text-right">
                   <ReservationActions reservation={reservation} />
-                  {/* <DeleteReservationDialog reservationId={reservation.id} /> */}
                 </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        onClose={closeImageModal}
+        imageUrl={selectedImage?.url || ''}
+        altText={selectedImage?.alt || ''}
+      />
 
       {/* Pagination Controls */}
       {pagination && (

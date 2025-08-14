@@ -1,5 +1,6 @@
 import { PaymentType, ReservationStatus } from './enumInterface';
 import { PaymentProof } from './pictureInterface';
+import { Property } from './propertyInterface';
 import { RoomType } from './roomTypeInterface';
 
 export interface Payment {
@@ -39,8 +40,9 @@ export interface ReservationWithPayment {
 
    // Relasi yang dimuat berdasarkan query backend
    RoomType: RoomType;
+   Property: Property;
    payment: Payment | null;
-   paymentProof: PaymentProof | null;
+   PaymentProof: PaymentProof | null;
 }
 
 export interface RPResponse {

@@ -8,11 +8,11 @@ import { RPResPagination } from '@/interface/paymentInterface';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
 import { getOwnerReservation } from '@/service/reservationService';
 import { useReservationStore } from '@/lib/stores/reservationStore';
-import ReservationTable from '../userTransactionManagement/component/reservationTable'; 
+import ReservationTable from './component/reservationTable'; 
 import ReservationFilters from '../userTransactionManagement/component/reservationList'; 
 import ReservationSkeleton from '../userTransactionManagement/component/reservationSkeleton';
 
-const ReservationList = () => {
+const OwnerReservationList = () => {
       const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { reservationParams, updateReservationParams } = useReservationStore();
@@ -85,4 +85,4 @@ const ReservationList = () => {
   );
 };
 
-export default ReservationList;
+export default OwnerReservationList;

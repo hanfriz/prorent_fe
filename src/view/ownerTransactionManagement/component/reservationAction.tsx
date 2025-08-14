@@ -12,7 +12,7 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { ReservationDialog } from "@/components/reservations/ReservationDialog";
-import { useReservationMutations } from "../../ownerTransactionManagement/component/mutationAction";
+import { useReservationMutations } from "./mutationAction";
 import { ReservationActionsProps } from "@/interface/reservationInterface";
 import Link from "next/link";
 
@@ -88,7 +88,27 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
                   Upload Payment Proof
                 </Link>
               </DropdownMenuItem>
-            )}      
+            )}
+            
+            {(reservation.orderStatus === "PENDING_CONFIRMATION" ||
+              reservation.orderStatus === "PENDING_PAYMENT") && (
+              <>
+                <DropdownMenuItem
+                  onClick={handleRejectClick}
+                  className="text-red-600 focus:text-red-600 font-semibold"
+                >
+                  Reject Payment
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem
+                  onClick={handleConfirmClick}
+                  className="text-green-600 focus:text-green-600 font-semibold"
+                >
+                  Confirm Payment
+                </DropdownMenuItem>
+              </>
+            )}
+            
             {(reservation.orderStatus === "PENDING_PAYMENT" ||
               reservation.orderStatus === "PENDING_CONFIRMATION") && (
               <DropdownMenuItem

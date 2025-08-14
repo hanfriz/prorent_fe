@@ -137,3 +137,13 @@ export async function cancelReservationByUser (reservationId: string) {
    const response = await Axios.post(`/reservation/${reservationId}/cancel`);
    return response.data;
 }
+
+export async function rejectReservationByOwner (reservationId: string) {
+   const response = await Axios.post(`/reservation/${reservationId}/reject`);
+   return response.data;
+}
+
+export async function confirmReservationByOwner (reservationId: string) {
+   const response = await Axios.post(`/reservation/${reservationId}/confirm`);
+   return response.data;
+}

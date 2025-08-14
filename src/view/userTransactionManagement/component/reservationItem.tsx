@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'; 
-import CancelReservationDialog from './cancelReservationDialog';
+import CancelReservationDialog from '../../../components/reservations/ReservationDialog';
 
 interface ReservationItemProps {
   reservation: ReservationWithPayment; 
