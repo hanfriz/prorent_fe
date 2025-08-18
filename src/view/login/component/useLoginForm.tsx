@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { loginValidationSchema, type LoginFormData } from "@/validation/authValidation";
+import {
+  loginValidationSchema,
+  type LoginFormData,
+} from "@/validation/authValidation";
 import { authService } from "@/service/authService";
 
 export const useLoginForm = () => {
@@ -30,38 +33,44 @@ export const useLoginForm = () => {
 
       if (response.success) {
         setSuccessMessage(response.message);
-        
+
         // Store token in localStorage
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        
+
         // Redirect based on response redirectUrl
         setTimeout(() => {
-          router.push(response.data.redirectUrl);
+          // router.push(response.data.redirectUrl);
+          router.push("/dashboard");
         }, 1000);
       }
     } catch (error: any) {
       // Handle error
-      const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
-      
+      const errorMessage =
+        error.response?.data?.message || "Login failed. Please try again.";
+
       // If it's an email/password error, set the error on the appropriate field
-      if (errorMessage.toLowerCase().includes("email") || 
-          errorMessage.toLowerCase().includes("not found")) {
-        form.setError("email", { 
-          type: "manual", 
-          message: errorMessage 
+      if (
+        errorMessage.toLowerCase().includes("email") ||
+        errorMessage.toLowerCase().includes("not found")
+      ) {
+        form.setError("email", {
+          type: "manual",
+          message: errorMessage,
         });
-      } else if (errorMessage.toLowerCase().includes("password") || 
-                 errorMessage.toLowerCase().includes("invalid")) {
-        form.setError("password", { 
-          type: "manual", 
-          message: errorMessage 
+      } else if (
+        errorMessage.toLowerCase().includes("password") ||
+        errorMessage.toLowerCase().includes("invalid")
+      ) {
+        form.setError("password", {
+          type: "manual",
+          message: errorMessage,
         });
       } else {
         // For other errors, set it as a general form error
-        form.setError("root", { 
-          type: "manual", 
-          message: errorMessage 
+        form.setError("root", {
+          type: "manual",
+          message: errorMessage,
         });
       }
     } finally {

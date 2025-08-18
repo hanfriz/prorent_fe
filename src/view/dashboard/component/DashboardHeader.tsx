@@ -40,17 +40,17 @@ export default function DashboardHeader({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <Link href="/">
               <Image
-                src="/prorent-logo.svg"
+                src="/prorent-logo.png"
                 alt="ProRent Logo"
                 width={120}
                 height={40}
                 className="mr-4"
               />
             </Link>
-          </div>
+          </div> */}
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
@@ -92,10 +92,12 @@ export default function DashboardHeader({
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
+                <Link href="/profile">
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
