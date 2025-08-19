@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authService } from "@/service/authService";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -26,25 +27,17 @@ export const useAuth = () => {
 
   const checkAuth = () => {
     try {
-      // Check localStorage for token
-      const token = localStorage.getItem("token");
-      const user = localStorage.getItem("user");
+      // Check cookies for token and user info
+      const isAuthenticated = authService.isAuthenticated();
+      const token = authService.getAccessToken();
+      const user = authService.getCurrentUser();
 
-      if (token && user) {
-        setAuthState({
-          isAuthenticated: true,
-          isLoading: false,
-          token,
-          user: JSON.parse(user),
-        });
-      } else {
-        setAuthState({
-          isAuthenticated: false,
-          isLoading: false,
-          token: null,
-          user: null,
-        });
-      }
+      setAuthState({
+        isAuthenticated,
+        isLoading: false,
+        token: token || null,
+        user,
+      });
     } catch (error) {
       console.error("Auth check error:", error);
       setAuthState({
@@ -56,27 +49,44 @@ export const useAuth = () => {
     }
   };
 
-  const login = (token: string, userData: any) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setAuthState({
-      isAuthenticated: true,
-      isLoading: false,
-      token,
-      user: userData,
-    });
+  const login = async (credentials: any) => {
+    try {
+      const result = await authService.login(credentials);
+
+      if (result.success) {
+        // Refresh auth state after successful login
+        checkAuth();
+        return result;
+      }
+
+      throw new Error(result.message || "Login failed");
+    } catch (error) {
+      throw error;
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setAuthState({
-      isAuthenticated: false,
-      isLoading: false,
-      token: null,
-      user: null,
-    });
-    router.push("/login");
+  const logout = async () => {
+    try {
+      await authService.logout();
+      setAuthState({
+        isAuthenticated: false,
+        isLoading: false,
+        token: null,
+        user: null,
+      });
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if logout API fails, clear local state
+      authService.clearSession();
+      setAuthState({
+        isAuthenticated: false,
+        isLoading: false,
+        token: null,
+        user: null,
+      });
+      router.push("/login");
+    }
   };
 
   const redirectToLogin = () => {

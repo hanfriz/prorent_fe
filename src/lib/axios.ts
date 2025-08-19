@@ -1,61 +1,79 @@
-// src/services/apiClient.ts
 import axios from "axios";
+import { cookieUtils } from "./cookieUtils";
 
-// --- Temporary Setup ---
-// TODO: Replace with actual base URL and auth logic
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL; // Example local dev URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
 
 const Axios = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
 });
 
-// Add a request interceptor to include token from localStorage
+// Request interceptor to add token from cookies
 Axios.interceptors.request.use(
   (config) => {
-    // Only run on client side
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (token) {
-        console.log("Adding token to request:", token.substring(0, 20) + "...");
-        config.headers.Authorization = `Bearer ${token}`;
+    const token = cookieUtils.getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for token refresh and error handling
+Axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If 401 and we haven't already tried to refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const refreshToken = cookieUtils.getRefreshToken();
+
+      if (refreshToken) {
+        try {
+          // Try to refresh the token
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            refreshToken,
+          });
+
+          if (response.data.success && response.data.data?.accessToken) {
+            const { accessToken, refreshToken: newRefreshToken } =
+              response.data.data;
+
+            // Update tokens in cookies
+            cookieUtils.setTokens(accessToken, newRefreshToken);
+
+            // Retry the original request with new token
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return Axios(originalRequest);
+          }
+        } catch (refreshError) {
+          // Refresh failed, clear session and redirect to login
+          cookieUtils.removeTokens();
+          cookieUtils.removeUserInfo();
+
+          // Only redirect if we're in the browser
+          if (typeof window !== "undefined") {
+            window.location.href = "/login";
+          }
+
+          return Promise.reject(refreshError);
+        }
       } else {
-        console.log("No token found in localStorage");
+        // No refresh token available, redirect to login
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
       }
     }
-    console.log("Request URL:", config.url);
-    console.log("Request headers:", config.headers);
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
-// --- Example Interceptor for Development Logging ---
-// Uncomment if needed for debugging API calls
-/*
-apiClient.interceptors.request.use(
-  (config) => {
-    console.log('Outgoing Request:', config);
-    return config;
-  },
-  (error) => {
-    console.error('Request Error:', error);
     return Promise.reject(error);
   }
 );
-
-apiClient.interceptors.response.use(
-  (response) => {
-    console.log('Incoming Response:', response);
-    return response;
-  },
-  (error) => {
-    console.error('Response Error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
-*/
 
 export default Axios;
