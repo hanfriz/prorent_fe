@@ -15,8 +15,10 @@ import { ReservationDialog } from "@/components/reservations/ReservationDialog";
 import { useReservationMutations } from "../../ownerTransactionManagement/component/mutationAction";
 import { ReservationActionsProps } from "@/interface/reservationInterface";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const ReservationActions = ({ reservation }: ReservationActionsProps) => {
+  const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [dialogAction, setDialogAction] = React.useState<'cancel' | 'reject' | 'confirm' | null>(null);
 
@@ -32,29 +34,16 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
     setIsDialogOpen(true);
   };
 
-  const handleRejectClick = () => {
-    setDialogAction('reject');
-    setIsDialogOpen(true);
-  };
-
-  const handleConfirmClick = () => {
-    setDialogAction('confirm');
-    setIsDialogOpen(true);
-  };
-
-  const handleConfirmAction = () => {
-    switch (dialogAction) {
-      case 'cancel':
-        cancelMutation.mutate(reservation.id);
-        break;
-      case 'reject':
-        rejectPaymentMutation.mutate(reservation.id);
-        break;
-      case 'confirm':
-        confirmPaymentMutation.mutate(reservation.id);
-        break;
-    }
-  };
+const handleConfirmAction = () => {
+  switch (dialogAction) {
+    case 'cancel':
+      cancelMutation.mutate(reservation.id, {
+        onSuccess: () => {    
+          handleCloseDialog();          
+        }
+      });      
+  }
+};
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);

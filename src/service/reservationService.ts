@@ -64,7 +64,7 @@ export function getReservationWithPayment (reservationId: string) {
 export function getUserReservation (params?: GetUserReservationsParams) {
    return useQuery({
       queryKey: [
-         'reservation',
+         'reservations',
          params?.page,
          params?.limit,
          params?.sortBy,
@@ -100,7 +100,7 @@ export function getUserReservation (params?: GetUserReservationsParams) {
 export function getOwnerReservation (params?: GetUserReservationsParams) {
    return useQuery({
       queryKey: [
-         'reservation',
+         'reservations',
          params?.page,
          params?.limit,
          params?.sortBy,
@@ -139,11 +139,11 @@ export async function cancelReservationByUser (reservationId: string) {
 }
 
 export async function rejectReservationByOwner (reservationId: string) {
-   const response = await Axios.post(`/reservation/${reservationId}/reject`);
+   const response = await Axios.patch(`/reservation/${reservationId}/reject`);
    return response.data;
 }
 
 export async function confirmReservationByOwner (reservationId: string) {
-   const response = await Axios.post(`/reservation/${reservationId}/confirm`);
+   const response = await Axios.patch(`/reservation/${reservationId}/confirm`);
    return response.data;
 }

@@ -42,16 +42,31 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
     setIsDialogOpen(true);
   };
 
-  const handleConfirmAction = () => {
+   const handleConfirmAction = () => {
+    const commonOptions = {
+      onSuccess: () => {
+        handleCloseDialog();
+      },
+      onError: (error: any) => {
+        // Show backend error message
+        const errorMessage = error.message || "An unknown error occurred";
+        toast.error(`Operation failed`, {
+          description: errorMessage,
+        });
+        // Close dialog on error
+        handleCloseDialog();
+      }
+    };
+
     switch (dialogAction) {
       case 'cancel':
-        cancelMutation.mutate(reservation.id);
+        cancelMutation.mutate(reservation.id, commonOptions);
         break;
       case 'reject':
-        rejectPaymentMutation.mutate(reservation.id);
+        rejectPaymentMutation.mutate(reservation.id, commonOptions);
         break;
       case 'confirm':
-        confirmPaymentMutation.mutate(reservation.id);
+        confirmPaymentMutation.mutate(reservation.id, commonOptions);
         break;
     }
   };
