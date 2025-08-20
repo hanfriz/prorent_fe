@@ -76,10 +76,8 @@ export default function DashboardView() {
     },
   ]);
 
-  const handleLogout = () => {
-    // Clear user session
-    localStorage.removeItem("token");
-    router.push("/login");
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (

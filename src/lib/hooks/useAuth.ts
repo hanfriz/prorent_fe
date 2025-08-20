@@ -25,12 +25,21 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
-  const checkAuth = () => {
+  const checkAuth = async (shouldFetchFresh = false) => {
     try {
       // Check cookies for token and user info
       const isAuthenticated = authService.isAuthenticated();
       const token = authService.getAccessToken();
-      const user = authService.getCurrentUser();
+      let user = authService.getCurrentUser();
+
+      // If authenticated and we should fetch fresh data (or no user data in cookies)
+      if (isAuthenticated && (shouldFetchFresh || !user)) {
+        console.log("Fetching fresh user data from API...");
+        const freshUser = await authService.fetchUserProfile();
+        if (freshUser) {
+          user = freshUser;
+        }
+      }
 
       setAuthState({
         isAuthenticated,
@@ -55,7 +64,7 @@ export const useAuth = () => {
 
       if (result.success) {
         // Refresh auth state after successful login
-        checkAuth();
+        await checkAuth(true); // Fetch fresh data after login
         return result;
       }
 
@@ -93,11 +102,19 @@ export const useAuth = () => {
     router.push("/login");
   };
 
+  // Refresh user data method
+  const refreshUserData = async () => {
+    if (authState.isAuthenticated) {
+      await checkAuth(true);
+    }
+  };
+
   return {
     ...authState,
     login,
     logout,
     redirectToLogin,
     checkAuth,
+    refreshUserData,
   };
 };

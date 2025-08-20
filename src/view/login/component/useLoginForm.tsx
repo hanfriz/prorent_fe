@@ -34,10 +34,6 @@ export const useLoginForm = () => {
       if (response.success) {
         setSuccessMessage(response.message);
 
-        // Store token in localStorage
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-
         // Redirect based on response redirectUrl
         setTimeout(() => {
           // router.push(response.data.redirectUrl);

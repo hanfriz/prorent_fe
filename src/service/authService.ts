@@ -19,18 +19,17 @@ export const authService = {
     const response = await Axios.post("/auth/login", data);
     const result = response.data;
 
-    // Save tokens and user info if login successful
-    if (
-      result.success &&
-      result.data?.accessToken &&
-      result.data?.refreshToken
-    ) {
-      cookieUtils.setTokens(result.data.accessToken, result.data.refreshToken);
+    if (result.success && result.data?.token) {
+      cookieUtils.setTokens(result.data.token, result.data.token);
 
-      // If user info is included in response, save it too
       if (result.data.user) {
         cookieUtils.setUserInfo(result.data.user);
       }
+    } else {
+      console.log("Login not successful or token missing:", {
+        success: result.success,
+        hasToken: !!result.data?.token,
+      }); // Debug log
     }
 
     return result;
@@ -38,11 +37,11 @@ export const authService = {
 
   logout: async (): Promise<void> => {
     try {
-      await Axios.post("/auth/logout");
-    } finally {
-      // Always remove tokens and user info on logout, even if API call fails
+      // await Axios.post("/auth/logout");
       cookieUtils.removeTokens();
       cookieUtils.removeUserInfo();
+    } catch (err) {
+      console.log(err, "Error occurred during logout");
     }
   },
 
@@ -51,12 +50,9 @@ export const authService = {
     const result = response.data;
 
     // Update tokens if refresh successful
-    if (
-      result.success &&
-      result.data?.accessToken &&
-      result.data?.refreshToken
-    ) {
-      cookieUtils.setTokens(result.data.accessToken, result.data.refreshToken);
+    if (result.success && result.data?.token) {
+      // Gunakan format yang sama seperti login
+      cookieUtils.setTokens(result.data.token, result.data.token);
     }
 
     return result;
@@ -69,9 +65,28 @@ export const authService = {
     return response.data;
   },
 
+  // Fetch fresh user data from API and update cookies
+  fetchUserProfile: async () => {
+    try {
+      const response = await Axios.get("/users/me");
+      if (response.data?.success && response.data?.data) {
+        cookieUtils.setUserInfo(response.data.data);
+        return response.data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+  },
+
   // Helper methods for token and user management
   getCurrentUser: () => {
     return cookieUtils.getUserInfo();
+  },
+
+  setUserInfo: (userInfo: any) => {
+    cookieUtils.setUserInfo(userInfo);
   },
 
   getAccessToken: () => {
@@ -89,5 +104,13 @@ export const authService = {
   clearSession: () => {
     cookieUtils.removeTokens();
     cookieUtils.removeUserInfo();
+  },
+
+  // Refresh user data from server and update local storage
+  refreshUserData: async () => {
+    if (cookieUtils.isAuthenticated()) {
+      return await authService.fetchUserProfile();
+    }
+    return null;
   },
 };

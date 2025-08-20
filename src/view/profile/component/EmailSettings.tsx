@@ -24,7 +24,7 @@ interface EmailSettingsProps {
 export default function EmailSettings({ user }: EmailSettingsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const { checkAuth } = useAuth();
+  const { refreshUserData } = useAuth();
 
   const handleReverifyEmail = async () => {
     if (!newEmail || newEmail === user?.email) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import {
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { userService } from "../../../service/userService";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { authService } from "@/service/authService";
 import { toast } from "sonner";
 
 const profileSchema = z.object({
@@ -36,20 +37,44 @@ interface BasicInfoFormProps {
 
 export default function BasicInfoForm({ user }: BasicInfoFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { checkAuth } = useAuth();
+  const { refreshUserData } = useAuth();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.profile?.firstName || "",
-      lastName: user?.profile?.lastName || "",
-      phone: user?.profile?.phone || "",
-      address: user?.profile?.address || "",
-      birthDate: user?.profile?.birthDate
-        ? user.profile.birthDate.split("T")[0]
-        : "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      address: "",
+      birthDate: "",
     },
   });
+
+  // Update form values when user data changes (after fresh fetch)
+  useEffect(() => {
+    console.log("BasicInfoForm: user data changed:", user);
+    if (user?.profile) {
+      console.log("BasicInfoForm: populating form with:", {
+        firstName: user.profile.firstName || "",
+        lastName: user.profile.lastName || "",
+        phone: user.profile.phone || "",
+        address: user.profile.address || "",
+        birthDate: user.profile.birthDate
+          ? user.profile.birthDate.split("T")[0]
+          : "",
+      });
+      
+      form.reset({
+        firstName: user.profile.firstName || "",
+        lastName: user.profile.lastName || "",
+        phone: user.profile.phone || "",
+        address: user.profile.address || "",
+        birthDate: user.profile.birthDate
+          ? user.profile.birthDate.split("T")[0]
+          : "",
+      });
+    }
+  }, [user, form]);
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
@@ -67,19 +92,8 @@ export default function BasicInfoForm({ user }: BasicInfoFormProps) {
       if (response.success) {
         toast.success("Profile updated successfully");
 
-        // Update localStorage with new user data
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        const updatedUser = {
-          ...currentUser,
-          profile: {
-            ...currentUser.profile,
-            ...response.data,
-          },
-        };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-
-        // Refresh auth state
-        checkAuth();
+        // Refresh user data from server to get latest info
+        await refreshUserData();
       }
     } catch (error: any) {
       const errorMessage =

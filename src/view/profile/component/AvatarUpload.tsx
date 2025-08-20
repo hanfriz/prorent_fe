@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Upload, Loader2, X } from "lucide-react";
 import { userService } from "../../../service/userService";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { authService } from "@/service/authService";
 import { toast } from "sonner";
 
 interface AvatarUploadProps {
@@ -17,7 +18,7 @@ export default function AvatarUpload({ user }: AvatarUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { checkAuth } = useAuth();
+  const { refreshUserData } = useAuth();
 
   const getInitials = (email: string) => {
     return email.substring(0, 2).toUpperCase();
@@ -66,23 +67,12 @@ export default function AvatarUpload({ user }: AvatarUploadProps) {
       if (response.success) {
         toast.success("Avatar updated successfully");
 
-        // Update localStorage with new avatar data
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        const updatedUser = {
-          ...currentUser,
-          profile: {
-            ...currentUser.profile,
-            avatar: response.data.avatar,
-          },
-        };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-
         // Clear preview
         setPreviewUrl(null);
         setSelectedFile(null);
 
-        // Refresh auth state
-        checkAuth();
+        // Refresh user data from server to get latest info
+        await refreshUserData();
       }
     } catch (error: any) {
       const errorMessage =

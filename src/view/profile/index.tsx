@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Shield, Mail, Camera } from "lucide-react";
@@ -14,13 +14,42 @@ import {
 } from "./component";
 
 export default function ProfileView() {
-  const { user } = useAuth();
+  const { user, refreshUserData, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("basic");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch fresh user data when component mounts
+  useEffect(() => {
+    const fetchFreshData = async () => {
+      if (!isLoading) {
+        setIsRefreshing(true);
+        await refreshUserData();
+        setIsRefreshing(false);
+      }
+    };
+
+    fetchFreshData();
+  }, [isLoading]); // Dependency on isLoading instead of empty array
+
+  if (isLoading || isRefreshing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">
+            Please login to view your profile
+          </h2>
+          <p className="text-gray-600">
+            You need to be logged in to access this page.
+          </p>
+        </div>
       </div>
     );
   }

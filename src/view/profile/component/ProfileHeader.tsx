@@ -30,9 +30,16 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
       <div className="flex items-center space-x-6">
         {/* Avatar */}
         <Avatar className="h-24 w-24">
-          <AvatarImage src={user?.profile?.avatar?.url} alt="Profile picture" />
+          <AvatarImage
+            src={user?.profile?.avatar?.url}
+            alt={user?.profile?.avatar?.alt || "Profile picture"}
+          />
           <AvatarFallback className="text-xl">
-            {getInitials(user?.email || "")}
+            {user?.profile?.firstName && user?.profile?.lastName
+              ? `${user.profile.firstName.charAt(
+                  0
+                )}${user.profile.lastName.charAt(0)}`
+              : getInitials(user?.email || "")}
           </AvatarFallback>
         </Avatar>
 
