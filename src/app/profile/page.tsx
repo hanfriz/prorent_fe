@@ -1,10 +1,10 @@
-import DashboardView from "@/view/dashboard";
+import ProfileView from "@/view/profile";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-export default function DashboardPage() {
+export default function ProfilePage() {
   return (
     <ProtectedRoute>
-      <DashboardView />
+      <ProfileView />
     </ProtectedRoute>
   );
 }
