@@ -18,10 +18,24 @@ export interface Review {
       profile?: {
          firstName?: string | null;
          lastName?: string | null;
+         avatar?: {
+            id: string;
+            url: string;
+            alt: string;
+         };
       } | null;
    } | null;
    reviewee?: {
       id: string;
+      profile?: {
+         firstName?: string | null;
+         lastName?: string | null;
+         avatar?: {
+            id: string;
+            url: string;
+            alt: string;
+         };
+      };
    } | null;
    reservation?: {
       id: string;

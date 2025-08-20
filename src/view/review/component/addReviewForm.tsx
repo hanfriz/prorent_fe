@@ -9,18 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { FaRegStar } from "react-icons/fa";
-
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
 interface AddReviewFormProps {
-  propertyId: string; // Or get reservationId if that's the direct link
-  // onClose function passed from parent (Dialog) to close it after submission
+  propertyId: string;
   onClose: () => void;
 }
 
 const AddReviewForm: React.FC<AddReviewFormProps> = ({ propertyId, onClose }) => {
-  // Assuming you have a way to get the reservationId associated with this property & user
-  // This might come from props, context, or a separate query to find the user's reservation
-  const [reservationId, setReservationId] = useState<string>(''); // Needs to be set correctly
+  const [reservationId, setReservationId] = useState<string>('');
   const [content, setContent] = useState('');
   const [rating, setRating] = useState(5);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -30,15 +27,13 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({ propertyId, onClose }) =>
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reservationId || !agreedToTerms) {
-      alert('Please select a reservation and agree to the terms.');
+      // Consider using a toast notification instead of alert
+      alert('Please provide a reservation ID and agree to the terms.');
       return;
     }
 
-    // Find the reservation ID related to this property and the current user
-    // This is a simplification - you'd likely fetch this or have it passed in
-    // For now, assuming reservationId is provided correctly
     const reviewData = {
-      reservationId, // Must be a valid reservation ID for the user and this property
+      reservationId,
       content,
       rating,
     };
@@ -46,25 +41,21 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({ propertyId, onClose }) =>
     createReview(reviewData, {
       onSuccess: (newReview) => {
         console.log('Review created:', newReview);
-        // Reset form
         setContent('');
         setRating(5);
         setAgreedToTerms(false);
-        // Close the dialog
         onClose();
-        // Optionally, show a success message (e.g., using toast)
+        // Consider using a toast notification for success
         alert('Review submitted successfully!');
-        // TanStack Query's usePublicReviews should automatically refetch due to mutation invalidation (if configured)
       },
       onError: (error) => {
         console.error('Error creating review:', error);
-        // Display error to user
+        // Consider using a toast notification for errors
         alert(`Error submitting review: ${error.message || 'Unknown error'}`);
       }
     });
   };
 
-  // Simple star rating selector
   const renderStarRating = () => {
     return (
       <div className="flex items-center mb-4">
@@ -75,7 +66,7 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({ propertyId, onClose }) =>
               key={star}
               type="button"
               onClick={() => setRating(star)}
-              className="bg-transparent border-0 p-0"
+              className="bg-transparent border-0 p-0 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded-sm" // Improved focus
               aria-label={`Rate ${star} stars`}
             >
               <FaRegStar className={`w-6 h-6 ${star <= rating ? 'text-yellow-300' : 'text-gray-300 dark:text-gray-500'}`} />
@@ -86,22 +77,67 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({ propertyId, onClose }) =>
     );
   };
 
+  // --- Render Skeleton Loading State ---
+  // Show skeleton UI when isPending is true
+  if (isPending) {
+    return (
+      <div className="space-y-4">
+        {/* Reservation ID Input Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-1/3" /> {/* Label */}
+          <Skeleton className="h-10 w-full" /> {/* Input */}
+          <Skeleton className="h-3 w-2/3" /> {/* Helper text */}
+        </div>
+
+        {/* Star Rating Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-1/4" /> 
+          <div className="flex space-x-1">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="w-6 h-6 rounded-full" /> 
+            ))}
+          </div>
+        </div>
+
+        {/* Review Textarea Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-1/4" /> {/* Label */}
+          <Skeleton className="h-24 w-full" /> {/* Textarea */}
+        </div>
+
+        {/* Terms Checkbox Skeleton */}
+        <div className="flex items-center space-x-2">
+          <Skeleton className="h-5 w-5 rounded" /> {/* Checkbox */}
+          <Skeleton className="h-4 w-3/4" /> {/* Label text */}
+        </div>
+
+        {/* Button Skeletons */}
+        <div className="flex justify-end space-x-2 pt-2">
+          <Skeleton className="h-10 w-20" /> {/* Cancel Button */}
+          <Skeleton className="h-10 w-28" /> {/* Submit Button */}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Render Form (Non-Loading UI) ---
   return (
     <form onSubmit={handleSubmit}>
-      {/* Reservation Selection - Simplified, needs real logic */}
       <div className="mb-4">
         <Label htmlFor="reservationId" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          Select Reservation (for {propertyId})
+          Reservation ID (for {propertyId})
         </Label>
         <Input
           type="text"
           id="reservationId"
           value={reservationId}
           onChange={(e) => setReservationId(e.target.value)}
-          placeholder="Enter Reservation ID"
+          placeholder="Enter your Reservation ID"
           required
         />
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Select the reservation you want to review.</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Enter the ID of the reservation you want to review.
+        </p>
       </div>
 
       {renderStarRating()}
