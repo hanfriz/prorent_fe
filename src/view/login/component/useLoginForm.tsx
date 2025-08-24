@@ -34,7 +34,7 @@ export const useLoginForm = () => {
 
       if (response.success) {
         setSuccessMessage(response.message);
-        authStore.getState().setToken(response.data.token);
+        authStore.getState().setToken(response.data.token, response.data.user);
 
         // Redirect based on response redirectUrl
         setTimeout(() => {
