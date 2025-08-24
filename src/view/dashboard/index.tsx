@@ -11,6 +11,7 @@ import {
   RecentActivities,
   PropertiesOverview,
 } from "./component";
+import { authStore } from "@/lib/stores/authStore";
 
 interface DashboardStats {
   totalProperties: number;
@@ -21,7 +22,8 @@ interface DashboardStats {
 
 export default function DashboardView() {
   const router = useRouter();
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser } = useAuth();
+  const logout = authStore((s) => s.logout);
 
   const [user, setUser] = useState({
     name: "Loading...",
@@ -78,6 +80,7 @@ export default function DashboardView() {
 
   const handleLogout = async () => {
     await logout();
+    router.push("/login");
   };
 
   return (

@@ -22,7 +22,7 @@ export default function ProtectedRoute({
     if (!isLoading) {
       if (requireAuth && !isAuthenticated) {
         // Redirect to login if authentication is required but user is not authenticated
-        router.push(redirectTo);
+        router.replace(redirectTo);
       }
     }
   }, [isAuthenticated, isLoading, requireAuth, redirectTo, router]);
@@ -39,14 +39,7 @@ export default function ProtectedRoute({
   // If authentication is required but user is not authenticated, show nothing
   // (redirect will handle navigation)
   if (requireAuth && !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Render children if authentication check passes
