@@ -9,6 +9,7 @@ import {
   type LoginFormData,
 } from "@/validation/authValidation";
 import { authService } from "@/service/authService";
+import { authStore } from "@/lib/stores/authStore";
 
 export const useLoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +34,7 @@ export const useLoginForm = () => {
 
       if (response.success) {
         setSuccessMessage(response.message);
+        authStore.getState().setToken(response.data.token);
 
         // Redirect based on response redirectUrl
         setTimeout(() => {

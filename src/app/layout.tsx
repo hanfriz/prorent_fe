@@ -34,11 +34,9 @@ export default function RootLayout({
         <Providers>
           <Navigation />
           <div className="grid grid-rows-[1fr_auto] min-h-screen">
-            <main>
-         {children}
-         </main>
-          <Toaster />
-          <Footer />
+            <main>{children}</main>
+            <Toaster />
+            <Footer />
           </div>
         </Providers>
       </body>

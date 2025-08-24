@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { authStore } from "@/lib/stores/authStore";
 
 export default function Navigation() {
   const router = useRouter();
+  const isAuthenticated = authStore((s) => s.isAuthenticated);
   return (
     <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,9 +24,15 @@ export default function Navigation() {
             />
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <Button variant="ghost">Dashboard</Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
