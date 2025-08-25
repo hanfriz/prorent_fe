@@ -139,12 +139,9 @@ export interface GetCategoriesResponse {
 
 export interface CreateRoomRequest {
   propertyId: string;
-  name: string;
-  roomTypeName: string;
-  description: string;
-  capacity: number;
-  basePrice: number;
-  pictures: string[];
+  roomTypeId: string;
+  name?: string;
+  pictures?: string[];
 }
 
 export interface CreateRoomResponse {
@@ -203,7 +200,7 @@ export interface RoomType {
   propertyId: string;
   name: string;
   description?: string;
-  basePrice: string;
+  basePrice: string | number; // Backend mengirim string, tapi form menggunakan number
   capacity: number;
   totalQuantity: number;
   isWholeUnit: boolean;

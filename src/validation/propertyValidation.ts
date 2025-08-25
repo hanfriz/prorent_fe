@@ -62,30 +62,9 @@ export const createCategorySchema = z.object({
 
 export const createRoomSchema = z.object({
   propertyId: z.string().min(1, "Property is required"),
-  name: z
-    .string()
-    .min(1, "Room name is required")
-    .max(255, "Room name is too long"),
-  roomTypeName: z
-    .string()
-    .min(1, "Room type name is required")
-    .max(255, "Room type name is too long"),
-  description: z
-    .string()
-    .min(1, "Description is required")
-    .max(1000, "Description is too long"),
-  capacity: z
-    .number()
-    .min(1, "Capacity must be at least 1")
-    .max(20, "Capacity cannot exceed 20"),
-  basePrice: z
-    .number()
-    .min(1000, "Base price must be at least 1000")
-    .max(100000000, "Base price is too high"),
-  pictures: z
-    .array(z.string())
-    .min(1, "At least one picture is required")
-    .max(10, "Maximum 10 pictures allowed"),
+  roomTypeId: z.string().min(1, "Room type is required"),
+  name: z.string().optional(),
+  pictures: z.array(z.string()).optional(),
 });
 
 export type CreatePropertyFormData = z.infer<typeof createPropertySchema>;
