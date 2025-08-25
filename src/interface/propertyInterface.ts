@@ -6,18 +6,18 @@ export interface Property {
   name: string;
   description: string;
   locationId: string;
-  location: Location;
+  location?: Location;
   categoryId: string;
+  category?: Category;
   OwnerId: string;
   mainPictureId: string | null;
+  mainPicture?: Picture;
+  gallery?: PropertyPicture[];
+  rooms?: Room[];
+  roomTypes?: RoomType[];
   rentalType: PropertyRentalType;
   createdAt: string;
   updatedAt: string;
-  category?: Category;
-  mainPicture?: UploadedFile;
-  gallery?: any[];
-  rooms?: Room[];
-  roomTypes?: any[];
   _count?: {
     rooms: number;
     Reservation: number;
@@ -46,7 +46,7 @@ export interface CreatePropertyResponse {
 export interface Category {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -68,16 +68,34 @@ export interface GetCategoriesResponse {
   data: Category[];
 }
 
-// Upload Interfaces
-export interface UploadedFile {
+// Picture Interfaces
+export interface Picture {
   id: string;
   url: string;
-  alt: string;
-  type: string;
-  sizeKB: number;
+  alt?: string;
+  type?: string;
+  sizeKB?: number;
   uploadedAt: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PropertyPicture {
+  propertyId: string;
+  pictureId: string;
+  property?: Property;
+  picture: Picture;
+}
+
+export interface RoomPicture {
+  roomId: string;
+  pictureId: string;
+  room?: Room;
+  picture: Picture;
+}
+
+// Keeping compatibility with existing UploadedFile interface
+export interface UploadedFile extends Picture {
   publicId?: string;
   format?: string;
   width?: number;
@@ -102,62 +120,21 @@ export interface GetUploadsResponse {
   };
 }
 
-export interface UploadFileResponse {
-  success: boolean;
-  message: string;
-  data: UploadedFile;
-}
-
-export interface GetFileResponse {
-  success: boolean;
-  message: string;
-  data: UploadedFile;
-}
-
-export interface DeleteFileResponse {
-  success: boolean;
-  message: string;
-}
-
-// Room Interfaces
-export interface Room {
-  id: string;
-  name: string;
-  roomTypeId: string;
-  propertyId: string;
-  isAvailable: boolean;
-  createdAt: string;
-  updatedAt: string;
-  roomType?: RoomType;
-  property?: {
-    id: string;
-    name: string;
-    OwnerId: string;
-  };
-  gallery?: RoomGallery[];
-  _count?: {
-    reservations: number;
-    availabilities: number;
-  };
-}
-
-export interface RoomType {
-  id: string;
-  propertyId: string;
+export interface CreateCategoryRequest {
   name: string;
   description: string;
-  basePrice: string;
-  capacity: number;
-  totalQuantity: number;
-  isWholeUnit: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
-export interface RoomGallery {
-  roomId: string;
-  pictureId: string;
-  picture: UploadedFile;
+export interface CreateCategoryResponse {
+  success: boolean;
+  message: string;
+  data: Category;
+}
+
+export interface GetCategoriesResponse {
+  success: boolean;
+  message: string;
+  data: Category[];
 }
 
 export interface CreateRoomRequest {
@@ -180,6 +157,64 @@ export interface GetRoomsResponse {
   success: boolean;
   message: string;
   data: Room[];
+}
+
+export interface UploadFileResponse {
+  success: boolean;
+  message: string;
+  data: UploadedFile;
+}
+
+export interface GetFileResponse {
+  success: boolean;
+  message: string;
+  data: UploadedFile;
+}
+
+export interface DeleteFileResponse {
+  success: boolean;
+  message: string;
+}
+
+// Room Interfaces
+export interface Room {
+  id: string;
+  name?: string;
+  roomTypeId: string;
+  propertyId: string;
+  isAvailable: boolean;
+  createdAt: string;
+  updatedAt: string;
+  roomType?: RoomType;
+  property?: {
+    id: string;
+    name: string;
+    OwnerId: string;
+  };
+  gallery?: RoomPicture[];
+  _count?: {
+    reservations: number;
+    availabilities: number;
+  };
+}
+
+export interface RoomType {
+  id: string;
+  propertyId: string;
+  name: string;
+  description?: string;
+  basePrice: string;
+  capacity: number;
+  totalQuantity: number;
+  isWholeUnit: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoomGallery {
+  roomId: string;
+  pictureId: string;
+  picture: Picture;
 }
 
 export interface GetPropertiesResponse {

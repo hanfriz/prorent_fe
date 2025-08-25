@@ -34,6 +34,7 @@ import {
 } from "@/validation/propertyValidation";
 import { CategorySelector } from "../component/CategorySelector";
 import { ImageSelector } from "../component/ImageSelector";
+import { LocationSearchMap, LocationData } from "@/components/map";
 
 export default function CreatePropertyForm() {
   const router = useRouter();
@@ -54,6 +55,7 @@ export default function CreatePropertyForm() {
       mainPictureId: "",
       latitude: "",
       longitude: "",
+      rentalType: "ROOM_BY_ROOM", // Tambahkan default value untuk rentalType
     },
   });
 
@@ -126,6 +128,14 @@ export default function CreatePropertyForm() {
     form.setValue("mainPictureId", newImage.id);
   };
 
+  const handleLocationSelect = (locationData: LocationData) => {
+    form.setValue("location", locationData.address);
+    form.setValue("city", locationData.city);
+    form.setValue("province", locationData.province);
+    form.setValue("latitude", locationData.latitude.toString());
+    form.setValue("longitude", locationData.longitude.toString());
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Card>
@@ -181,6 +191,33 @@ export default function CreatePropertyForm() {
                 )}
               />
 
+              {/* Rental Type Selection */}
+              <FormField
+                control={form.control}
+                name="rentalType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rental Type</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select rental type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="WHOLE_PROPERTY">
+                          Whole Property - Rent the entire property
+                        </SelectItem>
+                        <SelectItem value="ROOM_BY_ROOM">
+                          Room by Room - Rent individual rooms
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {/* Location Information */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
@@ -223,6 +260,31 @@ export default function CreatePropertyForm() {
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+              </div>
+
+              {/* Location Search Map */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Location Search</Label>
+                <p className="text-sm text-gray-600">
+                  Use the map below to search and select the exact location of
+                  your property. You can search by address or click directly on
+                  the map.
+                </p>
+                <LocationSearchMap
+                  onLocationSelect={handleLocationSelect}
+                  initialLocation={
+                    form.watch("latitude") && form.watch("longitude")
+                      ? {
+                          address: form.watch("location") || "",
+                          city: form.watch("city") || "",
+                          province: form.watch("province") || "",
+                          latitude: parseFloat(form.watch("latitude") || "0"),
+                          longitude: parseFloat(form.watch("longitude") || "0"),
+                        }
+                      : undefined
+                  }
+                  className="mt-2"
                 />
               </div>
 

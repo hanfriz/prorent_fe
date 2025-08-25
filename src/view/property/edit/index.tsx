@@ -29,6 +29,7 @@ import { propertyService } from "@/service/propertyService";
 import { editPropertySchema, EditPropertyFormData } from "@/validation/propertyValidation";
 import { SimpleCategorySelector } from "../component/SimpleCategorySelector";
 import { SimpleImageSelector } from "../component/SimpleImageSelector";
+import { LocationSearchMap, LocationData } from "@/components/map";
 import { ArrowLeft, Save } from "lucide-react";
 
 interface EditPropertyViewProps {
@@ -103,6 +104,14 @@ export default function EditPropertyView({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleLocationSelect = (locationData: LocationData) => {
+    form.setValue("location", locationData.address);
+    form.setValue("city", locationData.city);
+    form.setValue("province", locationData.province);
+    form.setValue("latitude", locationData.latitude.toString());
+    form.setValue("longitude", locationData.longitude.toString());
   };
 
   if (loading) {
@@ -273,6 +282,30 @@ export default function EditPropertyView({
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+              </div>
+
+              {/* Location Search Map */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Update Location</Label>
+                <p className="text-sm text-gray-600">
+                  Use the map below to search and update the location of your property. 
+                  You can search by address or click directly on the map.
+                </p>
+                <LocationSearchMap
+                  onLocationSelect={handleLocationSelect}
+                  initialLocation={
+                    form.watch("latitude") && form.watch("longitude")
+                      ? {
+                          address: form.watch("location") || "",
+                          city: form.watch("city") || "",
+                          province: form.watch("province") || "",
+                          latitude: parseFloat(form.watch("latitude") || "0"),
+                          longitude: parseFloat(form.watch("longitude") || "0"),
+                        }
+                      : undefined
+                  }
+                  className="mt-2"
                 />
               </div>
 
