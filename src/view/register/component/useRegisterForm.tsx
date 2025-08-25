@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -28,19 +28,28 @@ export const useRegisterForm = ({ role }: UseRegisterFormProps = {}) => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: role || undefined,
+      role: role || "USER", // Use prop role or default to USER
     },
   });
+
+  // Update form value when role prop changes
+  useEffect(() => {
+    if (role) {
+      form.setValue("role", role);
+    }
+  }, [role, form]);
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
       setSuccessMessage("");
 
+      const finalRole = (data.role || role) as Role;
+
       const registerData = {
         email: data.email,
         password: data.password,
-        role: data.role as Role,
+        role: finalRole,
         socialLogin: "NONE" as const,
       };
 

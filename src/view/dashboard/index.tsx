@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/useAuth";
 import {
   DashboardHeader,
   WelcomeSection,
@@ -10,6 +11,7 @@ import {
   RecentActivities,
   PropertiesOverview,
 } from "./component";
+import { authStore } from "@/lib/stores/authStore";
 
 interface DashboardStats {
   totalProperties: number;
@@ -20,10 +22,13 @@ interface DashboardStats {
 
 export default function DashboardView() {
   const router = useRouter();
+  const { user: authUser } = useAuth();
+  const logout = authStore((s) => s.logout);
+
   const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    role: "OWNER",
+    name: "Loading...",
+    email: "",
+    role: "",
     avatar: "",
   });
 
@@ -33,6 +38,21 @@ export default function DashboardView() {
     totalRevenue: 125000,
     activeUsers: 256,
   });
+
+  // Load user data from auth
+  useEffect(() => {
+    if (authUser) {
+      setUser({
+        name:
+          authUser.profile?.firstName && authUser.profile?.lastName
+            ? `${authUser.profile.firstName} ${authUser.profile.lastName}`
+            : authUser.email.split("@")[0],
+        email: authUser.email,
+        role: authUser.role,
+        avatar: authUser.profile?.avatar?.url || "",
+      });
+    }
+  }, [authUser]);
 
   const [recentActivities] = useState([
     {
@@ -58,9 +78,8 @@ export default function DashboardView() {
     },
   ]);
 
-  const handleLogout = () => {
-    // Clear user session
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
   };
 
