@@ -92,9 +92,11 @@ export function CategorySelector({
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
+              <div key={category.id}>
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              </div>
             ))}
           </SelectContent>
         </Select>

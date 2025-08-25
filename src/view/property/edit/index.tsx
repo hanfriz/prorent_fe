@@ -26,7 +26,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Property } from "@/interface/propertyInterface";
 import { propertyService } from "@/service/propertyService";
-import { editPropertySchema, EditPropertyFormData } from "@/validation/propertyValidation";
+import {
+  editPropertySchema,
+  EditPropertyFormData,
+} from "@/validation/propertyValidation";
 import { SimpleCategorySelector } from "../component/SimpleCategorySelector";
 import { SimpleImageSelector } from "../component/SimpleImageSelector";
 import { LocationSearchMap, LocationData } from "@/components/map";
@@ -75,9 +78,10 @@ export default function EditPropertyView({
         name: propertyData.name,
         description: propertyData.description,
         location: propertyData.location?.address || "",
-        city: typeof propertyData.location?.city === 'string' 
-          ? propertyData.location.city 
-          : propertyData.location?.city?.name || "",
+        city:
+          typeof propertyData.location?.city === "string"
+            ? propertyData.location.city
+            : propertyData.location?.city?.name || "",
         province: propertyData.location?.city?.province?.name || "",
         categoryId: propertyData.categoryId,
         mainPictureId: propertyData.mainPictureId || "",
@@ -131,8 +135,8 @@ export default function EditPropertyView({
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground">Property not found</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => router.push("/properties")}
               className="mt-4"
             >
@@ -148,8 +152,8 @@ export default function EditPropertyView({
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="icon"
           onClick={() => router.push(`/properties/${propertyId}`)}
         >
@@ -174,6 +178,28 @@ export default function EditPropertyView({
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Main Picture - Full Width */}
+              <FormField
+                control={form.control}
+                name="mainPictureId"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Main Picture *</FormLabel>
+                    <FormControl>
+                      <div className="w-full">
+                        <SimpleImageSelector
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          type="property"
+                          label="Select Main Picture"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Property Name */}
                 <FormField
@@ -183,10 +209,7 @@ export default function EditPropertyView({
                     <FormItem>
                       <FormLabel>Property Name *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Enter property name" 
-                          {...field} 
-                        />
+                        <Input placeholder="Enter property name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,10 +243,10 @@ export default function EditPropertyView({
                   <FormItem>
                     <FormLabel>Description *</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Describe your property..."
                         className="min-h-24"
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -240,10 +263,7 @@ export default function EditPropertyView({
                     <FormItem>
                       <FormLabel>Address *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Property address" 
-                          {...field} 
-                        />
+                        <Input placeholder="Property address" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -257,10 +277,7 @@ export default function EditPropertyView({
                     <FormItem>
                       <FormLabel>City *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="City name" 
-                          {...field} 
-                        />
+                        <Input placeholder="City name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -274,10 +291,7 @@ export default function EditPropertyView({
                     <FormItem>
                       <FormLabel>Province *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Province name" 
-                          {...field} 
-                        />
+                        <Input placeholder="Province name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -289,8 +303,9 @@ export default function EditPropertyView({
               <div className="space-y-4">
                 <Label className="text-base font-medium">Update Location</Label>
                 <p className="text-sm text-gray-600">
-                  Use the map below to search and update the location of your property. 
-                  You can search by address or click directly on the map.
+                  Use the map below to search and update the location of your
+                  property. You can search by address or click directly on the
+                  map.
                 </p>
                 <LocationSearchMap
                   onLocationSelect={handleLocationSelect}
@@ -318,10 +333,7 @@ export default function EditPropertyView({
                     <FormItem>
                       <FormLabel>Latitude (Optional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="e.g., -8.4095" 
-                          {...field} 
-                        />
+                        <Input placeholder="e.g., -8.4095" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -335,10 +347,7 @@ export default function EditPropertyView({
                     <FormItem>
                       <FormLabel>Longitude (Optional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="e.g., 115.1889" 
-                          {...field} 
-                        />
+                        <Input placeholder="e.g., 115.1889" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -346,30 +355,10 @@ export default function EditPropertyView({
                 />
               </div>
 
-              {/* Main Picture */}
-              <FormField
-                control={form.control}
-                name="mainPictureId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Main Picture *</FormLabel>
-                    <FormControl>
-                      <SimpleImageSelector
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        type="property"
-                        label="Select Main Picture"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               {/* Submit Buttons */}
               <div className="flex items-center gap-4 pt-6">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={submitting}
                   className="min-w-32"
                 >
@@ -382,8 +371,8 @@ export default function EditPropertyView({
                     </>
                   )}
                 </Button>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => router.push(`/properties/${propertyId}`)}
                 >

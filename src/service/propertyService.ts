@@ -17,6 +17,7 @@ import {
   CreateRoomRequest,
   CreateRoomResponse,
   GetRoomsResponse,
+  RoomType,
 } from "@/interface/propertyInterface";
 
 export const propertyService = {
@@ -58,6 +59,21 @@ export const propertyService = {
     data: CreateCategoryRequest
   ): Promise<CreateCategoryResponse> => {
     const response = await Axios.post("/owner/categories", data);
+    return response.data;
+  },
+
+  editCategory: async (
+    categoryId: string,
+    data: CreateCategoryRequest
+  ): Promise<CreateCategoryResponse> => {
+    const response = await Axios.patch(`/owner/categories/${categoryId}`, data);
+    return response.data;
+  },
+
+  deleteCategory: async (
+    categoryId: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const response = await Axios.delete(`/owner/categories/${categoryId}`);
     return response.data;
   },
 
@@ -122,6 +138,58 @@ export const propertyService = {
 
   getRoomsByPropertyId: async (propertyId: string): Promise<Room[]> => {
     const response = await propertyService.getRooms(1, 100, propertyId);
+    return response.data;
+  },
+
+  updateRoom: async (
+    roomId: string,
+    data: {
+      name?: string;
+      isAvailable?: boolean;
+      pictures?: string[];
+      roomTypeId?: string;
+    }
+  ): Promise<{ success: boolean; message: string; data: Room }> => {
+    const response = await Axios.patch(`/owner/rooms/${roomId}`, data);
+    return response.data;
+  },
+
+  // Room Type Management
+  getRoomTypes: async (
+    propertyId: string
+  ): Promise<{ success: boolean; message: string; data: RoomType[] }> => {
+    // Backend mungkin belum punya endpoint khusus room types
+    // Gunakan endpoint property detail yang include room types
+    const response = await Axios.get(`/owner/properties/${propertyId}`);
+
+    // Ekstrak room types dari property response
+    if (response.data.success && response.data.data.roomTypes) {
+      return {
+        success: true,
+        message: "Room types retrieved successfully",
+        data: response.data.data.roomTypes,
+      };
+    }
+
+    // Jika tidak ada room types, return empty array
+    return {
+      success: true,
+      message: "No room types found for this property",
+      data: [],
+    };
+  },
+
+  createRoomType: async (data: {
+    propertyId: string;
+    name: string;
+    description?: string;
+    basePrice: number;
+    capacity: number;
+    totalQuantity: number;
+    isWholeUnit: boolean;
+  }): Promise<{ success: boolean; message: string; data: RoomType }> => {
+    // Untuk sementara menggunakan endpoint umum - sesuaikan dengan backend
+    const response = await Axios.post("/owner/room-types", data);
     return response.data;
   },
 
