@@ -9,12 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getPublicReviews } from '@/service/reviewService'; // Import query function
+import { getPublicReviews } from '@/service/review/reviewService'; // Import query function
 import { Review } from '@/interface/reviewInterface'; // Import types
 import AddReviewForm from './addReviewForm';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+import { useEligibleReservations } from '@/service/review/useReviewService';
 
 interface PropertyReviewsProps {
   propertyId: string;
@@ -36,6 +37,13 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     sortBy,
     sortOrder,
   });
+
+  const {
+     data: eligibleReservations,
+    isLoading: isEligibleLoading,
+    isError: isEligibleError,
+    error: eligibleError
+  } = useEligibleReservations(propertyId);
 
   const averageRating = useMemo(() => {
     if (!reviewsData?.reviews || reviewsData.reviews.length === 0) return 0;
@@ -96,20 +104,29 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
                   <Skeleton className="ml-2 h-4 w-16" />
                 </>
               )}
-              <Dialog open={isAddReviewOpen} onOpenChange={setIsAddReviewOpen}>
-                <DialogTrigger asChild>
-                  <Button className="mt-4 sm:mt-0 ms-4">Write a review</Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Add a Review</DialogTitle>
-                    <DialogDescription>
-                      Share your experience with this property.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <AddReviewForm propertyId={propertyId} onClose={() => setIsAddReviewOpen(false)} />
-                </DialogContent>
-              </Dialog>
+               {(!isEligibleLoading && !isEligibleError && eligibleReservations && eligibleReservations.length > 0) ? (
+                <Dialog open={isAddReviewOpen} onOpenChange={setIsAddReviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="mt-4 sm:mt-0 ms-4">Write a review</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Add a Review</DialogTitle>
+                      <DialogDescription>
+                        Share your experience with this property.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {/* Pass propertyId and the close handler */}
+                    <AddReviewForm propertyId={propertyId} onClose={() => setIsAddReviewOpen(false)} />
+                  </DialogContent>
+                </Dialog>
+              ) : (                
+                (!isEligibleLoading && !isEligibleError) && (
+                   <Button className="mt-4 sm:mt-0 ms-4" disabled>
+                     Write a review
+                   </Button>
+                )
+              )}
             </div>
           </div>
         )}

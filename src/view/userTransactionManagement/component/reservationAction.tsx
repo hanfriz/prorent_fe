@@ -16,10 +16,14 @@ import { useReservationMutations } from "../../ownerTransactionManagement/compon
 import { ReservationActionsProps } from "@/interface/reservationInterface";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ReservationStatus } from "@/interface/enumInterface";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AddReviewForm from "@/view/review/component/addReviewForm";
 
 const ReservationActions = ({ reservation }: ReservationActionsProps) => {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = React.useState(false);
   const [dialogAction, setDialogAction] = React.useState<'cancel' | 'reject' | 'confirm' | null>(null);
 
   const {
@@ -28,10 +32,24 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
     confirmPaymentMutation
   } = useReservationMutations();
 
+  const isReviewEligible =
+    reservation.orderStatus === ReservationStatus.CONFIRMED &&
+    reservation.payment?.paymentStatus === ReservationStatus.CONFIRMED &&
+    new Date(reservation.endDate) < new Date() &&
+    !reservation.review;
+
   // Handlers for different actions
   const handleCancelClick = () => {
     setDialogAction('cancel');
     setIsDialogOpen(true);
+  };
+
+  const handleReviewClick = () => {
+    setIsReviewDialogOpen(true);
+  };
+
+  const handleCloseReviewDialog = () => {
+    setIsReviewDialogOpen(false);
   };
 
 const handleConfirmAction = () => {
@@ -77,6 +95,14 @@ const handleConfirmAction = () => {
                   Upload Payment Proof
                 </Link>
               </DropdownMenuItem>
+            )}
+
+            {isReviewEligible && (
+              <DropdownMenuItem onClick={handleReviewClick} className="font-semibold">
+                {/* You could use a Star icon from lucide-react here */}
+                {/* import { Star } from "lucide-react"; ... <Star className="mr-2 h-4 w-4" /> */}
+                Write a Review
+              </DropdownMenuItem>
             )}      
             {(reservation.orderStatus === "PENDING_PAYMENT" ||
               reservation.orderStatus === "PENDING_CONFIRMATION") && (
@@ -106,6 +132,20 @@ const handleConfirmAction = () => {
           actionType={dialogAction}
         />
       )}
+      <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add a Review</DialogTitle>
+            <DialogDescription>
+              Share your experience for reservation {reservation.id}.
+            </DialogDescription>
+          </DialogHeader>
+          <AddReviewForm
+            reservationId={reservation.id} 
+            onClose={handleCloseReviewDialog} 
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

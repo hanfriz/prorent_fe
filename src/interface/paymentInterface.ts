@@ -1,6 +1,7 @@
 import { PaymentType, ReservationStatus } from './enumInterface';
 import { PaymentProof } from './pictureInterface';
 import { Property } from './propertyInterface';
+import { Review } from './reviewInterface';
 import { RoomType } from './roomTypeInterface';
 
 export interface Payment {
@@ -43,6 +44,7 @@ export interface ReservationWithPayment {
    Property: Property;
    payment: Payment | null;
    PaymentProof: PaymentProof | null;
+   review: Review | null;
 }
 
 export interface RPResponse {
