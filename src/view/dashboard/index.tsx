@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
@@ -12,6 +12,10 @@ import {
   PropertiesOverview,
 } from "./component";
 import { authStore } from "@/lib/stores/authStore";
+import { useDashboardReport } from "@/service/report/useReport";
+import Graph from "../report/component/graphComponent";
+import { DashboardHeaderSkeleton, GraphSkeleton, PropertiesOverviewSkeleton, QuickActionsSkeleton, RecentActivitiesSkeleton, StatsSectionSkeleton, WelcomeSectionSkeleton } from "./component/dashboardSkeleton";
+
 
 interface DashboardStats {
   totalProperties: number;
@@ -32,14 +36,19 @@ export default function DashboardView() {
     avatar: "",
   });
 
-  const [stats, setStats] = useState<DashboardStats>({
-    totalProperties: 12,
-    totalBookings: 48,
-    totalRevenue: 125000,
-    activeUsers: 256,
-  });
+  // 🚀 fetch report data
+  const { data: reportData, isLoading, isError } = useDashboardReport();
 
-  // Load user data from auth
+  const stats: DashboardStats = useMemo(() => {
+    return {
+      totalProperties: reportData?.properties?.length ?? 0,
+      totalBookings: reportData?.summary?.counts?.CONFIRMED ?? 0,
+      totalRevenue: reportData?.summary?.revenue?.actual ?? 0,
+      activeUsers: 0, // belum ada di API
+    };
+  }, [reportData]);
+
+  // Load user data dari auth
   useEffect(() => {
     if (authUser) {
       setUser({
@@ -85,19 +94,48 @@ export default function DashboardView() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={user} onLogout={handleLogout} />
+      {isLoading ? <DashboardHeaderSkeleton /> : <DashboardHeader user={user} onLogout={handleLogout} />}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <WelcomeSection userName={user.name} />
-        <StatsSection stats={stats} />
+        {isLoading ? <WelcomeSectionSkeleton /> : <WelcomeSection userName={user.name} />}
+
+        {/* Stats Section */}
+        {isLoading ? (
+          <StatsSectionSkeleton />
+        ) : isError ? (
+          <p className="text-red-500">Failed to load report</p>
+        ) : (
+          <StatsSection stats={stats} />
+        )}
+
+        {/* Revenue Analytics Chart */}
+        {isLoading ? (
+          <GraphSkeleton />
+        ) : (
+          <div className="mb-8">
+            <Graph 
+              title="Revenue Analytics Dashboard"
+              showControls={true}
+              showSummary={true}
+              height={400}
+            />
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <QuickActions />
-          <RecentActivities activities={recentActivities} />
+          {isLoading ? <QuickActionsSkeleton /> : <QuickActions />}
+          {isLoading ? <RecentActivitiesSkeleton /> : <RecentActivities activities={recentActivities} />}
         </div>
 
-        <PropertiesOverview />
+        {/* Properties Overview */}
+        {isLoading ? (
+          <PropertiesOverviewSkeleton />
+        ) : (
+          !isError && (
+            <PropertiesOverview properties={reportData?.properties ?? []} />
+          )
+        )}
       </div>
     </div>
   );

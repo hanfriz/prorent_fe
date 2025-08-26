@@ -1,22 +1,15 @@
-// src/services/reviewService.ts
-import Axios from '@/lib/axios'; // Adjust import path
+import Axios from '@/lib/axios';
 import { z } from 'zod';
 import {
    createReviewSchema,
    replyToReviewSchema,
    updateReviewVisibilitySchema,
    CreateReviewInput,
-   ReplyToReviewInput, // This type is for the body content only
+   ReplyToReviewInput,
    UpdateReviewVisibilityInput
-} from '@/validation/reviewValidation'; // Adjust import path
+} from '@/validation/reviewValidation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-   // You'll need to import or define these types based on your API responses
-   // For example:
-   Review, // Type for a single review object returned by your API
-   GetReviewsResult, // Type for the result of getPublicReviews/getOwnerReviews
-   OwnerReply // Type for an owner reply object
-} from '@/interface/reviewInterface'; // Adjust import path
+import { Review, GetReviewsResult, OwnerReply } from '@/interface/reviewInterface';
 
 // --- Helper: Handle Axios Errors ---
 function handleAxiosError (error: any): never {
@@ -49,10 +42,9 @@ export const createReview = async (input: CreateReviewInput): Promise<Review> =>
       // 4. Handle errors (Zod validation or Axios)
       if (error instanceof z.ZodError) {
          console.error('Frontend Validation Error (Create Review):', error.flatten());
-         // Optionally, format Zod errors for user display
          throw new Error(`Validation failed: ${JSON.stringify(error.flatten())}`);
       }
-      handleAxiosError(error); // Handle network or backend errors
+      handleAxiosError(error);
    }
 };
 
@@ -60,14 +52,9 @@ export const createReview = async (input: CreateReviewInput): Promise<Review> =>
 // Note: reviewId comes from function argument (URL path), content from input (body)
 export const replyToReview = async (reviewId: string, input: ReplyToReviewInput): Promise<OwnerReply> => {
    try {
-      // 1. Validate the body input data using Zod schema
       const validatedBodyData = replyToReviewSchema.parse(input);
       console.log('Validated Reply Body Data:', validatedBodyData);
-
-      // 2. Send POST request to the specific review's reply endpoint
-      const response = await Axios.post<OwnerReply>(`/review/${reviewId}/reply`, validatedBodyData); // Matches POST /api/reviews/:reviewId/reply
-
-      // 3. Return the created/updated owner reply data from the response
+      const response = await Axios.post<OwnerReply>(`/review/${reviewId}/reply`, validatedBodyData);
       return response.data;
    } catch (error: any) {
       // 4. Handle errors (Zod validation or Axios)
@@ -87,7 +74,6 @@ interface GetPublicReviewsParams {
    sortBy?: string;
    sortOrder?: 'asc' | 'desc';
    searchContent?: string;
-   // Add other potential query params your backend accepts for public reviews
 }
 
 export function getPublicReviews (params: GetPublicReviewsParams) {
@@ -104,15 +90,13 @@ export function getPublicReviews (params: GetPublicReviewsParams) {
                   sortBy,
                   sortOrder,
                   searchContent
-                  // Pass other params if needed by backend
                }
             });
             return response.data;
          } catch (error: any) {
-            handleAxiosError(error); // Handle network or backend errors for queries
+            handleAxiosError(error);
          }
       }
-      // Consider adding staleTime, cacheTime, or placeholderData based on your needs
    });
 }
 
@@ -170,74 +154,13 @@ export const updateReviewVisibility = async (reviewId: string, input: UpdateRevi
       // 1. Validate the input data using Zod schema
       const validatedData = updateReviewVisibilitySchema.parse(input);
       console.log('Validated Visibility Update Data:', validatedData);
-
-      // 2. Send PATCH request to update visibility
-      // Assumes the backend endpoint is /review/:reviewId/visibility
       const response = await Axios.patch<Review>(`/review/${reviewId}/visibility`, validatedData);
-
-      // 3. Return the updated review data from the response
       return response.data;
    } catch (error: any) {
-      // 4. Handle errors (Zod validation or Axios)
       if (error instanceof z.ZodError) {
          console.error('Frontend Validation Error (Update Visibility):', error.flatten());
          throw new Error(`Validation failed: ${JSON.stringify(error.flatten())}`);
       }
-      handleAxiosError(error); // Handle network or backend errors
+      handleAxiosError(error);
    }
-};
-
-// --- TanStack Query Mutations Hooks (Optional but Recommended) ---
-// These hooks integrate with TanStack Query's mutation system and can automatically
-// invalidate/re-fetch related queries upon successful mutation.
-
-export const useCreateReview = () => {
-   const queryClient = useQueryClient();
-   return useMutation({
-      mutationFn: createReview,
-      onSuccess: () => {
-         // Example: Invalidate public and owner review queries for properties
-         // You might need to refine the query key invalidation based on your specific needs
-         // queryClient.invalidateQueries({ queryKey: ['reviews'] });
-         console.log('Review created successfully. Consider invalidating relevant queries.');
-      },
-      onError: error => {
-         console.error('Error creating review:', error);
-         // Handle error display in UI if needed
-      }
-   });
-};
-
-export const useReplyToReview = () => {
-   const queryClient = useQueryClient();
-   return useMutation({
-      mutationFn: ({ reviewId, input }: { reviewId: string; input: ReplyToReviewInput }) =>
-         replyToReview(reviewId, input),
-      onSuccess: () => {
-         // Example: Invalidate review queries
-         // queryClient.invalidateQueries({ queryKey: ['reviews'] });
-         console.log('Reply added successfully. Consider invalidating relevant queries.');
-      },
-      onError: error => {
-         console.error('Error replying to review:', error);
-         // Handle error display in UI if needed
-      }
-   });
-};
-
-export const useUpdateReviewVisibility = () => {
-   const queryClient = useQueryClient();
-   return useMutation({
-      mutationFn: ({ reviewId, input }: { reviewId: string; input: UpdateReviewVisibilityInput }) =>
-         updateReviewVisibility(reviewId, input),
-      onSuccess: updatedReview => {
-         // Example: Invalidate review queries
-         // queryClient.invalidateQueries({ queryKey: ['reviews'] });
-         console.log('Review visibility updated successfully. Consider invalidating relevant queries.');
-      },
-      onError: error => {
-         console.error('Error updating review visibility:', error);
-         // Handle error display in UI if needed
-      }
-   });
 };

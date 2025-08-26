@@ -1,7 +1,7 @@
 // components/PublicReviewsList.tsx (example)
 import React, { useEffect } from 'react';
 import { useReviewStore } from '@/lib/stores/reviewStore'; // Adjust path
-import { getPublicReviews } from '@/service/reviewService'; // Adjust path
+import { getPublicReviews } from '@/service/review/reviewService'; // Adjust path
 
 interface PublicReviewsListProps {
   propertyId: string;

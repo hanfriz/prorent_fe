@@ -18,10 +18,24 @@ export interface Review {
       profile?: {
          firstName?: string | null;
          lastName?: string | null;
+         avatar?: {
+            id: string;
+            url: string;
+            alt: string;
+         };
       } | null;
    } | null;
    reviewee?: {
       id: string;
+      profile?: {
+         firstName?: string | null;
+         lastName?: string | null;
+         avatar?: {
+            id: string;
+            url: string;
+            alt: string;
+         };
+      };
    } | null;
    reservation?: {
       id: string;
@@ -67,9 +81,6 @@ export interface OwnerReply {
    } | null;
 }
 
-// --- Input Interfaces for Service/Controller (Backend) ---
-
-// Matches the data structure expected/created by the backend service
 export interface CreateReviewInput {
    userId: string; // Added by controller
    reservationId: string;
@@ -78,16 +89,12 @@ export interface CreateReviewInput {
 }
 
 export interface ReplyToReviewInput {
-   OwnerId: string; // Added by controller
-   reviewId: string; // From URL path
+   OwnerId: string;
+   reviewId: string;
    content: string;
-   // rating?: number; // Optional if your service supports it for replies
+   rating?: number;
 }
 
-// --- Input Interfaces for Frontend Service ---
-
-// Matches the data structure the frontend form would provide
-// (Excludes IDs managed by backend/controller)
 export interface CreateReviewFormInput {
    reservationId: string;
    content: string;
@@ -124,4 +131,13 @@ export interface GetReviewsResult {
    page: number;
    limit: number;
    totalPages: number;
+}
+
+export interface EligibleReservation {
+   id: string;
+   propertyId: string;
+   propertyName: string;
+   propertyImageUrl: string | null;
+   startDate: Date;
+   endDate: Date;
 }

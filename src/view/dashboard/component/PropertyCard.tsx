@@ -2,7 +2,7 @@ import { Home } from "lucide-react";
 
 interface PropertyCardProps {
   property: {
-    id: number;
+    id: string;
     name: string;
     location: string;
     price: string;

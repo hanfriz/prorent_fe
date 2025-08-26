@@ -1,7 +1,7 @@
 // components/CreateReviewForm.tsx (example)
 import React, { useState } from 'react';
 import { useReviewStore } from '@/lib/stores/reviewStore'; // Adjust path
-import { useCreateReview } from '@/service/reviewService'; // Adjust path - using TanStack Query mutation
+import { useCreateReview } from '@/service/review/useReviewService'; // Adjust path - using TanStack Query mutation
 
 const CreateReviewForm = ({ reservationId }: { reservationId: string }) => {
   const [content, setContent] = useState('');

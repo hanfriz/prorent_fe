@@ -5,7 +5,7 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   change: string;
-  icon: LucideIcon;
+  icon?: any;
 }
 
 export default function StatsCard({
