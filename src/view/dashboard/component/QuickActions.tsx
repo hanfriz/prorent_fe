@@ -15,11 +15,11 @@ export default function QuickActions() {
   const router = useRouter();
 
   const handleCreateProperty = () => {
-    router.push("/properties/create");
+    router.push("/my-properties/create");
   };
 
   const handleViewAllProperties = () => {
-    router.push("/properties");
+    router.push("/my-properties");
   };
 
   return (
@@ -44,7 +44,7 @@ export default function QuickActions() {
           onClick={handleViewAllProperties}
         >
           <Building className="mr-2 h-4 w-4" />
-          View All Properties
+          My Properties
         </Button>
       </CardContent>
     </Card>

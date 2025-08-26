@@ -1,4 +1,4 @@
-import PropertyDetailView from "@/view/property/detail";
+import PublicPropertyDetailView from "@/view/property/PublicPropertyDetailView";
 
 interface PropertyDetailPageProps {
   params: Promise<{ id: string }>;
@@ -8,5 +8,5 @@ export default async function PropertyDetailPage({
   params,
 }: PropertyDetailPageProps) {
   const { id } = await params;
-  return <PropertyDetailView propertyId={id} />;
+  return <PublicPropertyDetailView propertyId={id} />;
 }
