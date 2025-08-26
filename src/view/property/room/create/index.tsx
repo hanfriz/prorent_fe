@@ -26,12 +26,14 @@ import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { propertyService } from "@/service/propertyService";
-import { Property, UploadedFile } from "@/interface/propertyInterface";
+import { Property, UploadedFile, RoomType, CreateRoomRequest } from "@/interface/propertyInterface";
 import {
   createRoomSchema,
   CreateRoomFormData,
 } from "@/validation/propertyValidation";
 import { ImageSelector } from "../../component/ImageSelector";
+import { RoomImageUploader } from "../../component/RoomImageUploader";
+import { RoomTypeSelector } from "../../component/RoomTypeSelector";
 
 interface CreateRoomFormProps {
   propertyId?: string;
@@ -41,6 +43,7 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [images, setImages] = useState<UploadedFile[]>([]);
   const [selectedImageIds, setSelectedImageIds] = useState<string[]>([]);
 
@@ -48,11 +51,8 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
     resolver: zodResolver(createRoomSchema),
     defaultValues: {
       propertyId: propertyId || "",
+      roomTypeId: "",
       name: "",
-      roomTypeName: "",
-      description: "",
-      capacity: 1,
-      basePrice: 100000,
       pictures: [],
     },
   });
@@ -65,8 +65,19 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
   useEffect(() => {
     if (propertyId) {
       form.setValue("propertyId", propertyId);
+      loadRoomTypes(propertyId);
     }
   }, [propertyId, form]);
+
+  // Watch propertyId changes to load room types
+  const watchedPropertyId = form.watch("propertyId");
+  useEffect(() => {
+    if (watchedPropertyId) {
+      loadRoomTypes(watchedPropertyId);
+    } else {
+      setRoomTypes([]);
+    }
+  }, [watchedPropertyId]);
 
   const loadProperties = async () => {
     try {
@@ -77,6 +88,20 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
     } catch (error) {
       console.error("Error loading properties:", error);
       toast.error("Failed to load properties");
+    }
+  };
+
+  const loadRoomTypes = async (propertyId: string) => {
+    try {
+      const response = await propertyService.getRoomTypes(propertyId);
+      if (response.success) {
+        setRoomTypes(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading room types:", error);
+      toast.error("Failed to load room types. Please create a room type first.");
+      // Set empty array to show that no room types exist
+      setRoomTypes([]);
     }
   };
 
@@ -96,14 +121,18 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
     try {
       setIsLoading(true);
 
-      if (selectedImageIds.length === 0) {
-        toast.error("Please select at least one picture");
+      // Validate room type is selected
+      if (!data.roomTypeId) {
+        toast.error("Please select a room type first");
         return;
       }
 
-      const requestData = {
-        ...data,
-        pictures: selectedImageIds,
+      // Pictures are optional in backend
+      const requestData: CreateRoomRequest = {
+        propertyId: data.propertyId,
+        roomTypeId: data.roomTypeId,
+        ...(data.name && data.name.trim() && { name: data.name.trim() }),
+        ...(selectedImageIds.length > 0 && { pictures: selectedImageIds }),
       };
 
       const response = await propertyService.createRoom(requestData);
@@ -134,6 +163,10 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
   const handleImageUploaded = (newImage: UploadedFile) => {
     setImages((prev) => [newImage, ...prev]);
     setSelectedImageIds((prev) => [...prev, newImage.id]);
+  };
+
+  const handleRoomTypeCreated = (newRoomType: RoomType) => {
+    setRoomTypes((prev) => [newRoomType, ...prev]);
   };
 
   useEffect(() => {
@@ -187,9 +220,9 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Room Name</FormLabel>
+                      <FormLabel>Room Name (Optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter room name" {...field} />
+                        <Input placeholder="Enter room name (e.g., Room 101)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -198,80 +231,32 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
 
                 <FormField
                   control={form.control}
-                  name="roomTypeName"
+                  name="roomTypeId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Room Type Name</FormLabel>
+                      <FormLabel>Room Type</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter room type name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter room description"
-                        className="min-h-32"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Room Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="capacity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Capacity (Guests)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="20"
-                          placeholder="Enter capacity"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value))
-                          }
+                        <RoomTypeSelector
+                          propertyId={watchedPropertyId}
+                          roomTypes={roomTypes}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onRoomTypeCreated={handleRoomTypeCreated}
+                          disabled={!watchedPropertyId}
                         />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="basePrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Base Price (IDR)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1000"
-                          placeholder="Enter base price"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
+                      {roomTypes.length === 0 && watchedPropertyId && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-md p-3 mt-2">
+                          <p className="text-sm text-orange-800">
+                            ⚠️ No room types found for this property.
+                          </p>
+                          <p className="text-xs text-orange-600 mt-1">
+                            You need to create a room type first before creating rooms. 
+                            Click the + button to create one.
+                          </p>
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -279,7 +264,7 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
 
               {/* Room Pictures */}
               <div className="space-y-4">
-                <label className="text-sm font-medium">Room Pictures</label>
+                <label className="text-sm font-medium">Room Pictures (Optional)</label>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {images.map((image) => (
                     <Card
@@ -313,21 +298,11 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
                 </div>
 
                 {/* Upload Button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    // This could open a dialog for uploading images
-                    toast.info("Image upload feature coming soon");
-                  }}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Upload Room Images
-                </Button>
+                <RoomImageUploader onImageUploaded={handleImageUploaded} />
 
-                {selectedImageIds.length === 0 && (
-                  <p className="text-sm text-red-500">
-                    Please select at least one picture
+                {selectedImageIds.length > 0 && (
+                  <p className="text-sm text-green-600">
+                    {selectedImageIds.length} image(s) selected
                   </p>
                 )}
               </div>
@@ -341,7 +316,10 @@ export default function CreateRoomForm({ propertyId }: CreateRoomFormProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  disabled={isLoading || !form.watch("roomTypeId")}
+                >
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}

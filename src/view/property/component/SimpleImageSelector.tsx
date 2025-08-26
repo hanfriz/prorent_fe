@@ -119,12 +119,12 @@ export function SimpleImageSelector({
     <div className="space-y-4">
       {/* Selected Image Preview */}
       {selectedImage && (
-        <div className="relative w-full h-32 border rounded-lg overflow-hidden">
+        <div className="relative w-full h-64 border rounded-lg overflow-hidden">
           <Image
             src={selectedImage.url}
-            alt={selectedImage.alt || ""}
+            alt={selectedImage.alt || "Selected Image"}
             fill
-            className="object-cover"
+            className="object-cover h-full"
           />
           <Badge className="absolute top-2 right-2">Selected</Badge>
         </div>
@@ -190,7 +190,7 @@ export function SimpleImageSelector({
                     >
                       <Image
                         src={image.url}
-                        alt={image.alt || ""}
+                        alt={image.alt || "Property Image"}
                         fill
                         className="object-cover"
                       />
