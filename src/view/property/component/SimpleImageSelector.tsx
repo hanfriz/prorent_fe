@@ -122,7 +122,7 @@ export function SimpleImageSelector({
         <div className="relative w-full h-32 border rounded-lg overflow-hidden">
           <Image
             src={selectedImage.url}
-            alt={selectedImage.alt}
+            alt={selectedImage.alt || ""}
             fill
             className="object-cover"
           />
@@ -190,7 +190,7 @@ export function SimpleImageSelector({
                     >
                       <Image
                         src={image.url}
-                        alt={image.alt}
+                        alt={image.alt || ""}
                         fill
                         className="object-cover"
                       />

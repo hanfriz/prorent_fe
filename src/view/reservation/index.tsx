@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 
 const mockReservationData = {
   userId: "GTrOzXbTNxts",
-  propertyId: "48312158",
+  propertyId: "0-3wbik-GkZK",
   propertyName: "Villa Sejuk Puncak",
   propertyType: "Room by Room",
   roomTypeId: "541253415",
