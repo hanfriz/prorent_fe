@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  MapPin, 
-  Calendar, 
-  Building, 
+import {
+  Plus,
+  MapPin,
+  Calendar,
+  Building,
   Users,
   Star,
   Eye,
   Edit,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -81,7 +81,7 @@ export default function PropertiesListView() {
           </p>
         </div>
         <Button
-          onClick={() => router.push("/properties/create")}
+          onClick={() => router.push("/my-properties/create")}
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -99,7 +99,7 @@ export default function PropertiesListView() {
               Start by creating your first property listing
             </p>
             <Button
-              onClick={() => router.push("/properties/create")}
+              onClick={() => router.push("/my-properties/create")}
               className="flex items-center gap-2 mx-auto"
             >
               <Plus className="h-4 w-4" />
@@ -110,7 +110,10 @@ export default function PropertiesListView() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {properties.map((property) => (
-            <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={property.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
               <div className="relative aspect-video">
                 {property.mainPicture?.url ? (
                   <img
@@ -132,7 +135,7 @@ export default function PropertiesListView() {
                 <h3 className="font-semibold text-lg mb-2 line-clamp-1">
                   {property.name}
                 </h3>
-                
+
                 <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                   {property.description}
                 </p>
@@ -140,14 +143,18 @@ export default function PropertiesListView() {
                 <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
                   <MapPin className="h-4 w-4" />
                   <span className="line-clamp-1">
-                    {property.location?.city?.name}, {property.location?.city?.province?.name}
+                    {property.location?.city?.name},{" "}
+                    {property.location?.city?.province?.name}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    <span>{property._count?.rooms || 0} Rooms</span>
+                    <span>
+                      {property._count?.rooms || property.rooms?.length || 0}{" "}
+                      Rooms
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
@@ -169,7 +176,9 @@ export default function PropertiesListView() {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => router.push(`/properties/${property.id}/edit`)}
+                    onClick={() =>
+                      router.push(`/properties/${property.id}/edit`)
+                    }
                   >
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
