@@ -1,7 +1,7 @@
 // src/view/report/PropertiesOverview.tsx
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PropertyCard } from "@/view/report/component/propertyCard";
+import { PropertyCard } from "@/view/report/mainComponent/propertyCard";
 import { PropertiesOverviewProps } from "@/interface/report/reportInterface";
 import { useDashboardReport } from "@/service/report/useReport";
 import { useReportStore } from "@/lib/stores/reportStore";
@@ -12,7 +12,6 @@ import { usePropertyFilters } from "./propertiesOverviewComponent/customHookFilt
 
 export default function PropertiesOverview({ properties: initialProperties }: PropertiesOverviewProps) {
   const { data: reportData, isLoading, isFetching } = useDashboardReport();
-  const properties = reportData?.properties ?? initialProperties;
   const { filters, options, setFilters, setOption } = useReportStore();
   
   const {
@@ -71,7 +70,7 @@ export default function PropertiesOverview({ properties: initialProperties }: Pr
 
       <CardContent>
         <PropertyList 
-          properties={properties} 
+          reportData={reportData} 
           isLoading={isLoading} 
           isFetching={isFetching}
         />

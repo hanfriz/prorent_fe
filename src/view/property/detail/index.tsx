@@ -710,8 +710,7 @@ export default function PropertyDetailView({
               </div>
             </CardContent>
           </Card>
-        </div>
-        <PropertyReviews propertyId={propertyId} />  
+        </div>        
       </div>
     </div>
   );

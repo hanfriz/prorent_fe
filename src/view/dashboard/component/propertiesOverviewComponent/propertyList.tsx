@@ -1,19 +1,21 @@
 // src/view/report/component/PropertyList.tsx
-import { PropertyCard } from "@/view/report/component/propertyCard";
+import { PropertyCard } from "@/view/report/mainComponent/propertyCard";
 import { PropertySkeleton } from "@/view/dashboard/component/propertiesOverviewComponent/skeleton";
-import { PropertySummary } from "@/interface/report/reportInterface";
+import { DashboardReportResponse, PropertySummary } from "@/interface/report/reportInterface";
 
 interface PropertyListProps {
-  properties: PropertySummary[];
+  reportData: DashboardReportResponse | undefined;
   isLoading: boolean;
   isFetching: boolean;
 }
 
-export function PropertyList({ properties, isLoading, isFetching }: PropertyListProps) {
+export function PropertyList({ reportData, isLoading, isFetching }: PropertyListProps) {
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
+  const properties = reportData?.properties || [];
+  
   if (properties.length === 0) {
     return <NoPropertiesMessage />;
   }
@@ -50,7 +52,6 @@ function PropertiesGrid({ properties }: { properties: PropertySummary[] }) {
 function renderPropertyCard(item: PropertySummary) {
   const confirmed = item.summary.counts.CONFIRMED ?? 0;
   const cancelled = item.summary.counts.CANCELLED ?? 0;
-  const status = getPropertyStatus(confirmed, cancelled);
 
   return (
     <div key={item.property.id} className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg bg-white shadow-sm">
@@ -67,10 +68,4 @@ function renderPropertyCard(item: PropertySummary) {
       />
     </div>
   );
-}
-
-function getPropertyStatus(confirmed: number, cancelled: number): string {
-  if (confirmed > 0) return "Active";
-  if (cancelled > 0) return "Inactive";
-  return "No Bookings";
 }

@@ -99,26 +99,37 @@ export const reportService = {
       options: Partial<ReservationReportOptions> = {}
    ): Promise<DashboardReportResponse> {
       const params = new URLSearchParams();
+      const allParams = { ...filters, ...options };
 
-      Object.entries({ ...filters, ...options }).forEach(([ key, value ]) => {
+      Object.entries(allParams).forEach(([ key, value ]) => {
          if (value === undefined || value === null) {
             return;
          }
 
          if (Array.isArray(value)) {
-            // kirim array sebagai key[]=val agar backend bisa parse array
             value.forEach(v => params.append(`${key}[]`, String(v)));
+         } else if (key === 'reservationPage') {
+            if (typeof value === 'object' && Object.keys(value).length > 0) {
+               try {
+                  const serialized = JSON.stringify(value);
+                  params.append(key, serialized);
+               } catch (e) {
+                  console.warn('Failed to stringify reservationPage:', value);
+                  params.append(key, '1');
+               }
+            } else {
+               params.append(key, '1');
+            }
          } else if (typeof value === 'number') {
-            params.append(key, value.toString()); // number tetap string tapi backend bisa parseInt
+            params.append(key, value.toString());
+         } else if (value instanceof Date) {
+            params.append(key, value.toISOString().split('T')[0]);
          } else {
             params.append(key, String(value));
          }
       });
 
-      console.log('DashboardReport params:', params.toString());
-
       const { data } = await Axios.get<DashboardReportResponse>('/report/reservations', { params });
-      console.log('DashboardReport data:', data);
       return data;
    },
 

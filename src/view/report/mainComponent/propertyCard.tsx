@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface Property {
   id: string;
@@ -66,7 +67,9 @@ export function PropertyCard({ property }: { property: Property }) {
 
         {/* Tombol di sebelah kanan */}
         <div className="flex flex-col gap-2 justify-start mt-4 md:mt-0">
-          <Button size="sm">Detail Report</Button>
+          <Link href={`/dashboard/report/${property.id}`}>
+            <Button size="sm" className="w-full">Detail Report</Button>
+          </Link>
           <Button size="sm" variant="outline">Download</Button>
         </div>
       </div>

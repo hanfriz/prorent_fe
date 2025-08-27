@@ -27,7 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/view/report/component"
+    "src/view/report/mainComponent"
   ],
   "exclude": ["node_modules"]
 }

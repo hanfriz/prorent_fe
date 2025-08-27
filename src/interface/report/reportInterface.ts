@@ -2,9 +2,7 @@ import { ReservationStatus } from '../enumInterface';
 
 export interface DashboardReportResponse {
    properties: PropertySummary[];
-   roomTypes?: RoomTypeWithAvailability[];
    summary: {
-      // Combined summary across all filtered data
       counts: StatusCounts;
       revenue: RevenueSummary;
    };
@@ -24,20 +22,30 @@ export interface RoomTypeWithAvailability {
    availability: {
       totalQuantity: number;
       dates: Array<{
-         date: string; // ISO date string: "2025-01-01"
+         date: string;
          available: number;
          isAvailable: boolean;
       }>;
    };
+   uniqueCustomers?: CustomerMin[];
+   data?: ReservationMin[];
+   pagination?: any;
 }
 
 export interface RoomTypeMin {
    id: string;
    name: string;
 }
+export interface CustomerMin {
+   id: string;
+   email: string;
+   firstName: string | null;
+   lastName: string | null;
+}
 
 export interface PropertySummary {
    property: PropertyMin;
+   roomTypes: RoomTypeWithAvailability[];
    period: PeriodDetail;
    summary: {
       counts: StatusCounts;
@@ -94,7 +102,9 @@ export interface ReservationReportFilters {
 
 export interface ReservationReportOptions {
    page?: number;
+   reservationPage?: number | { [roomTypeId: string]: number };
    pageSize?: number;
+   reservationPageSize?: number;
    sortBy?: 'startDate' | 'endDate' | 'createdAt' | 'paymentAmount';
    sortDir?: 'asc' | 'desc';
 }
@@ -162,4 +172,32 @@ export interface ReportFilters {
    endDate?: Date | null;
    status?: OrderStatus[];
    search?: string;
+}
+
+export interface PropertyReportParams {
+   propertyId: string;
+   startDate?: Date;
+   endDate?: Date;
+   options?: ReservationReportOptions;
+}
+
+export interface ReservationMin {
+   id: string;
+   userId: string;
+   startDate: Date;
+   endDate: Date;
+   orderStatus: OrderStatus;
+   paymentAmount: number | null;
+   user: {
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+   };
+}
+
+export interface RoomTypeAccordionProps {
+   roomType: RoomTypeWithAvailability;
+   startDate: Date;
+   endDate: Date;
+   onReservationPageChange: (roomTypeId: string, page: number) => void;
 }
