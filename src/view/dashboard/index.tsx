@@ -13,16 +13,8 @@ import {
 } from "./component";
 import { authStore } from "@/lib/stores/authStore";
 import { useDashboardReport } from "@/service/report/useReport";
-import Graph from "../report/component/graphComponent";
-import {
-  DashboardHeaderSkeleton,
-  GraphSkeleton,
-  PropertiesOverviewSkeleton,
-  QuickActionsSkeleton,
-  RecentActivitiesSkeleton,
-  StatsSectionSkeleton,
-  WelcomeSectionSkeleton,
-} from "./component/dashboardSkeleton";
+import Graph from "../report/mainComponent/graphComponent";
+import { DashboardHeaderSkeleton, GraphSkeleton, PropertiesOverviewSkeleton, QuickActionsSkeleton, RecentActivitiesSkeleton, StatsSectionSkeleton, WelcomeSectionSkeleton } from "./component/dashboardSkeleton";
 
 interface DashboardStats {
   totalProperties: number;

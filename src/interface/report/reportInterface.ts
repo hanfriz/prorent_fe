@@ -2,9 +2,7 @@ import { ReservationStatus } from '../enumInterface';
 
 export interface DashboardReportResponse {
    properties: PropertySummary[];
-   roomTypes?: RoomTypeWithAvailability[];
    summary: {
-      // Combined summary across all filtered data
       counts: StatusCounts;
       revenue: RevenueSummary;
    };
@@ -24,20 +22,30 @@ export interface RoomTypeWithAvailability {
    availability: {
       totalQuantity: number;
       dates: Array<{
-         date: string; // ISO date string: "2025-01-01"
+         date: string;
          available: number;
          isAvailable: boolean;
       }>;
    };
+   uniqueCustomers?: CustomerMin[];
+   data?: ReservationMin[];
+   pagination?: any;
 }
 
 export interface RoomTypeMin {
    id: string;
    name: string;
 }
+export interface CustomerMin {
+   id: string;
+   email: string;
+   firstName: string | null;
+   lastName: string | null;
+}
 
 export interface PropertySummary {
    property: PropertyMin;
+   roomTypes: RoomTypeWithAvailability[];
    period: PeriodDetail;
    summary: {
       counts: StatusCounts;
@@ -94,13 +102,15 @@ export interface ReservationReportFilters {
 
 export interface ReservationReportOptions {
    page?: number;
+   reservationPage?: number | { [roomTypeId: string]: number };
    pageSize?: number;
+   reservationPageSize?: number;
    sortBy?: 'startDate' | 'endDate' | 'createdAt' | 'paymentAmount';
    sortDir?: 'asc' | 'desc';
 }
 
 // --- Types ---
-export type ChartType = 'yearly' | 'monthly' | 'daily' | 'custom';
+export type ChartTimeType = 'yearly' | 'monthly' | 'daily' | 'custom';
 export type ChartParams = {
    years?: string; // "2023,2024,2025"
    year?: number;
@@ -114,8 +124,80 @@ export type ChartReportParams =
    | { type: 'custom'; year: number; startDate: string; endDate: string };
 
 export interface ChartReportOptions {
-   type: ChartType;
+   type: ChartTimeType;
    years?: number[];
    year?: number;
    days?: number;
+}
+
+export interface Property {
+   id: string;
+   name: string;
+   Picture?: string | null;
+   address?: string;
+   city?: string;
+}
+
+export interface FilterControlsProps {
+   searchTerm: string;
+   dateRangeType: string;
+   selectedYear: number;
+   selectedMonth: number;
+   customStartDate: Date | null;
+   customEndDate: Date | null;
+   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+   onSearch: () => void;
+   onSortChange: (value: string) => void;
+   onSortDirectionChange: () => void;
+   onResetFilters: () => void;
+   onDateRangeTypeChange: (value: string) => void;
+   onYearChange: (value: number) => void;
+   onMonthChange: (value: number) => void;
+   onCustomStartDateChange: (value: Date | null) => void;
+   onCustomEndDateChange: (value: Date | null) => void;
+   onApplyDates: () => void;
+   sortBy: string;
+   sortDir: string;
+}
+
+export type OrderStatus = ReservationStatus;
+
+export type SortDir = 'asc' | 'desc';
+export type ViewMode = 'yearly' | 'monthly' | 'daily' | 'custom';
+
+export interface ReportFilters {
+   propertyId?: string;
+   roomTypeId?: string;
+   startDate?: Date | null;
+   endDate?: Date | null;
+   status?: OrderStatus[];
+   search?: string;
+}
+
+export interface PropertyReportParams {
+   propertyId: string;
+   startDate?: Date;
+   endDate?: Date;
+   options?: ReservationReportOptions;
+}
+
+export interface ReservationMin {
+   id: string;
+   userId: string;
+   startDate: Date;
+   endDate: Date;
+   orderStatus: OrderStatus;
+   paymentAmount: number | null;
+   user: {
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+   };
+}
+
+export interface RoomTypeAccordionProps {
+   roomType: RoomTypeWithAvailability;
+   startDate: Date;
+   endDate: Date;
+   onReservationPageChange: (roomTypeId: string, page: number) => void;
 }

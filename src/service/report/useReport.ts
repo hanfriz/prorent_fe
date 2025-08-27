@@ -12,10 +12,8 @@ import {
 } from '@/service/report/reportService';
 import { useReportStore } from '@/lib/stores/reportStore';
 import {
-   ChartDataPoint,
-   ChartReportOptions,
-   ChartType,
    DashboardReportResponse,
+   PropertyReportParams,
    ReservationReportFilters,
    ReservationReportOptions
 } from '@/interface/report/reportInterface';
@@ -38,18 +36,35 @@ function cleanFilters<T extends object> (filters: T): Partial<T> {
    ) as Partial<T>;
 }
 
-function cleanOptions (options?: ReservationReportOptions): ReservationReportOptions | undefined {
+function cleanOptions (options?: ReservationReportOptions): Record<string, any> | undefined {
    if (!options) {
       return undefined;
    }
 
-   const cleaned = {
-      ...options,
-      page: options.page ? Number(options.page) : 1,
-      pageSize: options.pageSize ? Number(options.pageSize) : 20
-   };
+   const cleaned = Object.fromEntries(
+      Object.entries(options)
+         .filter(([ _, value ]) => {
+            if (value === null || value === undefined) {
+               return false;
+            }
+            // ✅ Only check for empty string if it's actually a string
+            if (typeof value === 'string' && value.trim() === '') {
+               return false;
+            }
+            return true;
+         })
+         .map(([ key, value ]) => {
+            // Handle reservationPage: { [id]: page }
+            if (key === 'reservationPage' && typeof value === 'object') {
+               return [ key, JSON.stringify(value) ];
+            }
+            if (value instanceof Date) {
+               return [ key, value.toISOString().split('T')[0] ];
+            }
+            return [ key, value ];
+         })
+   );
 
-   console.log('✅ cleaned options:', cleaned);
    return cleaned;
 }
 
@@ -119,14 +134,62 @@ export function usePropertiesOverview (filters: ReservationReportFilters, option
    };
 }
 
+export function usePropertyReport (params: PropertyReportParams, options?: ReservationReportOptions) {
+   const { propertyId, startDate, endDate } = params;
+
+   const filters = useMemo(() => {
+      const baseFilters: any = { propertyId };
+      if (startDate) {
+         baseFilters.startDate = startDate;
+      }
+      if (endDate) {
+         baseFilters.endDate = endDate;
+      }
+      return cleanFilters(baseFilters);
+   }, [ propertyId, startDate, endDate ]);
+
+   const resolvedOptions = useMemo(() => {
+      const sortDir = options?.sortDir;
+      const sortBy = options?.sortBy;
+      const reservationPage = options?.reservationPage ?? 1;
+      const reservationPageSize = options?.reservationPageSize ?? 10;
+
+      return {
+         page: options?.page ?? 1,
+         pageSize: options?.pageSize ?? 20,
+         reservationPage,
+         reservationPageSize,
+         sortBy: isValidSortBy(sortBy) ? sortBy : 'startDate',
+         sortDir: isValidSortDir(sortDir) ? sortDir : 'desc'
+      };
+   }, [ options ]);
+
+   return useQuery({
+      queryKey: [ 'propertyReport', propertyId, filters, resolvedOptions.reservationPage ],
+      queryFn: () => reportService.getDashboardReport(filters, resolvedOptions),
+      enabled: !!propertyId
+   });
+}
+
+// Helper functions
+function isValidSortDir (dir: any): dir is 'asc' | 'desc' {
+   return dir === 'asc' || dir === 'desc';
+}
+
+function isValidSortBy (by: any): by is 'startDate' | 'endDate' | 'createdAt' | 'paymentAmount' {
+   return [ 'startDate', 'endDate', 'createdAt', 'paymentAmount' ].includes(by);
+}
 /**
  * Hook: RoomTypes overview
  */
-export function useRoomTypesOverview (filters: ReservationReportFilters, options?: ReservationReportOptions) {
-   const query = useDashboardReportCore(filters, options);
+export function usePropertyRoomTypes ({ propertyId, startDate, endDate }: PropertyReportParams) {
+   const { data, isLoading, isError, ...query } = usePropertyReport({ propertyId, startDate, endDate });
+
    return {
       ...query,
-      data: query.data?.roomTypes ?? []
+      data: data?.properties?.[0]?.roomTypes ?? [],
+      isLoading,
+      isError
    };
 }
 
@@ -181,8 +244,7 @@ export const useChartReportByViewMode = () => {
       return [ selectedYear - 2, selectedYear - 1, selectedYear ];
    }, [ selectedYear ]);
 
-   // Log the parameters being used for the query
-   console.log('🔍 [Chart Report] Preparing query with:', {
+   ({
       viewMode,
       selectedYear,
       days,
@@ -192,7 +254,7 @@ export const useChartReportByViewMode = () => {
    return useQuery({
       queryKey: [ 'chartReport', viewMode, viewMode === 'yearly' ? years : viewMode === 'monthly' ? selectedYear : days ],
       queryFn: async () => {
-         console.log('🔄 [Chart Report] Fetching data for:', {
+         ({
             viewMode,
             selectedYear,
             days,
@@ -201,26 +263,22 @@ export const useChartReportByViewMode = () => {
 
          switch (viewMode) {
             case 'yearly':
-               console.log('📈 [Chart Report] Calling getChartReportYearly with years:', years);
                const yearlyResult = await getChartReportYearly({ years });
-               console.log('✅ [Chart Report] Yearly data received:', yearlyResult);
+
                return yearlyResult;
 
             case 'monthly':
-               console.log('📅 [Chart Report] Calling getChartReportMonthly with year:', selectedYear);
                const monthlyResult = await getChartReportMonthly({ year: selectedYear });
-               console.log('✅ [Chart Report] Monthly data received:', monthlyResult);
+
                return monthlyResult;
 
             case 'daily':
-               console.log('🕒 [Chart Report] Calling getChartReportDaily with days:', days);
                const dailyResult = await getChartReportDaily({ days });
-               console.log('✅ [Chart Report] Daily data received:', dailyResult);
+
                return dailyResult;
 
             default:
                const errorMsg = `Unsupported view mode: ${viewMode}`;
-               console.error('❌ [Chart Report] Error:', errorMsg);
                throw new Error(errorMsg);
          }
       },
