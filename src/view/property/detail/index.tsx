@@ -41,6 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import PropertyReviews from "@/view/review/component/propertyReview";
 
 interface PropertyDetailViewProps {
   propertyId: string;
@@ -710,6 +711,7 @@ export default function PropertyDetailView({
             </CardContent>
           </Card>
         </div>
+        <PropertyReviews propertyId={propertyId} />  
       </div>
     </div>
   );

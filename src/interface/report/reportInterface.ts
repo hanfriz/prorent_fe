@@ -100,7 +100,7 @@ export interface ReservationReportOptions {
 }
 
 // --- Types ---
-export type ChartType = 'yearly' | 'monthly' | 'daily' | 'custom';
+export type ChartTimeType = 'yearly' | 'monthly' | 'daily' | 'custom';
 export type ChartParams = {
    years?: string; // "2023,2024,2025"
    year?: number;
@@ -114,8 +114,52 @@ export type ChartReportParams =
    | { type: 'custom'; year: number; startDate: string; endDate: string };
 
 export interface ChartReportOptions {
-   type: ChartType;
+   type: ChartTimeType;
    years?: number[];
    year?: number;
    days?: number;
+}
+
+export interface Property {
+   id: string;
+   name: string;
+   Picture?: string | null;
+   address?: string;
+   city?: string;
+}
+
+export interface FilterControlsProps {
+   searchTerm: string;
+   dateRangeType: string;
+   selectedYear: number;
+   selectedMonth: number;
+   customStartDate: Date | null;
+   customEndDate: Date | null;
+   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+   onSearch: () => void;
+   onSortChange: (value: string) => void;
+   onSortDirectionChange: () => void;
+   onResetFilters: () => void;
+   onDateRangeTypeChange: (value: string) => void;
+   onYearChange: (value: number) => void;
+   onMonthChange: (value: number) => void;
+   onCustomStartDateChange: (value: Date | null) => void;
+   onCustomEndDateChange: (value: Date | null) => void;
+   onApplyDates: () => void;
+   sortBy: string;
+   sortDir: string;
+}
+
+export type OrderStatus = ReservationStatus;
+
+export type SortDir = 'asc' | 'desc';
+export type ViewMode = 'yearly' | 'monthly' | 'daily' | 'custom';
+
+export interface ReportFilters {
+   propertyId?: string;
+   roomTypeId?: string;
+   startDate?: Date | null;
+   endDate?: Date | null;
+   status?: OrderStatus[];
+   search?: string;
 }

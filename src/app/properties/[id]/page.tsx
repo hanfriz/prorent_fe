@@ -8,5 +8,7 @@ export default async function PropertyDetailPage({
   params,
 }: PropertyDetailPageProps) {
   const { id } = await params;
-  return <PropertyDetailView propertyId={id} />;
+  return (<PropertyDetailView propertyId={id} />
+    
+  );
 }

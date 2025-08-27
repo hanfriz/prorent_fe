@@ -6,7 +6,7 @@ import type {
    ChartDataPoint,
    ReservationReportFilters,
    ReservationReportOptions,
-   ChartType,
+   ChartTimeType,
    ChartParams
 } from '@/interface/report/reportInterface';
 import { responseCookiesToRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
@@ -70,7 +70,7 @@ export async function getChartReportDaily (params: {
 }
 
 // fallback (opsional, untuk kasus dinamis)
-export async function getChartReportDefault (type: ChartType, params: any = {}): Promise<any> {
+export async function getChartReportDefault (type: ChartTimeType, params: any = {}): Promise<any> {
    const url = `/report/chart/${type}`;
    const searchParams = new URLSearchParams();
 

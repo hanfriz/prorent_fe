@@ -12,9 +12,6 @@ import {
 } from '@/service/report/reportService';
 import { useReportStore } from '@/lib/stores/reportStore';
 import {
-   ChartDataPoint,
-   ChartReportOptions,
-   ChartType,
    DashboardReportResponse,
    ReservationReportFilters,
    ReservationReportOptions
