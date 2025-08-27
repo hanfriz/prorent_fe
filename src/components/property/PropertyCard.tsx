@@ -23,8 +23,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <CardHeader className="p-0">
           <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
             <Image
-              src={property.mainPicture.url}
-              alt={property.mainPicture.alt}
+              src={property?.mainPicture?.url || "/prorent-logo.png"}
+              alt={property?.mainPicture?.alt || "Property Image"}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />

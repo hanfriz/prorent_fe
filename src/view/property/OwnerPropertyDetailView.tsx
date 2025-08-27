@@ -243,13 +243,13 @@ export function OwnerPropertyDetailView({
                       </Badge>
                       <Badge
                         variant={
-                          property.rentalType === "WHOLE_UNIT"
+                          property.rentalType === "WHOLE_PROPERTY"
                             ? "default"
                             : "outline"
                         }
                       >
-                        {property.rentalType === "WHOLE_UNIT"
-                          ? "Whole Unit"
+                        {property.rentalType === "WHOLE_PROPERTY"
+                          ? "Whole Property"
                           : "Room by Room"}
                       </Badge>
                     </div>
@@ -281,8 +281,8 @@ export function OwnerPropertyDetailView({
               <CardContent>
                 <div className="relative h-64 w-full overflow-hidden rounded-lg mb-4">
                   <Image
-                    src={property.mainPicture.url}
-                    alt={property.mainPicture.alt}
+                    src={property?.mainPicture?.url || "/prorent-logo.png"}
+                    alt={property?.mainPicture?.alt || "Property Image"}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"

@@ -117,8 +117,8 @@ export default function PropertiesListView() {
               <div className="relative aspect-video">
                 {property.mainPicture?.url ? (
                   <img
-                    src={property.mainPicture.url}
-                    alt={property.mainPicture.alt || property.name}
+                    src={property?.mainPicture?.url || "/prorent-logo.png"}
+                    alt={property?.mainPicture?.alt || property.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (

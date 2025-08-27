@@ -1,3 +1,12 @@
+// Property Type Enum
+export enum PropertyType {
+  APARTMENT = "APARTMENT",
+  HOUSE = "HOUSE",
+  VILLA = "VILLA",
+  GUEST_HOUSE = "GUEST_HOUSE",
+  HOTEL = "HOTEL",
+}
+
 export interface OwnerPropertyLocation {
   id: string;
   name: string;
@@ -46,13 +55,13 @@ export interface OwnerRoomType {
   propertyId: string;
   name: string;
   description: string;
-  basePrice: string;
+  basePrice: string; // Backend returns string
   capacity: number;
   totalQuantity: number;
   isWholeUnit: boolean;
   createdAt: string;
   updatedAt: string;
-  rooms: OwnerRoom[];
+  rooms?: OwnerRoom[];
 }
 
 export interface OwnerRoom {
@@ -70,11 +79,17 @@ export interface OwnerProperty {
   id: string;
   name: string;
   description: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  propertyType: PropertyType;
   locationId: string;
   categoryId: string;
   OwnerId: string;
   mainPictureId: string;
-  rentalType: "ROOM_BY_ROOM" | "WHOLE_UNIT";
+  rentalType: "ROOM_BY_ROOM" | "WHOLE_PROPERTY";
   createdAt: string;
   updatedAt: string;
   category: OwnerPropertyCategory;
@@ -89,10 +104,39 @@ export interface OwnerProperty {
   };
 }
 
+// Search and Pagination
+export interface OwnerPropertySearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  rentalType?: "ROOM_BY_ROOM" | "WHOLE_PROPERTY";
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+// Analytics and Statistics
+export interface PropertyAnalytics {
+  totalRevenue: number;
+  totalBookings: number;
+  occupancyRate: number;
+  averageRating: number;
+  monthlyRevenue: Array<{
+    month: string;
+    revenue: number;
+  }>;
+}
+
 export interface OwnerPropertiesResponse {
   success: boolean;
   message: string;
   data: OwnerProperty[];
+}
+
+export interface OwnerPropertyDetailResponse {
+  success: boolean;
+  message: string;
+  data: OwnerProperty;
 }
 
 export interface CreatePropertyRequest {
@@ -100,7 +144,7 @@ export interface CreatePropertyRequest {
   description: string;
   locationId: string;
   categoryId: string;
-  rentalType: "ROOM_BY_ROOM" | "WHOLE_UNIT";
+  rentalType: "ROOM_BY_ROOM" | "WHOLE_PROPERTY";
   mainPictureId?: string;
 }
 
@@ -115,6 +159,7 @@ export interface CreateRoomTypeRequest {
   capacity: number;
   totalQuantity: number;
   isWholeUnit: boolean;
+  propertyId: string;
 }
 
 export interface UpdateRoomTypeRequest extends Partial<CreateRoomTypeRequest> {
@@ -124,6 +169,7 @@ export interface UpdateRoomTypeRequest extends Partial<CreateRoomTypeRequest> {
 export interface CreateRoomRequest {
   name: string;
   roomTypeId: string;
+  propertyId: string;
   isAvailable?: boolean;
 }
 
@@ -131,22 +177,23 @@ export interface UpdateRoomRequest extends Partial<CreateRoomRequest> {
   id: string;
 }
 
-// For property search and filtering
-export interface OwnerPropertySearchParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  category?: string;
-  rentalType?: "ROOM_BY_ROOM" | "WHOLE_UNIT";
-  sortBy?: "name" | "createdAt" | "updatedAt";
-  sortOrder?: "asc" | "desc";
-}
+// Utility functions for rental type display
+export const getRentalTypeDisplay = (rentalType: string) => {
+  switch (rentalType) {
+    case "ROOM_BY_ROOM":
+      return "Sewa Satu Kamar";
+    case "WHOLE_PROPERTY":
+      return "Sewa Seluruh Properti";
+    default:
+      return rentalType;
+  }
+};
 
-export interface PropertyAnalytics {
-  totalProperties: number;
-  totalRooms: number;
-  totalBookings: number;
-  totalRevenue: number;
-  occupancyRate: number;
-  averageRating: number;
-}
+export const formatPrice = (price: string | number) => {
+  const numPrice = typeof price === "string" ? parseFloat(price) : price;
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(numPrice);
+};
