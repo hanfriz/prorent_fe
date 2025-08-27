@@ -1,30 +1,11 @@
 // src/lib/stores/reportStore.ts
 import { ReservationStatus } from '@/interface/enumInterface';
+import { ReservationReportOptions, ReportFilters, ViewMode, SortDir } from '@/interface/report/reportInterface';
 import { create } from 'zustand';
 
-export type OrderStatus = ReservationStatus;
-
-export type SortDir = 'asc' | 'desc';
-export type ViewMode = 'yearly' | 'monthly' | 'daily' | 'custom';
 export type ChartType = 'line' | 'bar';
 
-interface ReportFilters {
-   propertyId?: string;
-   roomTypeId?: string;
-   startDate?: Date | null;
-   endDate?: Date | null;
-   status?: OrderStatus[];
-   search?: string;
-}
-
-interface ReportOptions {
-   page: number;
-   pageSize: number;
-   sortBy: 'startDate' | 'endDate' | 'createdAt' | 'paymentAmount';
-   sortDir: SortDir;
-}
-
-interface ChartSettings {
+export interface ChartSettings {
    viewMode: ViewMode;
    chartType: ChartType;
    days: number;
@@ -34,13 +15,13 @@ interface ChartSettings {
 interface ReportState {
    // Filters & options
    filters: ReportFilters;
-   options: ReportOptions;
+   options: ReservationReportOptions;
    chartSettings: ChartSettings;
 
    // Actions
    setFilter: (key: keyof ReportFilters, value: any) => void;
    setFilters: (filters: Partial<ReportFilters>) => void;
-   setOption: (key: keyof ReportOptions, value: any) => void;
+   setOption: (key: keyof ReservationReportOptions, value: any) => void;
    setChartSetting: <T extends keyof ChartSettings>(key: T, value: ChartSettings[T]) => void;
    setViewMode: (mode: ViewMode) => void;
    setChartType: (type: ChartType) => void;
@@ -59,7 +40,7 @@ const defaultFilters: ReportFilters = {
    search: ''
 };
 
-const defaultOptions: ReportOptions = {
+const defaultOptions: ReservationReportOptions = {
    page: 1,
    pageSize: 20,
    sortBy: 'startDate',

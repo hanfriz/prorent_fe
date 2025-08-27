@@ -13,7 +13,7 @@ import {
 } from "./component";
 import { authStore } from "@/lib/stores/authStore";
 import { useDashboardReport } from "@/service/report/useReport";
-import Graph from "../report/component/graphComponent";
+import Graph from "../report/mainComponent/graphComponent";
 import { DashboardHeaderSkeleton, GraphSkeleton, PropertiesOverviewSkeleton, QuickActionsSkeleton, RecentActivitiesSkeleton, StatsSectionSkeleton, WelcomeSectionSkeleton } from "./component/dashboardSkeleton";
 
 
