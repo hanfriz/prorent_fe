@@ -59,6 +59,7 @@ export interface PublicPropertyDetail {
   id: string;
   name: string;
   description: string;
+  rentalType: "ROOM_BY_ROOM" | "WHOLE_PROPERTY";
   category: PropertyCategory;
   location: PropertyLocation;
   owner: PropertyOwner;

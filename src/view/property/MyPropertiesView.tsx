@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -111,6 +111,99 @@ export default function MyPropertiesView() {
     router.push("/my-properties/create");
   };
 
+  // Function to count total cards to display
+  const getTotalCards = () => {
+    let count = 0;
+    properties.forEach((property) => {
+      if (property.rentalType === "WHOLE_PROPERTY") {
+        count += 1;
+      } else if (property.rentalType === "ROOM_BY_ROOM") {
+        if (property.rooms && property.rooms.length > 0) {
+          count += property.rooms.length;
+        } else {
+          count += 1; // Show property even if no rooms
+        }
+      }
+    });
+    return count;
+  };
+
+  // Function to generate cards based on rental type
+  const generatePropertyCards = () => {
+    const cards: React.ReactElement[] = [];
+
+    properties.forEach((property) => {
+      if (property.rentalType === "WHOLE_PROPERTY") {
+        // For whole property, show one card for the entire property
+        cards.push(
+          <div key={property.id} className="relative">
+            <OwnerPropertyCard
+              property={property}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              onView={handleView}
+            />
+            {deleting === property.id && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                <div className="bg-white p-4 rounded-lg flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                  <span className="text-sm text-gray-700">Deleting...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      } else if (property.rentalType === "ROOM_BY_ROOM") {
+        // For room by room, show one card per available room
+        if (property.rooms && property.rooms.length > 0) {
+          property.rooms.forEach((room) => {
+            cards.push(
+              <div key={`${property.id}-${room.id}`} className="relative">
+                <OwnerPropertyCard
+                  property={property}
+                  room={room}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                  onView={handleView}
+                />
+                {deleting === property.id && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                    <div className="bg-white p-4 rounded-lg flex items-center space-x-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                      <span className="text-sm text-gray-700">Deleting...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          });
+        } else {
+          // If no rooms, still show the property card
+          cards.push(
+            <div key={property.id} className="relative">
+              <OwnerPropertyCard
+                property={property}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                onView={handleView}
+              />
+              {deleting === property.id && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                  <div className="bg-white p-4 rounded-lg flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                    <span className="text-sm text-gray-700">Deleting...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+      }
+    });
+
+    return cards;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -161,32 +254,16 @@ export default function MyPropertiesView() {
           <>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {properties.length} Properties Found
+                {getTotalCards()} {getTotalCards() === 1 ? "Item" : "Items"}{" "}
+                Found
               </h2>
               <p className="text-gray-600">
-                Your property listings and their current status
+                Your property listings and rooms available for rent
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {properties.map((property) => (
-                <div key={property.id} className="relative">
-                  <OwnerPropertyCard
-                    property={property}
-                    onDelete={handleDelete}
-                    onEdit={handleEdit}
-                    onView={handleView}
-                  />
-                  {deleting === property.id && (
-                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg">
-                      <div className="text-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-red-600 mx-auto mb-2" />
-                        <p className="text-sm text-red-600">Deleting...</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {generatePropertyCards()}
             </div>
           </>
         )}

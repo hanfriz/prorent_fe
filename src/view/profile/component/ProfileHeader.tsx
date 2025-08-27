@@ -31,7 +31,7 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
         {/* Avatar */}
         <Avatar className="h-24 w-24">
           <AvatarImage
-            src={user?.profile?.avatar?.url}
+            src={user?.profile?.avatar?.url || "/prorent-logo.png"}
             alt={user?.profile?.avatar?.alt || "Profile picture"}
           />
           <AvatarFallback className="text-xl">

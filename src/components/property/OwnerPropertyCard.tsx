@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { OwnerProperty } from "@/interface/ownerPropertyInterface";
+import { OwnerProperty, OwnerRoom } from "@/interface/ownerPropertyInterface";
 import {
   MapPin,
   Users,
@@ -13,10 +13,13 @@ import {
   Eye,
   Calendar,
   DollarSign,
+  Images,
+  Bed,
 } from "lucide-react";
 
 interface OwnerPropertyCardProps {
   property: OwnerProperty;
+  room?: OwnerRoom; // Optional room prop for room-by-room display
   onDelete: (propertyId: string) => void;
   onEdit: (propertyId: string) => void;
   onView: (propertyId: string) => void;
@@ -24,6 +27,7 @@ interface OwnerPropertyCardProps {
 
 export function OwnerPropertyCard({
   property,
+  room,
   onDelete,
   onEdit,
   onView,
@@ -44,6 +48,12 @@ export function OwnerPropertyCard({
   };
 
   const getPriceRange = () => {
+    // If displaying a specific room, show the room type's price
+    if (room && room.roomType) {
+      return formatPrice(room.roomType.basePrice);
+    }
+
+    // Otherwise show property price range
     if (property.roomTypes.length === 0) return "No pricing set";
 
     const prices = property.roomTypes.map((rt) => parseInt(rt.basePrice));
@@ -70,8 +80,8 @@ export function OwnerPropertyCard({
       <CardHeader className="p-0">
         <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
           <Image
-            src={property.mainPicture.url}
-            alt={property.mainPicture.alt}
+            src={property?.mainPicture?.url || "/prorent-logo.png"}
+            alt={property?.mainPicture?.alt || "Property Image"}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -83,12 +93,12 @@ export function OwnerPropertyCard({
           <div className="absolute top-3 right-3">
             <Badge
               variant={
-                property.rentalType === "WHOLE_UNIT" ? "default" : "outline"
+                property.rentalType === "WHOLE_PROPERTY" ? "default" : "outline"
               }
               className="bg-white/90 text-gray-900"
             >
-              {property.rentalType === "WHOLE_UNIT"
-                ? "Whole Unit"
+              {property.rentalType === "WHOLE_PROPERTY"
+                ? "Whole Property"
                 : "Room by Room"}
             </Badge>
           </div>
@@ -96,7 +106,7 @@ export function OwnerPropertyCard({
       </CardHeader>
       <CardContent className="p-4">
         <CardTitle className="text-lg mb-2 line-clamp-1">
-          {property.name}
+          {room ? `${room.name} - ${property.name}` : property.name}
         </CardTitle>
 
         <div className="flex items-center text-gray-600 mb-2">
@@ -114,11 +124,19 @@ export function OwnerPropertyCard({
         <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
           <div className="flex items-center text-gray-600">
             <Home className="h-4 w-4 mr-1" />
-            <span>{property._count?.rooms || property.rooms.length} rooms</span>
+            <span>
+              {room
+                ? `Room: ${room.name}`
+                : `${property._count?.rooms || property.rooms.length} rooms`}
+            </span>
           </div>
           <div className="flex items-center text-gray-600">
             <Users className="h-4 w-4 mr-1" />
-            <span>Max {getTotalCapacity()}</span>
+            <span>
+              {room
+                ? `${room.roomType?.capacity || 0} guests`
+                : `Max ${getTotalCapacity()}`}
+            </span>
           </div>
           <div className="flex items-center text-gray-600">
             <Calendar className="h-4 w-4 mr-1" />
@@ -126,14 +144,20 @@ export function OwnerPropertyCard({
           </div>
           <div className="flex items-center text-gray-600">
             <DollarSign className="h-4 w-4 mr-1" />
-            <span>{property.roomTypes.length} room types</span>
+            <span>
+              {room
+                ? `Available: ${room.isAvailable ? "Yes" : "No"}`
+                : `${property.roomTypes.length} room types`}
+            </span>
           </div>
         </div>
 
         <div className="border-t pt-3 mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Price range</p>
+              <p className="text-sm text-gray-600">
+                {room ? "Room Price" : "Price range"}
+              </p>
               <p className="font-bold text-lg text-blue-600">
                 {getPriceRange()}
               </p>
@@ -147,27 +171,55 @@ export function OwnerPropertyCard({
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Link href={`/my-properties/${property.id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full">
-              <Eye className="h-4 w-4 mr-1" />
-              View
+        <div className="space-y-2">
+          {/* Primary Actions */}
+          <div className="flex gap-2">
+            <Link href={`/my-properties/${property.id}`} className="flex-1">
+              <Button variant="outline" size="sm" className="w-full">
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Button>
+            </Link>
+            <Link
+              href={`/my-properties/${property.id}/edit`}
+              className="flex-1"
+            >
+              <Button variant="outline" size="sm" className="w-full">
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(property.id)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
-          </Link>
-          <Link href={`/my-properties/${property.id}/edit`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full">
-              <Edit className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(property.id)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          </div>
+
+          {/* Management Actions */}
+          <div className="flex gap-2">
+            <Link
+              href={`/my-properties/${property.id}/gallery`}
+              className="flex-1"
+            >
+              <Button variant="secondary" size="sm" className="w-full">
+                <Images className="h-4 w-4 mr-1" />
+                Gallery
+              </Button>
+            </Link>
+            <Link
+              href={`/my-properties/${property.id}/rooms`}
+              className="flex-1"
+            >
+              <Button variant="secondary" size="sm" className="w-full">
+                <Bed className="h-4 w-4 mr-1" />
+                Rooms
+              </Button>
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

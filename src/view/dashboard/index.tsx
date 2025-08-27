@@ -8,14 +8,21 @@ import {
   WelcomeSection,
   StatsSection,
   QuickActions,
-  RecentActivities,
+  RecentActivities as RecentTransactions,
   PropertiesOverview,
 } from "./component";
 import { authStore } from "@/lib/stores/authStore";
 import { useDashboardReport } from "@/service/report/useReport";
 import Graph from "../report/component/graphComponent";
-import { DashboardHeaderSkeleton, GraphSkeleton, PropertiesOverviewSkeleton, QuickActionsSkeleton, RecentActivitiesSkeleton, StatsSectionSkeleton, WelcomeSectionSkeleton } from "./component/dashboardSkeleton";
-
+import {
+  DashboardHeaderSkeleton,
+  GraphSkeleton,
+  PropertiesOverviewSkeleton,
+  QuickActionsSkeleton,
+  RecentActivitiesSkeleton,
+  StatsSectionSkeleton,
+  WelcomeSectionSkeleton,
+} from "./component/dashboardSkeleton";
 
 interface DashboardStats {
   totalProperties: number;
@@ -63,30 +70,6 @@ export default function DashboardView() {
     }
   }, [authUser]);
 
-  const [recentActivities] = useState([
-    {
-      id: 1,
-      type: "booking",
-      message: "New booking received for Sunset Villa",
-      time: "2 hours ago",
-      status: "pending" as const,
-    },
-    {
-      id: 2,
-      type: "payment",
-      message: "Payment of $2,500 received",
-      time: "4 hours ago",
-      status: "completed" as const,
-    },
-    {
-      id: 3,
-      type: "review",
-      message: "New 5-star review for Ocean View Apartment",
-      time: "1 day ago",
-      status: "completed" as const,
-    },
-  ]);
-
   const handleLogout = async () => {
     await logout();
     router.push("/login");
@@ -94,10 +77,18 @@ export default function DashboardView() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isLoading ? <DashboardHeaderSkeleton /> : <DashboardHeader user={user} onLogout={handleLogout} />}
+      {isLoading ? (
+        <DashboardHeaderSkeleton />
+      ) : (
+        <DashboardHeader user={user} onLogout={handleLogout} />
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isLoading ? <WelcomeSectionSkeleton /> : <WelcomeSection userName={user.name} />}
+        {isLoading ? (
+          <WelcomeSectionSkeleton />
+        ) : (
+          <WelcomeSection userName={user.name} />
+        )}
 
         {/* Stats Section */}
         {isLoading ? (
@@ -113,7 +104,7 @@ export default function DashboardView() {
           <GraphSkeleton />
         ) : (
           <div className="mb-8">
-            <Graph 
+            <Graph
               title="Revenue Analytics Dashboard"
               showControls={true}
               showSummary={true}
@@ -125,7 +116,7 @@ export default function DashboardView() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {isLoading ? <QuickActionsSkeleton /> : <QuickActions />}
-          {isLoading ? <RecentActivitiesSkeleton /> : <RecentActivities activities={recentActivities} />}
+          {isLoading ? <RecentActivitiesSkeleton /> : <RecentTransactions />}
         </div>
 
         {/* Properties Overview */}

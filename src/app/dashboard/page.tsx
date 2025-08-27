@@ -1,10 +1,10 @@
 import DashboardView from "@/view/dashboard";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 
 export default function DashboardPage() {
   return (
-    <ProtectedRoute>
+    <RoleBasedRoute allowedRoles={["OWNER"]}>
       <DashboardView />
-    </ProtectedRoute>
+    </RoleBasedRoute>
   );
 }
