@@ -32,7 +32,7 @@ export default function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-          <Link href="/">
+          <Link href="/properties">
             <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg">
               Find a Property
             </Button>
