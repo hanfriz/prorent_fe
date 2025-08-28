@@ -9,6 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
   MapPin,
   Users,
   Home,
@@ -36,6 +45,13 @@ export function OwnerPropertyDetailView({
   const [property, setProperty] = useState<OwnerProperty | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: "property" | "roomType";
+    id: string;
+    name: string;
+  }>({ open: false, type: "property", id: "", name: "" });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchPropertyDetail();
@@ -107,28 +123,56 @@ export function OwnerPropertyDetailView({
     return property?.rooms.filter((room) => room.isAvailable) || [];
   };
 
-  const handleDeleteProperty = async () => {
+  const handleDeleteProperty = () => {
     if (!property) return;
+    setDeleteDialog({
+      open: true,
+      type: "property",
+      id: property.id,
+      name: property.name,
+    });
+  };
 
-    if (
-      !confirm(
-        "Are you sure you want to delete this property? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+  const handleDeleteRoomType = (roomTypeId: string, roomTypeName: string) => {
+    setDeleteDialog({
+      open: true,
+      type: "roomType",
+      id: roomTypeId,
+      name: roomTypeName,
+    });
+  };
 
+  const confirmDelete = async () => {
+    if (!property || !deleteDialog.id || isDeleting) return;
+
+    setIsDeleting(true);
     try {
-      const response = await ownerPropertyService.deleteProperty(property.id);
-      if (response.success) {
-        alert("Property deleted successfully");
-        router.push("/my-properties");
-      } else {
-        alert(response.message || "Failed to delete property");
+      if (deleteDialog.type === "property") {
+        const response = await ownerPropertyService.deleteProperty(property.id);
+        if (response.success) {
+          toast.success("Property deleted successfully");
+          router.push("/my-properties");
+        } else {
+          toast.error(response.message || "Failed to delete property");
+        }
+      } else if (deleteDialog.type === "roomType") {
+        const response = await ownerPropertyService.deleteRoomType(
+          property.id,
+          deleteDialog.id
+        );
+        if (response.success) {
+          toast.success("Room type deleted successfully");
+          fetchPropertyDetail();
+        } else {
+          toast.error(response.message || "Failed to delete room type");
+        }
       }
     } catch (err: any) {
-      console.error("Error deleting property:", err);
-      alert(err.response?.data?.message || "Failed to delete property");
+      console.error("Error deleting:", err);
+      toast.error(err.response?.data?.message || "Failed to delete");
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialog({ open: false, type: "property", id: "", name: "" });
     }
   };
 
@@ -370,6 +414,9 @@ export function OwnerPropertyDetailView({
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() =>
+                              handleDeleteRoomType(roomType.id, roomType.name)
+                            }
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -548,6 +595,45 @@ export function OwnerPropertyDetailView({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {deleteDialog.type === "property"
+                ? "Delete Property"
+                : "Delete Room Type"}
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">"{deleteDialog.name}"</span>? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setDeleteDialog((prev) => ({ ...prev, open: false }))
+              }
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

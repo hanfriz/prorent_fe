@@ -154,12 +154,12 @@ export interface UpdatePropertyRequest extends Partial<CreatePropertyRequest> {
 
 export interface CreateRoomTypeRequest {
   name: string;
-  description: string;
-  basePrice: string;
+  description?: string; // Make optional since backend accepts it as optional
+  basePrice: string; // Keep as string in frontend for better UX
   capacity: number;
   totalQuantity: number;
-  isWholeUnit: boolean;
-  propertyId: string;
+  isWholeUnit?: boolean; // Make optional with default false
+  propertyId?: string; // Make optional since it's added in service
 }
 
 export interface UpdateRoomTypeRequest extends Partial<CreateRoomTypeRequest> {
