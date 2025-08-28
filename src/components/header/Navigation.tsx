@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { authStore } from "@/lib/stores/authStore";
-import { LogOut } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { LogOut, User } from "lucide-react";
 
 export default function Navigation() {
   const router = useRouter();
   const isAuthenticated = authStore((s) => s.isAuthenticated);
+  const user = authStore((s) => s.user);
   const logout = authStore((s) => s.logout);
 
   const handleLogout = async () => {
@@ -38,9 +40,31 @@ export default function Navigation() {
 
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
-                </Link>
+                {user?.role === "OWNER" ? (
+                  <>
+                    <Link href="/dashboard">
+                      <Button variant="ghost">Dashboard</Button>
+                    </Link>
+                    <Link href="/my-properties">
+                      <Button variant="ghost">My Properties</Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/profile">
+                      <Button
+                        variant="ghost"
+                        className="flex items-center gap-2"
+                      >
+                        <User className="h-4 w-4" />
+                        Profile
+                      </Button>
+                    </Link>
+                    <Link href="/reservation">
+                      <Button variant="ghost">My Reservations</Button>
+                    </Link>
+                  </>
+                )}
                 <Button
                   variant="ghost"
                   onClick={handleLogout}

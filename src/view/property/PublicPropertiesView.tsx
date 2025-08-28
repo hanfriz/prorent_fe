@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { publicPropertyService } from "@/service/publicPropertyService";
+import { useState } from "react";
+import { usePublicProperties } from "@/service/useProperty";
 import {
   PublicProperty,
   PropertySearchParams,
@@ -9,71 +9,54 @@ import {
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyFilters } from "@/components/property/PropertyFilters";
 import { PropertyPagination } from "@/components/property/PropertyPagination";
+import { PropertyListSkeleton } from "@/components/sekeleton/PropertySkeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Home } from "lucide-react";
 import PropertyReviews from "../review/component/propertyReview";
 
 export default function PublicPropertiesView() {
-  const [properties, setProperties] = useState<PublicProperty[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalItems: 0,
-    itemsPerPage: 10,
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false,
+  const [searchParams, setSearchParams] = useState<PropertySearchParams>({
+    page: 1,
+    limit: 10,
   });
 
-  const fetchProperties = async (params?: PropertySearchParams) => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Use TanStack Query hook
+  const {
+    data: response,
+    isLoading: loading,
+    error,
+  } = usePublicProperties(searchParams);
 
-      const response = await publicPropertyService.getPublicProperties(params);
+  // Extract data from response
+  const properties = response?.success ? response.data : [];
+  const pagination = response?.success
+    ? response.pagination
+    : {
+        currentPage: 1,
+        totalItems: 0,
+        itemsPerPage: 10,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      };
 
-      if (response.success) {
-        setProperties(response.data);
-        setPagination(response.pagination);
-      } else {
-        setError("Failed to fetch properties");
-      }
-    } catch (err: any) {
-      console.error("Error fetching properties:", err);
-
-      // Better error handling based on error type
-      if (err.code === "ECONNREFUSED") {
-        setError(
-          "Unable to connect to server. Please check if the backend is running."
-        );
-      } else if (err.response?.status === 404) {
-        setError(
-          "API endpoint not found. Please check the backend configuration."
-        );
-      } else if (err.response?.status >= 500) {
-        setError("Server error occurred. Please try again later.");
-      } else {
-        setError("Failed to fetch properties. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
-  const handleSearch = (searchParams: PropertySearchParams) => {
-    fetchProperties(searchParams);
+  const handleSearch = (newParams: PropertySearchParams) => {
+    setSearchParams({ ...newParams, page: 1 }); // Reset to page 1 when filters change
   };
 
   const handlePageChange = (page: number) => {
-    fetchProperties({ page, limit: pagination.itemsPerPage });
+    setSearchParams({ ...searchParams, page });
     // Scroll to top when page changes
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Format error message
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+      ? error
+      : "Failed to fetch properties. Please try again.";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,18 +84,13 @@ export default function PublicPropertiesView() {
         {error && (
           <Alert className="mb-6 border-red-200 bg-red-50">
             <AlertDescription className="text-red-800">
-              {error}
+              {errorMessage}
             </AlertDescription>
           </Alert>
         )}
 
         {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">Loading properties...</span>
-          </div>
-        )}
+        {loading && <PropertyListSkeleton />}
 
         {/* Properties Grid */}
         {!loading && properties.length > 0 && (

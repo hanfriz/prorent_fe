@@ -110,7 +110,7 @@ export const ownerPropertyService = {
     data: UpdatePropertyRequest
   ): Promise<SinglePropertyResponse> => {
     try {
-      const response = await axiosInstance.put<SinglePropertyResponse>(
+      const response = await axiosInstance.patch<SinglePropertyResponse>(
         `/owner/properties/${id}`,
         data
       );
@@ -139,7 +139,7 @@ export const ownerPropertyService = {
   ): Promise<RoomTypesResponse> => {
     try {
       const response = await axiosInstance.get<RoomTypesResponse>(
-        `/owner/properties/${propertyId}/room-types`
+        `/owner/room-types?propertyId=${propertyId}`
       );
       return response.data;
     } catch (error: any) {
@@ -153,9 +153,16 @@ export const ownerPropertyService = {
     data: CreateRoomTypeRequest
   ): Promise<SingleRoomTypeResponse> => {
     try {
+      // Convert basePrice to number and add propertyId to payload
+      const payload = {
+        ...data,
+        propertyId,
+        basePrice: Number(data.basePrice), // Convert string to number
+      };
+
       const response = await axiosInstance.post<SingleRoomTypeResponse>(
-        `/owner/properties/${propertyId}/room-types`,
-        data
+        `/owner/room-types`,
+        payload
       );
       return response.data;
     } catch (error: any) {
@@ -170,9 +177,15 @@ export const ownerPropertyService = {
     data: UpdateRoomTypeRequest
   ): Promise<SingleRoomTypeResponse> => {
     try {
+      // Convert basePrice to number if provided
+      const payload = {
+        ...data,
+        ...(data.basePrice && { basePrice: Number(data.basePrice) }),
+      };
+
       const response = await axiosInstance.put<SingleRoomTypeResponse>(
-        `/owner/properties/${propertyId}/room-types/${roomTypeId}`,
-        data
+        `/owner/room-types/${roomTypeId}`,
+        payload
       );
       return response.data;
     } catch (error: any) {
@@ -187,7 +200,7 @@ export const ownerPropertyService = {
   ): Promise<DeleteResponse> => {
     try {
       const response = await axiosInstance.delete<DeleteResponse>(
-        `/owner/properties/${propertyId}/room-types/${roomTypeId}`
+        `/owner/room-types/${roomTypeId}`
       );
       return response.data;
     } catch (error: any) {
@@ -236,7 +249,7 @@ export const ownerPropertyService = {
     data: UpdateRoomRequest
   ): Promise<SingleRoomResponse> => {
     try {
-      const response = await axiosInstance.put<SingleRoomResponse>(
+      const response = await axiosInstance.patch<SingleRoomResponse>(
         `/owner/properties/${propertyId}/rooms/${roomId}`,
         data
       );
@@ -275,17 +288,21 @@ export const ownerPropertyService = {
     }
   },
 
-  // Gallery management
+  // Gallery management - Updated to use /api/upload endpoint
   uploadPropertyImage: async (
-    propertyId: string,
-    file: File
+    file: File,
+    alt?: string
   ): Promise<ImageUploadResponse> => {
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("file", file);
+      formData.append("type", "property");
+      if (alt) {
+        formData.append("alt", alt);
+      }
 
       const response = await axiosInstance.post<ImageUploadResponse>(
-        `/owner/properties/${propertyId}/images`,
+        `/upload`,
         formData,
         {
           headers: {
@@ -300,13 +317,38 @@ export const ownerPropertyService = {
     }
   },
 
-  deletePropertyImage: async (
-    propertyId: string,
-    imageId: string
-  ): Promise<DeleteResponse> => {
+  uploadRoomImage: async (
+    file: File,
+    alt?: string
+  ): Promise<ImageUploadResponse> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "room");
+      if (alt) {
+        formData.append("alt", alt);
+      }
+
+      const response = await axiosInstance.post<ImageUploadResponse>(
+        `/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error uploading room image:", error);
+      throw error;
+    }
+  },
+
+  deletePropertyImage: async (imageId: string): Promise<DeleteResponse> => {
     try {
       const response = await axiosInstance.delete<DeleteResponse>(
-        `/owner/properties/${propertyId}/images/${imageId}`
+        `/upload/${imageId}`
       );
       return response.data;
     } catch (error: any) {
