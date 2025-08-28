@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useReservationForm } from "./component/useReservationForm";
 import PropertyInfoCard from "./component/propertyInfoCard";
 import PaymentInfoCard from "./component/paymentInfoCard";
@@ -119,14 +119,16 @@ export default function CreateReservationPage() {
     }
   };
 
-  const totalNights = startDate && endDate
-    ? Math.ceil(
-        (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-          (1000 * 60 * 60 * 24)
-      )
-    : 0;
+  const totalNights =
+    startDate && endDate
+      ? Math.ceil(
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 0;
 
-  const totalPrice = totalNights > 0 ? totalNights * displayReservationData.basePrice : 0;
+  const totalPrice =
+    totalNights > 0 ? totalNights * displayReservationData.basePrice : 0;
 
   return (
     <div className="max-w-lg mx-auto p-4 space-y-6">
@@ -172,7 +174,8 @@ export default function CreateReservationPage() {
                 <strong>Property:</strong> {displayReservationData.propertyName}
               </p>
               <p>
-                <strong>Room Type:</strong> {displayReservationData.roomTypeName}
+                <strong>Room Type:</strong>{" "}
+                {displayReservationData.roomTypeName}
               </p>
               <p>
                 <strong>Dates:</strong>{" "}
