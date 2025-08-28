@@ -141,3 +141,16 @@ export interface EligibleReservation {
    startDate: Date;
    endDate: Date;
 }
+
+export interface ReviewContentProps {
+   isLoading: boolean;
+   isError: boolean;
+   error: UseQueryError | null;
+   reviews: Review[] | undefined;
+   hasData: boolean;
+}
+
+export type UseQueryError = Error & {
+   status?: number;
+   data?: any;
+};

@@ -9,7 +9,7 @@ import {
    UpdateReviewVisibilityInput
 } from '@/validation/reviewValidation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Review, GetReviewsResult, OwnerReply } from '@/interface/reviewInterface';
+import { Review, GetReviewsResult, OwnerReply, EligibleReservation } from '@/interface/reviewInterface';
 
 // --- Helper: Handle Axios Errors ---
 function handleAxiosError (error: any): never {
@@ -162,5 +162,22 @@ export const updateReviewVisibility = async (reviewId: string, input: UpdateRevi
          throw new Error(`Validation failed: ${JSON.stringify(error.flatten())}`);
       }
       handleAxiosError(error);
+   }
+};
+
+export const getEligibleReservations = async (propertyId: string, config = {}): Promise<EligibleReservation[]> => {
+   try {
+      const response = await Axios.get<EligibleReservation[]>(`/review/property/${propertyId}/eligible-reservations`, {
+         ...config
+      });
+      return response.data;
+   } catch (error: any) {
+      if (error.response?.status === 401) {
+         throw new Error('UNAUTHENTICATED');
+      }
+      if (error.response?.data?.message) {
+         throw new Error(error.response.data.message);
+      }
+      throw new Error('Failed to fetch eligible reservations');
    }
 };

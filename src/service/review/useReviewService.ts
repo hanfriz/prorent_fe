@@ -6,21 +6,22 @@ import {
 } from '@/validation/reviewValidation'; // Adjust import path
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { EligibleReservation } from '@/interface/reviewInterface';
-import { createReview, replyToReview, updateReviewVisibility } from './reviewService';
+import { createReview, getEligibleReservations, replyToReview, updateReviewVisibility } from './reviewService';
 
+// service/review/useReviewService.ts
 export const useCreateReview = () => {
    const queryClient = useQueryClient();
    return useMutation({
       mutationFn: createReview,
-      onSuccess: () => {
-         // Example: Invalidate public and owner review queries for properties
-         // You might need to refine the query key invalidation based on your specific needs
-         // queryClient.invalidateQueries({ queryKey: ['reviews'] });
-         console.log('Review created successfully. Consider invalidating relevant queries.');
+      onSuccess: newReview => {
+         // ✅ Invalidate relevant queries to refetch
+         queryClient.invalidateQueries({ queryKey: [ 'reviews', 'public' ] });
+         queryClient.invalidateQueries({ queryKey: [ 'reviews', 'eligible-reservations' ] });
+
+         console.log('Review created:', newReview);
       },
       onError: error => {
          console.error('Error creating review:', error);
-         // Handle error display in UI if needed
       }
    });
 };
@@ -58,31 +59,17 @@ export const useUpdateReviewVisibility = () => {
    });
 };
 
-export function useEligibleReservations (propertyId: string) {
+export const useEligibleReservations = (
+   propertyId: string,
+   options?: {
+      enabled?: boolean;
+   }
+) => {
    return useQuery<EligibleReservation[], Error>({
       queryKey: [ 'reviews', 'eligible-reservations', propertyId ],
-      queryFn: async () => {
-         try {
-            const url = `/review/property/${propertyId}/eligible-reservations`;
-            const response = await Axios.get<EligibleReservation[]>(url);
-            return response.data;
-         } catch (error: any) {
-            console.error('Error fetching eligible reservations:', error);
-            if (error.response?.status === 404) {
-               throw new Error('No eligible reservations found for this property.');
-            } else if (error.response) {
-               throw new Error(
-                  `Failed to fetch eligible reservations: ${error.response.data?.message || error.message}`
-               );
-            } else if (error.request) {
-               throw new Error('Network error. Please check your connection.');
-            } else {
-               // Something else happened
-               throw new Error(`Error: ${error.message}`);
-            }
-         }
-      },
-
-      enabled: !!propertyId
+      queryFn: () => getEligibleReservations(propertyId, { _skipAuthRedirect: true }),
+      enabled: !!propertyId && (options?.enabled ?? true),
+      retry: 1,
+      staleTime: 1000 * 60 * 5
    });
-}
+};
