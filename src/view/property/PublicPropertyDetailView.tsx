@@ -51,9 +51,9 @@ export default function PublicPropertyDetail({
 
   // Extract property from response
   const property = propertyResponse?.success ? propertyResponse.data : null;
-  
-const { setField, setDisplayData } = useReservationStore();
-const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+
+  const { setField, setDisplayData } = useReservationStore();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
 
   useEffect(() => {
     if (property && property.roomTypes.length > 0) {
@@ -637,52 +637,52 @@ const { isAuthenticated, isLoading: authLoading, user } = useAuth();
                       terlebih dahulu.
                     </AlertDescription>
                   </Alert>
+                </div>
+                {/* Conditional Buttons */}
+                <div className="space-y-2">
+                  {isAuthenticated ? (
+                    <Button
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => {
+                        const firstRoomType = property.roomTypes[0];
 
-  {/* Conditional Buttons */}
-  <div className="space-y-2">
-    {isAuthenticated ? (
-<Button
-  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-  onClick={() => {
-    const firstRoomType = property.roomTypes[0];
+                        // Set initial reservation form data
+                        setField("userId", user.id); // if available, or set later
+                        setField("propertyId", property.id);
+                        setField("roomTypeId", firstRoomType.id);
+                        setField("paymentType", PaymentType.MANUAL_TRANSFER);
 
-    // Set initial reservation form data
-setField("userId", user.id); // if available, or set later
-setField("propertyId", property.id);
-setField("roomTypeId", firstRoomType.id);
-setField("paymentType", PaymentType.MANUAL_TRANSFER);
-
-// 🖼️ Set display-only data
-setDisplayData({
-  propertyName: property.name,
-  propertyType: property.category.name,
-  roomTypeName: firstRoomType.name,
-  basePrice: firstRoomType.basePrice,
-  mainImageUrl: property.pictures?.main?.url || "",
-});
-    router.push("/reservation");
-  }}
->
-  🛏️ Make Reservation
-</Button>
-    ) : (
-      <>
-        <Button
-          className="w-full"
-          onClick={() => router.push("/login")}
-        >
-          Login to Book
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => router.push("/register")}
-        >
-          Register New Account
-        </Button>
-      </>
-    )}
-  </div>
+                        // 🖼️ Set display-only data
+                        setDisplayData({
+                          propertyName: property.name,
+                          propertyType: property.category.name,
+                          roomTypeName: firstRoomType.name,
+                          basePrice: firstRoomType.basePrice,
+                          mainImageUrl: property.pictures?.main?.url || "",
+                        });
+                        router.push("/reservation");
+                      }}
+                    >
+                      🛏️ Make Reservation
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        className="w-full"
+                        onClick={() => router.push("/login")}
+                      >
+                        Login to Book
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => router.push("/register")}
+                      >
+                        Register New Account
+                      </Button>
+                    </>
+                  )}
+                </div>
 
                 {/* Additional Info */}
                 <div className="text-xs text-gray-500 space-y-1 pt-2 border-t">
