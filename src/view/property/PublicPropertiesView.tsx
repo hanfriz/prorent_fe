@@ -11,6 +11,7 @@ import { PropertyFilters } from "@/components/property/PropertyFilters";
 import { PropertyPagination } from "@/components/property/PropertyPagination";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Home } from "lucide-react";
+import PropertyReviews from "../review/component/propertyReview";
 
 export default function PublicPropertiesView() {
   const [properties, setProperties] = useState<PublicProperty[]>([]);
@@ -129,7 +130,7 @@ export default function PublicPropertiesView() {
               {properties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
-            </div>
+            </div>            
 
             {/* Pagination */}
             <PropertyPagination

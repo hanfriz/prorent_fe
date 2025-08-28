@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import PropertyMap from "@/components/map/PropertyMap";
+import { useAuth } from "@/lib/hooks/useAuth";
 import {
   MapPin,
   Users,
@@ -19,6 +20,10 @@ import {
 } from "lucide-react";
 import { publicPropertyService } from "@/service/publicPropertyService";
 import type { PublicPropertyDetail } from "@/interface/publicPropertyInterface";
+import PropertyReviews from "../review/component/propertyReview";
+import Link from "next/link";
+import { useReservationStore } from "@/lib/stores/reservationStore";
+import { PaymentType } from "@/interface/enumInterface";
 
 interface PublicPropertyDetailProps {
   propertyId: string;
@@ -31,6 +36,8 @@ export default function PublicPropertyDetail({
   const [property, setProperty] = useState<PublicPropertyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+const { setField, setDisplayData } = useReservationStore();
 
   useEffect(() => {
     fetchPropertyDetail();
@@ -130,8 +137,8 @@ export default function PublicPropertyDetail({
               <CardContent className="p-0">
                 <div className="relative h-96 w-full overflow-hidden rounded-lg">
                   <Image
-                    src={property.pictures.main.url}
-                    alt={property.pictures.main.alt}
+                    src={property?.pictures?.main?.url || "/prorent-logo.png"}
+                    alt={property.pictures?.main?.alt || "Property Image"}
                     fill
                     className="object-cover"
                   />
@@ -360,28 +367,62 @@ export default function PublicPropertyDetail({
                   <p className="text-gray-600">per night</p>
                 </div>
 
-                <Alert>
-                  <AlertDescription>
-                    To make a reservation, please register or login to your
-                    account first.
-                  </AlertDescription>
-                </Alert>
 
-                <div className="space-y-2">
-                  <Button
-                    className="w-full"
-                    onClick={() => router.push("/login")}
-                  >
-                    Login to Book
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push("/register")}
-                  >
-                    Register New Account
-                  </Button>
-                </div>
+  <Alert>
+    <AlertDescription>
+      {isAuthenticated ? (
+        <>You're logged in. Ready to make a reservation?</>
+      ) : (
+        <>To make a reservation, please register or login to your account first.</>
+      )}
+    </AlertDescription>
+  </Alert>
+
+  {/* Conditional Buttons */}
+  <div className="space-y-2">
+    {isAuthenticated ? (
+<Button
+  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+  onClick={() => {
+    const firstRoomType = property.roomTypes[0];
+
+    // Set initial reservation form data
+setField("userId", user.id); // if available, or set later
+setField("propertyId", property.id);
+setField("roomTypeId", firstRoomType.id);
+setField("paymentType", PaymentType.MANUAL_TRANSFER);
+
+// 🖼️ Set display-only data
+setDisplayData({
+  propertyName: property.name,
+  propertyType: property.category.name,
+  roomTypeName: firstRoomType.name,
+  basePrice: firstRoomType.basePrice,
+  mainImageUrl: property.pictures?.main?.url || "",
+});
+    router.push("/reservation");
+  }}
+>
+  🛏️ Make Reservation
+</Button>
+    ) : (
+      <>
+        <Button
+          className="w-full"
+          onClick={() => router.push("/login")}
+        >
+          Login to Book
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => router.push("/register")}
+        >
+          Register New Account
+        </Button>
+      </>
+    )}
+  </div>
 
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>• Free cancellation up to 24 hours</p>
@@ -393,6 +434,7 @@ export default function PublicPropertyDetail({
           </div>
         </div>
       </div>
+      <PropertyReviews propertyId={property.id} />
     </div>
   );
 }
