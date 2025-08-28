@@ -17,11 +17,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PropertyMap from "@/components/map/PropertyMap";
+import { useAuth } from "@/lib/hooks/useAuth";
 import PropertyCalendar from "@/components/property/PropertyCalendar";
 import { PropertyDetailSkeleton } from "@/components/sekeleton/PropertySkeleton";
 import { MapPin, Users, Home, ArrowLeft, Calendar, Star } from "lucide-react";
 import { usePublicPropertyDetail } from "@/service/useProperty";
 import type { PublicPropertyDetail } from "@/interface/publicPropertyInterface";
+import PropertyReviews from "../review/component/propertyReview";
+import Link from "next/link";
+import { useReservationStore } from "@/lib/stores/reservationStore";
+import { PaymentType } from "@/interface/enumInterface";
 
 interface PublicPropertyDetailProps {
   propertyId: string;
@@ -37,7 +42,6 @@ export default function PublicPropertyDetail({
     checkOut: string | null;
   }>({ checkIn: null, checkOut: null });
 
-  // Use TanStack Query hook
   const {
     data: propertyResponse,
     isLoading: loading,
@@ -47,7 +51,9 @@ export default function PublicPropertyDetail({
   // Extract property from response
   const property = propertyResponse?.success ? propertyResponse.data : null;
 
-  // Auto-select room type based on rental type
+  const { setField, setDisplayData } = useReservationStore();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+
   useEffect(() => {
     if (property && property.roomTypes.length > 0) {
       if (property.rentalType === "WHOLE_PROPERTY") {
@@ -630,25 +636,51 @@ export default function PublicPropertyDetail({
                       terlebih dahulu.
                     </AlertDescription>
                   </Alert>
+                </div>
+                {/* Conditional Buttons */}
+                <div className="space-y-2">
+                  {isAuthenticated ? (
+                    <Button
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => {
+                        const firstRoomType = property.roomTypes[0];
 
-                  <Button
-                    className="w-full"
-                    disabled={
-                      !selectedRoomTypeId ||
-                      !selectedDateRange?.checkIn ||
-                      !selectedDateRange?.checkOut
-                    }
-                    onClick={() => router.push("/login")}
-                  >
-                    Login untuk Book
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push("/register")}
-                  >
-                    Daftar Akun Baru
-                  </Button>
+                        // Set initial reservation form data
+                        setField("userId", user.id); // if available, or set later
+                        setField("propertyId", property.id);
+                        setField("roomTypeId", firstRoomType.id);
+                        setField("paymentType", PaymentType.MANUAL_TRANSFER);
+
+                        // 🖼️ Set display-only data
+                        setDisplayData({
+                          propertyName: property.name,
+                          propertyType: property.category.name,
+                          roomTypeName: firstRoomType.name,
+                          basePrice: firstRoomType.basePrice,
+                          mainImageUrl: property.pictures?.main?.url || "",
+                        });
+                        router.push("/reservation");
+                      }}
+                    >
+                      🛏️ Make Reservation
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        className="w-full"
+                        onClick={() => router.push("/login")}
+                      >
+                        Login to Book
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => router.push("/register")}
+                      >
+                        Register New Account
+                      </Button>
+                    </>
+                  )}
                 </div>
 
                 {/* Additional Info */}
@@ -722,6 +754,7 @@ export default function PublicPropertyDetail({
           </div>
         </div>
       </div>
+      <PropertyReviews propertyId={property.id} />
     </div>
   );
 }
