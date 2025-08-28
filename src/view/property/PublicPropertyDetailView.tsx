@@ -42,7 +42,6 @@ export default function PublicPropertyDetail({
     checkOut: string | null;
   }>({ checkIn: null, checkOut: null });
 
-  // Use TanStack Query hook
   const {
     data: propertyResponse,
     isLoading: loading,
