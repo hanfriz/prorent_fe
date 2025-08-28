@@ -12,6 +12,7 @@ import { PropertyPagination } from "@/components/property/PropertyPagination";
 import { PropertyListSkeleton } from "@/components/sekeleton/PropertySkeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Home } from "lucide-react";
+import PropertyReviews from "../review/component/propertyReview";
 
 export default function PublicPropertiesView() {
   const [searchParams, setSearchParams] = useState<PropertySearchParams>({
@@ -107,7 +108,7 @@ export default function PublicPropertiesView() {
               {properties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
-            </div>
+            </div>            
 
             {/* Pagination */}
             <PropertyPagination

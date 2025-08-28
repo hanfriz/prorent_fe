@@ -4,14 +4,24 @@ import { CreateReservationInput } from '@/validation/reservationValidation';
 import { Reservation } from '@/interface/reservationInterface';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
 
+interface DisplayData {
+   propertyName?: string;
+   propertyType?: string;
+   roomTypeName?: string;
+   basePrice?: number;
+   mainImageUrl?: string;
+}
+
 interface ReservationState {
    formData: Partial<CreateReservationInput>;
+   displayData: DisplayData;
    reservation: Reservation | null;
    reservationId?: string | null;
    searchTerm: string;
    reservationParams: GetUserReservationsParams;
 
    setField: <K extends keyof CreateReservationInput>(key: K, value: CreateReservationInput[K]) => void;
+   setDisplayData: (data: DisplayData) => void;
    setReservation: (reservation: Reservation) => void;
    setReservationId: (id: string) => void;
    reset: () => void;
@@ -24,6 +34,7 @@ interface ReservationState {
 
 export const useReservationStore = create<ReservationState>(set => ({
    formData: {},
+   displayData: {},
    reservation: null,
    reservationId: '',
    searchTerm: '',
@@ -41,9 +52,11 @@ export const useReservationStore = create<ReservationState>(set => ({
       })),
    setReservation: reservation => set({ reservation, reservationId: reservation.id }),
    setReservationId: (id: string | null) => set({ reservationId: id }),
+   setDisplayData: (data: DisplayData) => set({ displayData: data }),
    reset: () =>
       set({
          formData: {},
+         displayData: {},
          reservation: null,
          reservationId: null,
          searchTerm: '',
