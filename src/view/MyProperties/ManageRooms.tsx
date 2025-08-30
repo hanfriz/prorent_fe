@@ -33,11 +33,13 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useOwnerPropertyDetail } from "@/service/useOwnerProperty";
+import { ownerPropertyService } from "@/service/ownerPropertyService";
 import {
   OwnerRoomType,
   OwnerRoom,
   CreateRoomTypeRequest,
   CreateRoomRequest,
+  UpdateRoomRequest,
   formatPrice,
 } from "@/interface/ownerPropertyInterface";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,6 +108,7 @@ const ManageRooms = () => {
     data: property,
     isLoading: isLoadingProperty,
     error: propertyError,
+    refetch,
   } = useOwnerPropertyDetail(propertyId);
 
   useEffect(() => {
@@ -150,25 +153,32 @@ const ManageRooms = () => {
     e.preventDefault();
 
     try {
-      const data: CreateRoomTypeRequest = {
-        ...roomTypeForm,
-        propertyId,
-      };
-
       if (editingRoomType) {
-        // TODO: Implement update room type API call
-        // await updateRoomType(editingRoomType.id, data);
+        // Update room type API call - don't include propertyId for updates
+        const updateData = {
+          ...roomTypeForm,
+          id: editingRoomType.id,
+        };
+        await ownerPropertyService.updateRoomType(
+          propertyId, 
+          editingRoomType.id, 
+          updateData
+        );
         toast.success("Tipe kamar berhasil diperbarui!");
       } else {
-        // TODO: Implement create room type API call
-        // await createRoomType(data);
+        // Create room type API call
+        const createData: CreateRoomTypeRequest = {
+          ...roomTypeForm,
+          propertyId,
+        };
+        await ownerPropertyService.createRoomType(propertyId, createData);
         toast.success("Tipe kamar berhasil dibuat!");
       }
 
       setRoomTypeDialogOpen(false);
       setEditingRoomType(null);
       // Refresh property data
-      // refetch();
+      refetch();
     } catch (error) {
       console.error("Error saving room type:", error);
       toast.error("Gagal menyimpan tipe kamar!");
@@ -179,25 +189,32 @@ const ManageRooms = () => {
     e.preventDefault();
 
     try {
-      const data: CreateRoomRequest = {
-        ...roomForm,
-        propertyId,
-      };
-
       if (editingRoom) {
-        // TODO: Implement update room API call
-        // await updateRoom(editingRoom.id, data);
+        // Update room API call
+        const updateData = {
+          ...roomForm,
+          id: editingRoom.id,
+        };
+        await ownerPropertyService.updateRoom(
+          propertyId,
+          editingRoom.id,
+          updateData
+        );
         toast.success("Kamar berhasil diperbarui!");
       } else {
-        // TODO: Implement create room API call
-        // await createRoom(data);
+        // Create room API call
+        const createData: CreateRoomRequest = {
+          ...roomForm,
+          propertyId,
+        };
+        await ownerPropertyService.createRoom(propertyId, createData);
         toast.success("Kamar berhasil dibuat!");
       }
 
       setRoomDialogOpen(false);
       setEditingRoom(null);
       // Refresh property data
-      // refetch();
+      refetch();
     } catch (error) {
       console.error("Error saving room:", error);
       toast.error("Gagal menyimpan kamar!");
@@ -209,19 +226,19 @@ const ManageRooms = () => {
 
     try {
       if (deleteTarget.type === "roomType") {
-        // TODO: Implement delete room type API call
-        // await deleteRoomType(deleteTarget.id);
+        // Delete room type API call
+        await ownerPropertyService.deleteRoomType(propertyId, deleteTarget.id);
         toast.success("Tipe kamar berhasil dihapus!");
       } else {
-        // TODO: Implement delete room API call
-        // await deleteRoom(deleteTarget.id);
+        // Delete room API call
+        await ownerPropertyService.deleteRoom(propertyId, deleteTarget.id);
         toast.success("Kamar berhasil dihapus!");
       }
 
       setDeleteDialogOpen(false);
       setDeleteTarget(null);
       // Refresh property data
-      // refetch();
+      refetch();
     } catch (error) {
       console.error("Error deleting:", error);
       toast.error("Gagal menghapus!");

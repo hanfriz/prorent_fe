@@ -60,14 +60,19 @@ export default function PublicPropertyDetail({
         // Auto-select first room type for whole property
         setSelectedRoomTypeId(property.roomTypes[0].id);
       } else if (property.rentalType === "ROOM_BY_ROOM") {
-        // For room by room, let user choose or auto-select first available
+        // For room by room, prefer room types that have available rooms
+        // If no rooms data available, just select the first room type
         const availableRoomType = property.roomTypes.find((rt) =>
           property.rooms.some(
             (room) => room.roomType.id === rt.id && room.isAvailable
           )
         );
+
         if (availableRoomType) {
           setSelectedRoomTypeId(availableRoomType.id);
+        } else {
+          // Fallback: select first room type if no rooms data or no available rooms
+          setSelectedRoomTypeId(property.roomTypes[0].id);
         }
       }
     }
@@ -94,11 +99,15 @@ export default function PublicPropertyDetail({
   };
 
   const getAvailableRoomsForType = (roomTypeId: string) => {
-    return (
-      property?.rooms.filter(
-        (room) => room.roomType.id === roomTypeId && room.isAvailable
-      ) || []
-    );
+    if (!property?.rooms || property.rooms.length === 0) {
+      // If no rooms data, assume all room types are available based on totalQuantity
+      const roomType = property?.roomTypes.find((rt) => rt.id === roomTypeId);
+      return roomType?.totalQuantity || 0;
+    }
+
+    return property.rooms.filter(
+      (room) => room.roomType.id === roomTypeId && room.isAvailable
+    ).length;
   };
 
   const canUserSelectRoomType = () => {
@@ -484,7 +493,7 @@ export default function PublicPropertyDetail({
                             <div className="flex justify-between items-center w-full">
                               <span>{roomType.name}</span>
                               <span className="text-sm text-gray-500 ml-2">
-                                ({getAvailableRoomsForType(roomType.id).length}{" "}
+                                ({getAvailableRoomsForType(roomType.id)}{" "}
                                 tersedia)
                               </span>
                             </div>
@@ -495,7 +504,10 @@ export default function PublicPropertyDetail({
                   ) : (
                     <div className="mt-1 p-3 bg-gray-50 rounded-md border">
                       <span className="text-sm font-medium text-gray-900">
-                        {getSelectedRoomType()?.name || "Loading..."}
+                        {getSelectedRoomType()?.name ||
+                          (property?.roomTypes.length > 0
+                            ? property.roomTypes[0].name
+                            : "No room types available")}
                       </span>
                       {property?.rentalType === "WHOLE_PROPERTY" && (
                         <span className="text-xs text-gray-500 block mt-1">
@@ -519,7 +531,7 @@ export default function PublicPropertyDetail({
                       <div className="flex justify-between">
                         <span className="text-gray-600">Kamar tersedia:</span>
                         <span className="font-medium">
-                          {getAvailableRoomsForType(selectedRoomTypeId!).length}
+                          {getAvailableRoomsForType(selectedRoomTypeId!)}
                         </span>
                       </div>
                       {getSelectedRoomType()?.description && (

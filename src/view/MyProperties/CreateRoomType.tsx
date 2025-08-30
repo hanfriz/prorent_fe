@@ -38,6 +38,8 @@ const CreateRoomType = () => {
     isWholeUnit: false,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const createRoomTypeMutation = useMutation({
     mutationFn: (data: CreateRoomTypeRequest) =>
       ownerPropertyService.createRoomType(propertyId, data),
@@ -67,35 +69,66 @@ const CreateRoomType = () => {
       ...prev,
       [field]: value,
     }));
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Nama tipe kamar wajib diisi";
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = "Nama tipe kamar minimal 3 karakter";
+    }
+
+    // Base price validation
+    if (!formData.basePrice || parseFloat(formData.basePrice) <= 0) {
+      newErrors.basePrice = "Harga dasar harus lebih dari 0";
+    } else if (parseFloat(formData.basePrice) < 10000) {
+      newErrors.basePrice = "Harga dasar minimal Rp 10.000";
+    }
+
+    // Capacity validation
+    if (formData.capacity <= 0) {
+      newErrors.capacity = "Kapasitas harus lebih dari 0";
+    } else if (formData.capacity > 50) {
+      newErrors.capacity = "Kapasitas maksimal 50 orang";
+    }
+
+    // Total quantity validation
+    if (formData.totalQuantity <= 0) {
+      newErrors.totalQuantity = "Jumlah kamar harus lebih dari 0";
+    } else if (formData.totalQuantity > 1000) {
+      newErrors.totalQuantity = "Jumlah kamar maksimal 1000";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
-    if (!formData.name.trim()) {
-      toast.error("Nama tipe kamar wajib diisi");
-      return;
-    }
-
-    if (!formData.basePrice || parseFloat(formData.basePrice) <= 0) {
-      toast.error("Harga dasar harus lebih dari 0");
-      return;
-    }
-
-    if (formData.capacity <= 0) {
-      toast.error("Kapasitas harus lebih dari 0");
-      return;
-    }
-
-    if (formData.totalQuantity <= 0) {
-      toast.error("Jumlah kamar harus lebih dari 0");
+    if (!validateForm()) {
+      toast.error("Mohon periksa kembali data yang diisi");
       return;
     }
 
     const requestData: CreateRoomTypeRequest = {
-      ...formData,
-      propertyId,
+      name: formData.name.trim(),
+      description: formData.description.trim() || undefined,
+      basePrice: formData.basePrice,
+      capacity: formData.capacity,
+      totalQuantity: formData.totalQuantity,
+      isWholeUnit: formData.isWholeUnit,
     };
 
     createRoomTypeMutation.mutate(requestData);
@@ -145,7 +178,11 @@ const CreateRoomType = () => {
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Contoh: Deluxe Room, Standard Room"
                   required
+                  className={errors.name ? "border-red-500" : ""}
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
 
               {/* Base Price */}
@@ -157,10 +194,15 @@ const CreateRoomType = () => {
                   onChange={(e) => handlePriceChange(e.target.value)}
                   placeholder="500,000"
                   required
+                  className={errors.basePrice ? "border-red-500" : ""}
                 />
-                <p className="text-sm text-gray-500">
-                  Harga dalam Rupiah per malam
-                </p>
+                {errors.basePrice ? (
+                  <p className="text-sm text-red-500">{errors.basePrice}</p>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Harga dalam Rupiah per malam
+                  </p>
+                )}
               </div>
 
               {/* Capacity */}
@@ -170,16 +212,21 @@ const CreateRoomType = () => {
                   id="capacity"
                   type="number"
                   min="1"
-                  max="20"
+                  max="50"
                   value={formData.capacity}
                   onChange={(e) =>
                     handleInputChange("capacity", parseInt(e.target.value) || 1)
                   }
                   required
+                  className={errors.capacity ? "border-red-500" : ""}
                 />
-                <p className="text-sm text-gray-500">
-                  Maksimal orang yang dapat menginap
-                </p>
+                {errors.capacity ? (
+                  <p className="text-sm text-red-500">{errors.capacity}</p>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Maksimal orang yang dapat menginap
+                  </p>
+                )}
               </div>
 
               {/* Total Quantity */}
@@ -189,7 +236,7 @@ const CreateRoomType = () => {
                   id="totalQuantity"
                   type="number"
                   min="1"
-                  max="100"
+                  max="1000"
                   value={formData.totalQuantity}
                   onChange={(e) =>
                     handleInputChange(
@@ -198,10 +245,15 @@ const CreateRoomType = () => {
                     )
                   }
                   required
+                  className={errors.totalQuantity ? "border-red-500" : ""}
                 />
-                <p className="text-sm text-gray-500">
-                  Total kamar dengan tipe ini
-                </p>
+                {errors.totalQuantity ? (
+                  <p className="text-sm text-red-500">{errors.totalQuantity}</p>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Total kamar dengan tipe ini
+                  </p>
+                )}
               </div>
             </div>
 

@@ -82,13 +82,17 @@ const GalleryManagement = () => {
 
     setIsUploading(true);
     try {
-      // Upload files one by one using the correct backend endpoint
+      // Upload files one by one and add to property gallery
       for (const file of selectedFiles) {
         const altText = `${property?.data?.name || "Property"} - ${file.name}`;
-        await ownerPropertyService.uploadPropertyImage(file, altText);
+        await ownerPropertyService.uploadAndAddToPropertyGallery(
+          propertyId,
+          file,
+          altText
+        );
       }
 
-      toast.success("Gambar berhasil diupload!");
+      toast.success("Gambar berhasil diupload dan ditambahkan ke galeri!");
       setSelectedFiles([]);
       // Refresh property data
       refetchProperty();
@@ -104,8 +108,13 @@ const GalleryManagement = () => {
 
   const handleDeleteImage = async (imageId: string) => {
     try {
+      // Remove from property gallery first, then delete the image
+      await ownerPropertyService.removeImageFromPropertyGallery(
+        propertyId,
+        imageId
+      );
       await ownerPropertyService.deletePropertyImage(imageId);
-      toast.success("Gambar berhasil dihapus!");
+      toast.success("Gambar berhasil dihapus dari galeri!");
       setDeleteDialogOpen(false);
       setSelectedImageId(null);
       // Refresh property data
@@ -192,7 +201,9 @@ const GalleryManagement = () => {
   }
 
   const propertyData = property?.data;
-  const gallery = propertyData?.gallery || [];
+  const gallery = (propertyData?.gallery || []).filter(
+    (image) => image && image.id
+  );
   const mainPicture = propertyData?.mainPicture;
 
   return (
@@ -232,9 +243,9 @@ const GalleryManagement = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {gallery.map((image: OwnerPropertyPicture) => (
+                {gallery.map((image: OwnerPropertyPicture, index: number) => (
                   <div
-                    key={image.id}
+                    key={image?.id || `gallery-image-${index}`}
                     className="relative group aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-200 transition-colors"
                   >
                     <Image
@@ -318,7 +329,7 @@ const GalleryManagement = () => {
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {selectedFiles.map((file, index) => (
                     <div
-                      key={index}
+                      key={`${file.name}-${file.size}-${index}`}
                       className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
