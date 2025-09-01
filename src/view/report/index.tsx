@@ -1,203 +1,544 @@
-// 'use client';
+// src/app/dashboard/report/main/page.tsx
+"use client";
 
-// import { useChartReport, useDashboardReport, useExportExcel } from '@/service/report/useReport';
-// import { DashboardCard } from './component/cardComponent';
-// import { Graph } from './component/graphComponent';
-// import { FilterButton } from './component/filterButton';
-// import { PropertyCard } from './component/propertyCard';
-// import { Pagination } from './component/pagination';
-// import { useReportStore } from '@/lib/stores/reportStore';
-// import { Button } from '@/components/ui/button';
-// import { Download } from 'lucide-react';
-// import { Label } from '@/components/ui/label';
-// import { Input } from '@/components/ui/input';
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// import { Checkbox } from '@/components/ui/checkbox';
+import React, { useState, useMemo, useEffect } from "react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { useDashboardReportCore } from "@/service/report/useReport";
+import { cleanFilters, cleanOptions } from "@/service/report/useReport";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Property,
+  PropertySummary,
+  ReportFormat,
+  ReservationReportOptions,
+  RoomTypeMin,
+} from "@/interface/report/reportInterface";
+import { propertyService } from "@/service/propertyService";
+import { useQuery } from "@tanstack/react-query";
+import { reportService } from "@/service/report/reportService";
+import { toast } from "sonner";
+import { PropertyReportCard } from "./mainComponent/propertyReportCard";
+import { StatCard } from "./mainComponent/helper";
+import {
+  FilterControls,
+  DateRangeOption,
+  SortOption,
+} from "@/view/dashboard/component/propertiesOverviewComponent/filterControl";
 
-// export default function DashboardReport() {
-//    const { filters, options, viewMode, days, setFilter, setOption, setViewMode, setDays } = useReportStore();
-//    const {  data: report, isLoading: reportLoading } = useDashboardReport();
-//    const {  data: chartData, isLoading: chartLoading } = useChartReport();
-//    const { exportExcel } = useExportExcel();
+// --- Skeleton Components ---
+function ReportPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-10 w-1/4" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-20 w-full" />
+      <Skeleton className="h-64 w-full" />
+    </div>
+  );
+}
 
-//    if (reportLoading || chartLoading) return <div className="p-4">Loading...</div>;
+// --- Main Component ---
+export default function MainReportPage() {
+  const { user: authUser } = useAuth();
+  const ownerId = authUser?.id;
 
-//    return (
-//       <div className="space-y-6 p-6">
-//          {/* Header */}
-//          <div className="flex justify-between items-center">
-//             <h1 className="text-2xl font-bold">Dashboard Report</h1>
-//             <Button onClick={exportExcel}>
-//                <Download className="mr-2 h-4 w-4" />
-//                Export Excel
-//             </Button>
-//          </div>
+  // --- Local State for Filters ---
+  const [dateRange, setDateRange] = useState<{
+    startDate: Date | null;
+    endDate: Date | null;
+  }>({
+    startDate: new Date(new Date().getFullYear(), 0, 1),
+    endDate: new Date(new Date().getFullYear(), 11, 31),
+  });
+  // --- NEW STATE: Track the selected date range type ---
+  const [dateRangeType, setDateRangeType] = useState<string>("year");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>("all");
+  const [selectedRoomTypeId, setSelectedRoomTypeId] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState<string>("");
+  const [sortBy, setSortBy] = useState<
+    | "name"
+    | "revenue"
+    | "confirmed"
+    | "pending"
+    | "city"
+    | "address"
+    | "province"
+    | "startDate"
+    | "endDate"
+    | "createdAt"
+    | "paymentAmount"
+  >("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-//          {/* View Mode */}
-//          <div className="flex flex-wrap gap-2">
-//             <Button
-//                variant={viewMode === 'yearly' ? 'default' : 'outline'}
-//                onClick={() => setViewMode('yearly')}
-//                size="sm"
-//             >
-//                Yearly
-//             </Button>
-//             <Button
-//                variant={viewMode === 'monthly' ? 'default' : 'outline'}
-//                onClick={() => setViewMode('monthly')}
-//                size="sm"
-//             >
-//                Monthly
-//             </Button>
-//             <Button
-//                variant={viewMode === 'daily' ? 'default' : 'outline'}
-//                onClick={() => setViewMode('daily')}
-//                size="sm"
-//             >
-//                Last N Days
-//             </Button>
-//             <Button
-//                variant={viewMode === 'custom' ? 'default' : 'outline'}
-//                onClick={() => setViewMode('custom')}
-//                size="sm"
-//             >
-//                Custom Date
-//             </Button>
-//          </div>
+  // --- Reservation Pagination State ---
+  const [reservationPageMap, setReservationPageMap] = useState<
+    Record<string, number>
+  >({});
 
-//          {/* Daily Days Input */}
-//          {viewMode === 'daily' && (
-//             <div className="flex items-center gap-2">
-//                <Label>Days:</Label>
-//                <Input
-//                   type="number"
-//                   value={days}
-//                   onChange={(e) => setDays(Number(e.target.value))}
-//                   min={1}
-//                   max={90}
-//                   className="w-20"
-//                />
-//             </div>
-//          )}
+  // --- Fetch All Properties for Property Dropdown ---
+  const { data: allPropertiesData, isLoading: isLoadingProperties } = useQuery({
+    queryKey: ["allPropertiesForReport", ownerId],
+    queryFn: async () => {
+      if (!ownerId) throw new Error("Owner ID not found");
+      const response = await propertyService.getMyProperties();
+      return response?.data || [];
+    },
+    enabled: !!ownerId,
+  });
+  const allProperties = allPropertiesData || [];
 
-//          {/* Custom Date */}
-//          {viewMode === 'custom' && (
-//             <div className="flex gap-4 items-center">
-//                <div>
-//                   <Label>Start Date</Label>
-//                   <Input
-//                      type="date"
-//                      value={filters.startDate ? filters.startDate.toISOString().split('T')[0] : ''}
-//                      onChange={(e) => setFilter('startDate', e.target.value ? new Date(e.target.value) : null)}
-//                   />
-//                </div>
-//                <div>
-//                   <Label>End Date</Label>
-//                   <Input
-//                      type="date"
-//                      value={filters.endDate ? filters.endDate.toISOString().split('T')[0] : ''}
-//                      onChange={(e) => setFilter('endDate', e.target.value ? new Date(e.target.value) : null)}
-//                   />
-//                </div>
-//             </div>
-//          )}
+  // --- Fetch Room Types for Selected Property ---
+  const {
+    data: roomTypesForSelectedPropertyData,
+    isLoading: isLoadingRoomTypes,
+  } = useQuery({
+    queryKey: ["roomTypesForSelectedProperty", selectedPropertyId, ownerId],
+    queryFn: async () => {
+      if (!ownerId || selectedPropertyId === "all" || !selectedPropertyId)
+        return [];
+      try {
+        const response = await propertyService.getPropertyById(
+          selectedPropertyId
+        );
+        return response?.data?.roomTypes || [];
+      } catch (error) {
+        console.error("Error fetching room types for property:", error);
+        return [];
+      }
+    },
+    enabled: !!ownerId && selectedPropertyId !== "all" && !!selectedPropertyId,
+  });
+  const roomTypesForSelectedProperty = roomTypesForSelectedPropertyData || [];
 
-//          {/* Other Filters */}
-//          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//             <Input
-//                placeholder="Search guest"
-//                value={filters.search || ''}
-//                onChange={(e) => setFilter('search', e.target.value)}
-//             />
-//             <Select
-//                value={options.sortDir}
-//                onValueChange={(value) => setOption('sortDir', value as 'asc' | 'desc')}
-//             >
-//                <SelectTrigger>
-//                   <SelectValue placeholder="Sort" />
-//                </SelectTrigger>
-//                <SelectContent>
-//                   <SelectItem value="asc">Asc</SelectItem>
-//                   <SelectItem value="desc">Desc</SelectItem>
-//                </SelectContent>
-//             </Select>
-//             <div className="flex gap-4">
-//                <div className="flex items-center gap-1">
-//                   <Checkbox
-//                      id="confirmed"
-//                      checked={filters.status?.includes('CONFIRMED')}
-//                      onCheckedChange={(checked) =>
-//                         setFilter(
-//                            'status',
-//                            checked
-//                               ? [...(filters.status || []), 'CONFIRMED']
-//                               : filters.status?.filter(s => s !== 'CONFIRMED')
-//                         )
-//                      }
-//                   />
-//                   <Label htmlFor="confirmed">Confirmed</Label>
-//                </div>
-//                <div className="flex items-center gap-1">
-//                   <Checkbox
-//                      id="cancelled"
-//                      checked={filters.status?.includes('CANCELLED')}
-//                      onCheckedChange={(checked) =>
-//                         setFilter(
-//                            'status',
-//                            checked
-//                               ? [...(filters.status || []), 'CANCELLED']
-//                               : filters.status?.filter(s => s !== 'CANCELLED')
-//                         )
-//                      }
-//                   />
-//                   <Label htmlFor="cancelled">Cancelled</Label>
-//                </div>
-//             </div>
-//          </div>
+  // --- Prepare Filters and Options for useDashboardReportCore ---
+  const filtersForReportHook = useMemo(() => {
+    if (!ownerId) {
+      console.warn("OwnerId is not available for filters");
+      return {};
+    }
 
-//          {/* Summary Cards */}
-//          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-//             <DashboardCard
-//                title="Total Revenue"
-//                value={`Rp${report?.summary.revenue.actual.toLocaleString()}`}
-//             />
-//             <DashboardCard
-//                title="Confirmed"
-//                value={report?.summary.counts.CONFIRMED || 0}
-//             />
-//             <DashboardCard
-//                title="Projected"
-//                value={`Rp${report?.summary.revenue.projected.toLocaleString()}`}
-//             />
-//             <DashboardCard
-//                title="Cancelled"
-//                value={report?.summary.counts.CANCELLED || 0}
-//             />
-//          </div>
+    const filters: any = {
+      ownerId: ownerId,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    };
 
-//          {/* Chart */}
-//          <div className="bg-white rounded-lg shadow p-4">
-//             <h2 className="text-lg font-semibold mb-4">Revenue Chart</h2>
-//             <Graph data={chartData?.data ?? []} />
-//          </div>
+    // Add property filter if selected
+    if (selectedPropertyId !== "all" && selectedPropertyId) {
+      filters.propertyId = selectedPropertyId;
+    }
 
-//          {/* Properties */}
-//          <div className="space-y-4">
-//             {report?.properties.map((prop) => (
-//                <div key={prop.property.id} className="border rounded p-4">
-//                   <h3 className="font-semibold">{prop.property.name}</h3>
-//                   <p>Revenue: Rp{prop.summary.revenue.actual.toLocaleString()}</p>
-//                </div>
-//             ))}
-//          </div>
+    // Add room type filter if selected
+    if (selectedRoomTypeId !== "all" && selectedRoomTypeId) {
+      filters.roomTypeId = selectedRoomTypeId;
+    }
 
-//         {/* Pagination */}
-//          <Pagination
-//             page={options.page}
-//             pageSize={options.pageSize}
-//             total={report?.pagination.total || 0}
-//             onPageChange={(page) => setOption('page', page)}
-//          />
-//       </div>
-//    );
-// }
+    // Add search term if applied
+    if (appliedSearchTerm) {
+      filters.search = appliedSearchTerm;
+    }
+
+    return cleanFilters(filters);
+  }, [
+    ownerId,
+    selectedPropertyId,
+    selectedRoomTypeId,
+    dateRange.startDate,
+    dateRange.endDate,
+    appliedSearchTerm,
+  ]);
+
+  // Add this debugging useEffect to see what filters are being generated
+  useEffect(() => {
+    console.log("=== FILTER DEBUG ===");
+    console.log("Raw filters object:", {
+      ownerId: ownerId,
+      propertyId: selectedPropertyId !== "all" ? selectedPropertyId : undefined,
+      roomTypeId: selectedRoomTypeId !== "all" ? selectedRoomTypeId : undefined,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+      search: appliedSearchTerm || undefined,
+    });
+    console.log("Cleaned filters:", filtersForReportHook);
+  }, [
+    filtersForReportHook,
+    ownerId,
+    selectedPropertyId,
+    selectedRoomTypeId,
+    dateRange,
+    appliedSearchTerm,
+  ]);
+
+  const optionsForReportHook = useMemo(() => {
+    return cleanOptions({
+      page: page,
+      pageSize: pageSize,
+      reservationPage: reservationPageMap, // Add reservation pagination
+      reservationPageSize: 10, // Set reservation page size
+      sortBy: sortBy,
+      sortDir: sortDir,
+      fetchAllData: false,
+    });
+  }, [page, sortBy, sortDir, reservationPageMap]); // Add reservationPageMap to dependencies
+
+  // --- Fetch Main Report Data ---
+  const shouldFetchReport = !!ownerId;
+  const {
+    data: reportData,
+    isLoading: isReportLoading,
+    isError: isReportError,
+  } = useDashboardReportCore(
+    filtersForReportHook,
+    shouldFetchReport ? optionsForReportHook : undefined
+  );
+
+  // --- Handle Reservation Page Change ---
+  const handleReservationPageChange = (roomTypeId: string, page: number) => {
+    setReservationPageMap((prev) => ({
+      ...prev,
+      [roomTypeId]: page,
+    }));
+    // Reset main page when reservation page changes
+    setPage(1);
+  };
+
+  // --- Handle Download Report ---
+  const handleDownloadReport = async () => {
+    if (!ownerId) {
+      toast.error("User not authenticated.");
+      return;
+    }
+
+    try {
+      const exportFilters = {
+        ownerId: ownerId,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        propertyId:
+          selectedPropertyId !== "all" ? selectedPropertyId : undefined,
+        roomTypeId:
+          selectedRoomTypeId !== "all" ? selectedRoomTypeId : undefined,
+        search: appliedSearchTerm || undefined,
+      };
+      let exportFormat: ReportFormat = ReportFormat.ALL;
+
+      if (selectedPropertyId !== "all") {
+        if (selectedRoomTypeId !== "all") {
+          exportFormat = ReportFormat.ROOM_TYPE;
+        } else {
+          exportFormat = ReportFormat.PROPERTY;
+        }
+      }
+      await reportService.exportExcel(exportFilters, {
+        fetchAllData: true,
+        format: exportFormat || ReportFormat.ALL,
+      });
+
+      toast.success("Report download started!");
+    } catch (err) {
+      console.error("Download failed:", err);
+      toast.error("Failed to download report.");
+    }
+  };
+
+  // --- Filter Control Handlers ---
+  const handlePropertyChange = (value: string) => {
+    setSelectedPropertyId(value);
+    setSelectedRoomTypeId("all");
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleRoomTypeChange = (value: string) => {
+    setSelectedRoomTypeId(value);
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearch = () => {
+    setAppliedSearchTerm(searchTerm);
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleSortChange = (value: string) => {
+    if (allowedSortByValues.includes(value)) {
+      setSortBy(value as any);
+      setPage(1);
+      // Reset reservation pagination when filters change
+      setReservationPageMap({});
+    } else {
+      console.error(`Invalid sort by value: ${value}`);
+    }
+  };
+
+  const allowedSortByValues = [
+    "startDate",
+    "endDate",
+    "name",
+    "revenue",
+    "confirmed",
+    "pending",
+    "city",
+    "address",
+    "province",
+    "createdAt",
+    "paymentAmount",
+  ];
+
+  const handleSortDirectionChange = () => {
+    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  // --- NEW HANDLERS: Date Range Type and Apply ---
+  const handleDateRangeTypeChange = (value: string) => {
+    setDateRangeType(value);
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleYearChange = (year: number) => {
+    const newStart = new Date(year, 0, 1);
+    const newEnd = new Date(year, 11, 31);
+    setDateRange({ startDate: newStart, endDate: newEnd });
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleMonthChange = (month: number) => {
+    const year = dateRange.startDate?.getFullYear() ?? new Date().getFullYear();
+    const newStart = new Date(year, month - 1, 1);
+    const newEnd = new Date(year, month, 0);
+    setDateRange({ startDate: newStart, endDate: newEnd });
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleCustomStartDateChange = (date: Date | null) => {
+    setDateRange((prev) => ({ ...prev, startDate: date }));
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleCustomEndDateChange = (date: Date | null) => {
+    setDateRange((prev) => ({ ...prev, endDate: date }));
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleApplyDates = () => {
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  const handleResetFilters = () => {
+    setDateRangeType("year");
+    setDateRange({
+      startDate: new Date(new Date().getFullYear(), 0, 1),
+      endDate: new Date(new Date().getFullYear(), 11, 31),
+    });
+    setSelectedPropertyId("all");
+    setSelectedRoomTypeId("all");
+    setSearchTerm("");
+    setAppliedSearchTerm("");
+    setSortBy("name");
+    setSortDir("asc");
+    setPage(1);
+    // Reset reservation pagination when filters change
+    setReservationPageMap({});
+  };
+
+  // --- Prepare data for FilterControls ---
+  const dateRangeOptions: DateRangeOption[] = [
+    { value: "year", label: "Year" },
+    { value: "month", label: "Month" },
+    { value: "custom", label: "Custom" },
+  ];
+
+  const sortOptions: SortOption[] = [
+    { value: "name", label: "Property Name" },
+    { value: "revenue", label: "Revenue" },
+    { value: "confirmed", label: "Confirmed Bookings" },
+    { value: "pending", label: "Pending Bookings" },
+    { value: "city", label: "City" },
+    { value: "address", label: "Address" },
+    { value: "province", label: "Province" },
+    { value: "startDate", label: "Start Date" },
+    { value: "endDate", label: "End Date" },
+    { value: "createdAt", label: "Created Date" },
+    { value: "paymentAmount", label: "Payment Amount" },
+  ];
+
+  const propertyOptions = useMemo(() => {
+    const options = [{ value: "all", label: "All Properties" }];
+    if (allProperties && Array.isArray(allProperties)) {
+      options.push(
+        ...allProperties.map((p: Property) => ({ value: p.id, label: p.name }))
+      );
+    }
+    return options;
+  }, [allProperties]);
+
+  const roomTypeOptions = useMemo(() => {
+    const options = [{ value: "all", label: "All Room Types" }];
+    if (
+      roomTypesForSelectedProperty &&
+      Array.isArray(roomTypesForSelectedProperty)
+    ) {
+      options.push(
+        ...roomTypesForSelectedProperty.map((rt: RoomTypeMin) => ({
+          value: rt.id,
+          label: rt.name,
+        }))
+      );
+    }
+    return options;
+  }, [roomTypesForSelectedProperty]);
+
+  const isRoomTypeFilterDisabled = selectedPropertyId === "all";
+
+  // --- Combine Loading States ---
+  const isAnyLoading = isReportLoading || isLoadingProperties;
+
+  // --- Render ---
+  if (!ownerId) {
+    return <div>Please log in.</div>;
+  }
+
+  if (isAnyLoading) {
+    return <ReportPageSkeleton />;
+  }
+
+  if (isReportError) {
+    return <div className="text-red-500 p-6">Error loading report data.</div>;
+  }
+
+  const properties = reportData?.properties || [];
+  const globalSummary = reportData?.summary?.Global;
+
+  return (
+    <div className="container mx-auto py-8 space-y-6">
+      <h1 className="text-3xl font-bold">Property Reports</h1>
+
+      {/* Updated Filter Controls */}
+      <Card>
+        <CardContent className="p-0">
+          <FilterControls
+            // Search
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            onSearch={handleSearch}
+            // Sorting
+            sortBy={sortBy || "name"}
+            sortDir={sortDir}
+            sortOptions={sortOptions}
+            onSortChange={handleSortChange}
+            onSortDirectionChange={handleSortDirectionChange}
+            // Date Range
+            dateRangeOptions={dateRangeOptions}
+            dateRangeType={dateRangeType}
+            onDateRangeTypeChange={handleDateRangeTypeChange}
+            selectedYear={
+              dateRange.startDate
+                ? dateRange.startDate.getFullYear()
+                : new Date().getFullYear()
+            }
+            selectedMonth={
+              dateRange.startDate ? dateRange.startDate.getMonth() + 1 : 1
+            }
+            customStartDate={dateRange.startDate}
+            customEndDate={dateRange.endDate}
+            onYearChange={handleYearChange}
+            onMonthChange={handleMonthChange}
+            onCustomStartDateChange={handleCustomStartDateChange}
+            onCustomEndDateChange={handleCustomEndDateChange}
+            onApplyDates={handleApplyDates}
+            // Property Filter
+            propertyOptions={propertyOptions}
+            selectedPropertyId={selectedPropertyId}
+            onPropertyChange={handlePropertyChange}
+            // Room Type Filter
+            roomTypeOptions={roomTypeOptions}
+            selectedRoomTypeId={selectedRoomTypeId}
+            onRoomTypeChange={handleRoomTypeChange}
+            isRoomTypeFilterDisabled={isRoomTypeFilterDisabled}
+            // Actions
+            onResetFilters={handleResetFilters}
+            onDownload={handleDownloadReport}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Global Stats */}
+      {globalSummary && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Global Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard
+              label="Total Properties"
+              value={globalSummary.totalProperties}
+            />
+            <StatCard
+              label="Active Bookings"
+              value={globalSummary.totalActiveBookings}
+            />
+            <StatCard
+              label="Actual Revenue"
+              value={globalSummary.totalActualRevenue}
+              isCurrency
+            />
+            <StatCard
+              label="Projected Revenue"
+              value={globalSummary.totalProjectedRevenue}
+              isCurrency
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Property List */}
+      <div className="grid grid-cols-1 gap-6">
+        {properties.length > 0 ? (
+          properties.map((propertySummary: PropertySummary) => (
+            <PropertyReportCard
+              key={propertySummary.property.id}
+              propertySummary={propertySummary}
+              dateRange={dateRange}
+              onDownloadRoomType={(roomTypeId) => {
+                handleDownloadReport();
+              }}
+              onReservationPageChange={handleReservationPageChange} // Add this
+              reservationPageMap={reservationPageMap} // Add this
+            />
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            No properties found for the selected filters.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

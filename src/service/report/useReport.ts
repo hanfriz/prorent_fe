@@ -20,7 +20,7 @@ import {
 import { DashboardInputSchema } from '@/validation/report/dashboardReportValidation';
 
 // --- Utils ---
-function cleanFilters<T extends object> (filters: T): Partial<T> {
+export function cleanFilters<T extends object> (filters: T): Partial<T> {
    return Object.fromEntries(
       Object.entries(filters)
          .filter(([ _, value ]) => {
@@ -36,7 +36,7 @@ function cleanFilters<T extends object> (filters: T): Partial<T> {
    ) as Partial<T>;
 }
 
-function cleanOptions (options?: ReservationReportOptions): Record<string, any> | undefined {
+export function cleanOptions (options?: ReservationReportOptions): Record<string, any> | undefined {
    if (!options) {
       return undefined;
    }
@@ -69,22 +69,34 @@ function cleanOptions (options?: ReservationReportOptions): Record<string, any> 
 }
 
 // --- Hook: Dashboard utama → daftar properti + summary ---
-export function useDashboardReportCore (filters: ReservationReportFilters, options?: ReservationReportOptions) {
-   const f = useMemo(() => cleanFilters(filters), [ filters ]);
-   const o = useMemo(() => cleanOptions(options), [ options ]);
+// Make sure your useDashboardReportCore hook properly serializes the reservationPage parameter
+export const useDashboardReportCore = (
+   filters: Partial<ReservationReportFilters>,
+   options?: Partial<ReservationReportOptions>
+) => {
+   // Create a proper query key that includes all parameters for caching
+   const queryKey = useMemo(() => {
+      // Create a serializable version of options for the query key
+      const serializableOptions = {
+         ...options,
+         // Convert reservationPage object to a string for query key comparison
+         reservationPage: options?.reservationPage ? JSON.stringify(options.reservationPage) : undefined
+      };
 
-   console.log('🟦 Dashboard Report Payload ->', {
-      filtersRaw: filters,
-      optionsRaw: options,
-      filtersCleaned: f,
-      optionsCleaned: o
-   });
+      return [ 'dashboard-report', filters, serializableOptions ];
+   }, [ filters, JSON.stringify(options) ]);
 
-   return useQuery({
-      queryKey: [ 'dashboardReport', f, o ],
-      queryFn: () => reportService.getDashboardReport(f, o)
+   return useQuery<DashboardReportResponse>({
+      queryKey,
+      queryFn: async () => {
+         return reportService.getDashboardReport(filters, options);
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+      retryDelay: 1000 * 10, // 10 seconds
+      retry: 3
    });
-}
+};
 
 /**
  * Store-based: default untuk dashboard utama
@@ -151,8 +163,9 @@ export function usePropertyReport (params: PropertyReportParams, options?: Reser
    const resolvedOptions = useMemo(() => {
       const sortDir = options?.sortDir;
       const sortBy = options?.sortBy;
-      const reservationPage = options?.reservationPage ?? 1;
+      const reservationPage = options?.reservationPage ?? {};
       const reservationPageSize = options?.reservationPageSize ?? 10;
+      const fetchAllData = options?.fetchAllData ?? false;
 
       return {
          page: options?.page ?? 1,
@@ -160,15 +173,13 @@ export function usePropertyReport (params: PropertyReportParams, options?: Reser
          reservationPage,
          reservationPageSize,
          sortBy: isValidSortBy(sortBy) ? sortBy : 'startDate',
-         sortDir: isValidSortDir(sortDir) ? sortDir : 'desc'
+         sortDir: isValidSortDir(sortDir) ? sortDir : 'desc',
+         fetchAllData
       };
    }, [ options ]);
 
-   return useQuery({
-      queryKey: [ 'propertyReport', propertyId, filters, resolvedOptions.reservationPage ],
-      queryFn: () => reportService.getDashboardReport(filters, resolvedOptions),
-      enabled: !!propertyId
-   });
+   // Use the core function for consistency
+   return useDashboardReportCore(filters, resolvedOptions);
 }
 
 // Helper functions

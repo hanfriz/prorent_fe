@@ -2,13 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import moment from "moment-timezone";
 import { RoomTypeWithAvailability } from "@/interface/report/reportInterface";
@@ -30,7 +24,7 @@ export default function AvailabilityCalendar({
 
   return (
     <Card>
-      <CardContent>
+      <CardContent className="p-4">
         <div className="flex justify-center">
           <div className="inline-block border rounded-lg p-2">
             <Calendar
@@ -52,6 +46,27 @@ export default function AvailabilityCalendar({
                   const availabilityInfo = availabilityMap[dateStr];
                   const totalQuantity = roomType.availability.totalQuantity;
 
+                  let displayText = "";
+                  let textColor = "";
+
+                  if (modifiers.outside) {
+                    // Don't show anything for outside dates
+                  } else if (availabilityInfo) {
+                    displayText = `${availabilityInfo.available}/${totalQuantity}`;
+                    if (availabilityInfo.isAvailable) {
+                      textColor =
+                        availabilityInfo.available === totalQuantity
+                          ? "text-blue-600" // Fully available
+                          : "text-green-600"; // Partially available
+                    } else {
+                      textColor = "text-red-600"; // Not available
+                    }
+                  } else {
+                    // Default to fully available if not in map
+                    displayText = `${totalQuantity}/${totalQuantity}`;
+                    textColor = "text-blue-600";
+                  }
+
                   return (
                     <CalendarDayButton
                       day={day}
@@ -60,24 +75,15 @@ export default function AvailabilityCalendar({
                     >
                       {children}
                       {!modifiers.outside && totalQuantity > 0 && (
-                        <span
-                          className={`text-[10px] mt-0.5 ${
-                            availabilityInfo?.isAvailable
-                              ? availabilityInfo?.available === totalQuantity
-                                ? "text-red-600"
-                                : "text-green-600"
-                              : "text-blue-600"
-                          }`}
-                        >
-                          {availabilityInfo
-                            ? `${availabilityInfo.available}/${totalQuantity}`
-                            : `${totalQuantity}/${totalQuantity}`}
+                        <span className={`text-[10px] mt-0.5 ${textColor}`}>
+                          {displayText}
                         </span>
                       )}
                     </CalendarDayButton>
                   );
                 },
               }}
+              onMonthChange={setCurrentMonth}
             />
           </div>
         </div>
@@ -120,10 +126,7 @@ function createAvailabilityMap(availability: {
   > = {};
 
   availability.dates.forEach((dateInfo) => {
-    // Only include dates with different availability than total
-    if (dateInfo.available !== availability.totalQuantity) {
-      map[dateInfo.date] = dateInfo;
-    }
+    map[dateInfo.date] = dateInfo;
   });
 
   return map;

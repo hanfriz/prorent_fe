@@ -8,7 +8,7 @@ interface RoomTypeCardProps {
 }
 
 export default function RoomTypeCard({ roomType }: RoomTypeCardProps) {
-      if (!roomType) {
+  if (!roomType) {
     return (
       <Card>
         <CardContent className="p-4">
@@ -23,28 +23,35 @@ export default function RoomTypeCard({ roomType }: RoomTypeCardProps) {
   const revenue = roomType.revenue || {};
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard 
-            title="Revenue" 
-            value={formatCurrency(revenue.actual || 0)} 
-          />
-          <MetricCard 
-            title="Confirmed" 
-            value={counts.CONFIRMED?.toString() || "0"} 
-          />
-          <MetricCard 
-            title="Pending" 
-            value={counts.PENDING_CONFIRMATION?.toString() || "0"} 
-          />
-          <MetricCard 
-            title="Cancelled" 
-            value={counts.CANCELLED?.toString() || "0"} 
-          />
-        </div>
-      </CardContent>
-    </Card>
+    <div>
+      <Card>
+        <CardContent className="px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4">
+            <div className="col-span-2">
+              <p className="text-lg font-medium text-neutral-800">
+                {roomType.roomType.name}
+              </p>
+            </div>
+            <MetricCard
+              title="Revenue"
+              value={formatCurrency(revenue.actual || 0)}
+            />
+            <MetricCard
+              title="Confirmed"
+              value={counts.CONFIRMED?.toString() || "0"}
+            />
+            <MetricCard
+              title="Pending"
+              value={counts.PENDING_CONFIRMATION?.toString() || "0"}
+            />
+            <MetricCard
+              title="Cancelled"
+              value={counts.CANCELLED?.toString() || "0"}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

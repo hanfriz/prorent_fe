@@ -17,6 +17,7 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  CalendarRangeIcon,
 } from "lucide-react";
 
 interface User {
@@ -53,6 +54,12 @@ export default function DashboardHeader({
 
           {/* User Menu */}
           <div className="flex items-center gap-4">
+            <Link href="/reservations">
+              <Button variant="ghost" className="cursor-pointer">
+                <CalendarRangeIcon className="w-5 h-5 " />
+                <span className="hidden md:block">Reservations</span>
+              </Button>
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2">
