@@ -46,7 +46,7 @@ export interface ErrorResponse {
 
 export interface VerifyEmailRequest {
   token: string;
-  password: string;
+  password?: string; // Make password optional
 }
 
 export interface VerifyEmailResponse {
