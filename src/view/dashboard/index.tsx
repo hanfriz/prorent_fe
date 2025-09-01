@@ -9,7 +9,6 @@ import {
   StatsSection,
   QuickActions,
   RecentActivities as RecentTransactions,
-  PropertiesOverview,
 } from "./component";
 import { authStore } from "@/lib/stores/authStore";
 import { useDashboardReport } from "@/service/report/useReport";
