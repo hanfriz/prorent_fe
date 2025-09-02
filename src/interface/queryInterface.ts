@@ -11,10 +11,19 @@ export interface GetUserReservationsParams {
    search?: string;
    minAmount?: number;
    maxAmount?: number;
+   roomTypeId?: string;
 }
 
 // Optional: Create a more specific type for sortBy fields if you want stricter typing
-export type ReservationSortField = 'createdAt' | 'startDate' | 'endDate' | 'amount'; // Add other valid fields
+export type ReservationSortField =
+   | 'createdAt'
+   | 'startDate'
+   | 'endDate'
+   | 'amount'
+   | 'reservationNumber'
+   | 'invoiceNumber'
+   | 'property.name'
+   | 'RoomType.name';
 
 export interface GetUserReservationsParamsStrict {
    page?: number;
@@ -27,4 +36,5 @@ export interface GetUserReservationsParamsStrict {
    search?: string;
    minAmount?: number;
    maxAmount?: number;
+   roomTypeId?: string;
 }

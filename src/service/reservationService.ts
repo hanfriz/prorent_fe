@@ -11,7 +11,6 @@ import { z } from 'zod';
 export const createReservation = async (Input: CreateReservationInput): Promise<ReservationResponse> => {
    try {
       const validated = createReservationSchema.parse(Input);
-      console.log(validated);
       const res = await Axios.post<ReservationResponse>('/reservation/', validated);
       return res.data;
    } catch (error) {
@@ -24,7 +23,6 @@ export const uploadPaymentProof = async (reservationId: string, file: File) => {
    try {
       const formData = new FormData();
       formData.append('file', file, file.name);
-      console.log('Uploading file:', file.name, file.size, file.type);
       const res = await Axios.patch<RPResponse>(`/reservation/${reservationId}/upload-payment`, formData, {
          headers: {}
       });
@@ -131,6 +129,25 @@ export function getOwnerReservation (params?: GetUserReservationsParams) {
          return reservation;
       }
    });
+}
+
+export async function getReservationsByPropertyId (propertyId: string, params?: GetUserReservationsParams) {
+   const response = await Axios.get<RPResPagination>(`/reservation/property/${propertyId}`, {
+      params: {
+         page: params?.page || 1,
+         limit: params?.limit || 10,
+         sortBy: params?.sortBy || 'createdAt',
+         sortOrder: params?.sortOrder || 'desc',
+         status: params?.status,
+         startDate: params?.startDate,
+         endDate: params?.endDate,
+         search: params?.search,
+         minAmount: params?.minAmount,
+         maxAmount: params?.maxAmount,
+         roomTypeId: params?.roomTypeId
+      }
+   });
+   return response.data;
 }
 
 export async function cancelReservationByUser (reservationId: string) {

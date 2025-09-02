@@ -1,79 +1,113 @@
-// components/CreateReviewForm.tsx (example)
-import React, { useState } from 'react';
-import { useReviewStore } from '@/lib/stores/reviewStore'; // Adjust path
-import { useCreateReview } from '@/service/review/useReviewService'; // Adjust path - using TanStack Query mutation
+// components/addReviewForm.tsx
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { StarRating } from "./starRating"; // We'll create this
+import { useCreateReview } from "@/service/review/useReviewService";
+import { useReviewStore } from "@/lib/stores/reviewStore"; // For draft only
 
-const CreateReviewForm = ({ reservationId }: { reservationId: string }) => {
-  const [content, setContent] = useState('');
-  const [rating, setRating] = useState(5);
+interface AddReviewFormProps {
+  reservationId: string | null;
+  onClose: () => void;
+}
 
-  // Use TanStack Query mutation hook for actual API call and state management
-  const { mutate: createReviewMutation, isPending, isError, error } = useCreateReview();
+const AddReviewForm: React.FC<AddReviewFormProps> = ({
+  reservationId,
+  onClose,
+}) => {
+  const [content, setContent] = useState("");
+  const [rating, setRating] = useState<number | null>(5);
 
-  const isCreateLoading = useReviewStore((state) => state.createReviewLoading);
-  const createError = useReviewStore((state) => state.createReviewError);
-  const setCreateReviewLoading = useReviewStore((state) => state.setCreateReviewLoading);
-  const setCreateReviewError = useReviewStore((state) => state.setCreateReviewError);
+  // ✅ Use TanStack Query mutation
+  const { mutate: createReview, isPending, isError, error } = useCreateReview();
+
+  // ✅ Optional: Save draft to Zustand (for persistence if user leaves)
+  const { draftReview, setDraftReview, clearDraftReview } = useReviewStore();
+
+  // Sync form with draft on mount (if needed)
+  React.useEffect(() => {
+    if (draftReview.content || draftReview.rating !== null) {
+      setContent(draftReview.content);
+      setRating(draftReview.rating);
+    }
+  }, []);
+
+  if (!reservationId) {
+    return <div>Invalid reservation</div>; // Should not happen
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reservationId) return;
+    if (!rating || !content.trim()) return;
 
-    // Prepare data matching your Zod schema/frontend interface
+    // ✅ Prepare input for mutation
     const reviewData = {
       reservationId,
       content,
       rating,
     };
 
-    // Trigger the TanStack Query mutation
-    createReviewMutation(reviewData, {
-      onSuccess: (newReview) => {
-        console.log("Review created successfully:", newReview);
-        // Update Zustand state if needed (e.g., add to a local list)
-        // Or rely on TanStack Query's onSuccess/invalidateQueries
-        // Reset form
-        setContent('');
-        setRating(5);
-        // Maybe show success message
+    // ✅ Trigger mutation
+    createReview(reviewData, {
+      onSuccess: () => {
+        // ✅ Clear draft
+        clearDraftReview();
+        // ✅ Close modal
+        onClose();
       },
-      onError: (error) => {
-        console.error("Error creating review:", error);
-        // Handle error display (e.g., show error message)
-        // Maybe update Zustand error state if using it for this
-      }
+      onError: (err) => {
+        console.error("Failed to submit review:", err);
+        // Error is already captured in `isError` and `error`
+      },
     });
   };
 
+  const handleSaveDraft = () => {
+    setDraftReview({ content, rating });
+    onClose(); // or just minimize
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="content">Review:</label>
-        <textarea
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="rating">Your Rating</Label>
+        <StarRating rating={rating} onRatingChange={setRating} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="content">Review</Label>
+        <Textarea
           id="content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          placeholder="Share your experience..."
+          className="min-h-24"
           required
         />
       </div>
-      <div>
-        <label htmlFor="rating">Rating (1-5):</label>
-        <input
-          type="number"
-          id="rating"
-          min="1"
-          max="5"
-          value={rating}
-          onChange={(e) => setRating(Number(e.target.value))}
-          required
-        />
+
+      {isError && (
+        <div className="text-sm text-red-500">
+          {error?.message || "Failed to submit review. Please try again."}
+        </div>
+      )}
+
+      <div className="flex justify-end gap-3 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleSaveDraft}
+          disabled={isPending}
+        >
+          Save Draft
+        </Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Submitting..." : "Submit Review"}
+        </Button>
       </div>
-      <button type="submit" disabled={isPending}>
-        {isPending ? 'Submitting...' : 'Submit Review'}
-      </button>
-      {isError && <p>Error: {error?.message || 'Failed to create review'}</p>}
     </form>
   );
 };
 
-export default CreateReviewForm;
+export default AddReviewForm;

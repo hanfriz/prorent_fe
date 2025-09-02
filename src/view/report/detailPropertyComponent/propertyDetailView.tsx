@@ -3,7 +3,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,62 +21,69 @@ import RoomTypeCards from "./roomTypeCard";
 import AvailabilityCalendar from "./availabilityCalender";
 import { ArrowLeft } from "lucide-react";
 import { PropertySummary } from "@/interface/report/reportInterface";
-import RoomTypeAccordion from "./roomTypeAccordion";
 
 export default function PropertyReportPage() {
   const params = useParams();
   const router = useRouter();
   const propertyId = params.propertyId as string;
-  
+
   const { filters: storeFilters } = useReportStore();
   const [dateRange, setDateRange] = useState({
-    startDate: storeFilters.startDate || new Date(new Date().getFullYear(), 0, 1),
-    endDate: storeFilters.endDate || new Date(new Date().getFullYear(), 11, 31)
+    startDate:
+      storeFilters.startDate || new Date(new Date().getFullYear(), 0, 1),
+    endDate: storeFilters.endDate || new Date(new Date().getFullYear(), 11, 31),
   });
 
-  const [reservationPageMap, setReservationPageMap] = useState<Record<string, number> >({});    
+  const [reservationPageMap, setReservationPageMap] = useState<
+    Record<string, number>
+  >({});
   useEffect(() => {
     setDateRange({
-      startDate: storeFilters.startDate || new Date(new Date().getFullYear(), 0, 1),
-      endDate: storeFilters.endDate || new Date(new Date().getFullYear(), 11, 31)
+      startDate:
+        storeFilters.startDate || new Date(new Date().getFullYear(), 0, 1),
+      endDate:
+        storeFilters.endDate || new Date(new Date().getFullYear(), 11, 31),
     });
   }, [storeFilters.startDate, storeFilters.endDate]);
 
+  const getReservationPage = (roomTypeId: string) => {
+    return reservationPageMap[roomTypeId] || 1;
+  };
 
+  const handleReservationPageChange = (roomTypeId: string, page: number) => {
+    setReservationPageMap((prev) => {
+      const next = { ...prev, [roomTypeId]: page };
+      return next;
+    });
+  };
 
-const getReservationPage = (roomTypeId: string) => {
-  return reservationPageMap[roomTypeId] || 1;
-};
-
-const handleReservationPageChange = (roomTypeId: string, page: number) => {  
-  setReservationPageMap((prev) => {
-    const next = { ...prev, [roomTypeId]: page };    
-    return next;
-  });
-};  
-
-const { data: reportData, isLoading, isError } = usePropertyReport(
-   {
+  const {
+    data: reportData,
+    isLoading,
+    isError,
+  } = usePropertyReport(
+    {
       propertyId,
       startDate: dateRange.startDate,
-      endDate: dateRange.endDate
-   },
-   {
+      endDate: dateRange.endDate,
+    },
+    {
       page: 1,
       pageSize: 20,
       reservationPage: reservationPageMap,
       reservationPageSize: 10,
-      sortBy: 'startDate',
-      sortDir: 'desc'
-   }
-);
+      sortBy: "startDate",
+      sortDir: "desc",
+    }
+  );
 
-  const propertySummary: PropertySummary | undefined = reportData?.properties?.[0];
+  const propertySummary: PropertySummary | undefined =
+    reportData?.properties?.[0];
   const property = propertySummary?.property;
   const summary = propertySummary?.summary;
   const roomTypes = propertySummary?.roomTypes || [];
   const period = propertySummary?.period;
-  
+
   const roomTypesWithPagination = roomTypes.map((rt) => ({
     ...rt,
     pagination: {
@@ -83,7 +96,7 @@ const { data: reportData, isLoading, isError } = usePropertyReport(
     return <PropertyReportSkeleton />;
   }
 
-  if (isError || !reportData || !property || !roomTypes ) {
+  if (isError || !reportData || !property || !roomTypes) {
     return (
       <div className="p-6">
         <div className="flex items-center gap-2 mb-6">
@@ -95,10 +108,14 @@ const { data: reportData, isLoading, isError } = usePropertyReport(
         <Card>
           <CardHeader>
             <CardTitle>Error Loading Report</CardTitle>
-            <CardDescription>Failed to load property report data</CardDescription>
+            <CardDescription>
+              Failed to load property report data
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-red-500">Unable to fetch report data. Please try again later.</p>
+            <p className="text-red-500">
+              Unable to fetch report data. Please try again later.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -106,7 +123,7 @@ const { data: reportData, isLoading, isError } = usePropertyReport(
   }
 
   return (
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -126,7 +143,16 @@ const { data: reportData, isLoading, isError } = usePropertyReport(
               <CardDescription>{property?.address}</CardDescription>
             </div>
             <div className="text-sm text-muted-foreground">
-              <p>Period: {period?.startDate ? format(new Date(period.startDate), 'MMM d, yyyy') : ''} - {period?.endDate ? format(new Date(period.endDate), 'MMM d, yyyy') : ''}</p>
+              <p>
+                Period:{" "}
+                {period?.startDate
+                  ? format(new Date(period.startDate), "MMM d, yyyy")
+                  : ""}{" "}
+                -{" "}
+                {period?.endDate
+                  ? format(new Date(period.endDate), "MMM d, yyyy")
+                  : ""}
+              </p>
             </div>
           </div>
         </CardHeader>
@@ -134,18 +160,20 @@ const { data: reportData, isLoading, isError } = usePropertyReport(
 
       {summary && <SummaryCards summary={summary} />}
 
-      <Card >
+      <Card>
         <CardHeader>
           <CardTitle>Room Types Performance</CardTitle>
-          <CardDescription>Performance metrics and availability for each room type</CardDescription>
+          <CardDescription>
+            Performance metrics and availability for each room type
+          </CardDescription>
         </CardHeader>
-        <CardContent >
-          <RoomTypeAccordion 
-            roomTypes={roomTypesWithPagination} 
+        <CardContent>
+          {/* <RoomTypeAccordion
+            roomTypes={roomTypesWithPagination}
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
             onReservationPageChange={handleReservationPageChange}
-          />            
+          /> */}
         </CardContent>
       </Card>
     </div>
@@ -159,10 +187,10 @@ function PropertyReportSkeleton() {
         <Skeleton className="h-8 w-20" />
         <Skeleton className="h-8 w-40" />
       </div>
-      
+
       <Skeleton className="h-24 w-full" />
       <Skeleton className="h-32 w-full" />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Skeleton className="h-96 w-full" />
         <Skeleton className="h-96 w-full" />

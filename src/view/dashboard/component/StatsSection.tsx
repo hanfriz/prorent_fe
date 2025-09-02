@@ -1,13 +1,7 @@
 import StatsCard from "./StatsCard";
 import { Building, Calendar, DollarSign, Users } from "lucide-react";
 import { FaRupiahSign } from "react-icons/fa6";
-
-interface DashboardStats {
-  totalProperties: number;
-  totalBookings: number;
-  totalRevenue: number;
-  activeUsers: number;
-}
+import { DashboardStats } from "../index";
 
 interface StatsSectionProps {
   stats: DashboardStats;
@@ -35,8 +29,8 @@ export default function StatsSection({ stats }: StatsSectionProps) {
         icon={DollarSign}
       />
       <StatsCard
-        title="Active Users"
-        value={stats.activeUsers}
+        title="Total Projected Revenue"
+        value={`Rp. ${stats.totalProjectedRevenue.toLocaleString()}`}
         change="+4% from last month"
         icon={Users}
       />

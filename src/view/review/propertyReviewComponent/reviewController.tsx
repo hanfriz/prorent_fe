@@ -1,4 +1,4 @@
-// review/ReviewControls.tsx
+// components/review/ReviewControls.tsx
 import React from "react";
 import {
   Select,
@@ -9,15 +9,20 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// ✅ Define valid sort & filter values
+type SortBy = "createdAt" | "rating";
+type SortOrder = "desc" | "asc";
+type FilterRating = "all" | "5" | "4" | "3" | "2" | "1";
+
 interface ReviewControlsProps {
-  sortBy: string;
-  sortOrder: string;
-  filterRating: number | "all";
+  sortBy: SortBy;
+  sortOrder: SortOrder;
+  filterRating: FilterRating;
   totalFiltered: number;
   total: number;
   isLoading: boolean;
-  onSortChange: (value: string) => void;
-  onFilterChange: (value: string) => void;
+  onSortChange: (value: `${SortBy}-${SortOrder}`) => void;
+  onFilterChange: (value: FilterRating) => void;
 }
 
 export const ReviewControls = ({
@@ -51,13 +56,14 @@ export const ReviewControls = ({
   );
 };
 
+// --- Sort Control ---
 const SortControl = ({
   value,
   onChange,
   disabled,
 }: {
-  value: string;
-  onChange: (v: string) => void;
+  value: `${SortBy}-${SortOrder}`;
+  onChange: (value: `${SortBy}-${SortOrder}`) => void;
   disabled: boolean;
 }) => (
   <div className="flex items-center">
@@ -81,13 +87,14 @@ const SortControl = ({
   </div>
 );
 
+// --- Filter Control ---
 const FilterControl = ({
   value,
   onChange,
   disabled,
 }: {
-  value: number | "all";
-  onChange: (v: string) => void;
+  value: FilterRating;
+  onChange: (value: FilterRating) => void;
   disabled: boolean;
 }) => (
   <div className="flex items-center">
@@ -97,26 +104,23 @@ const FilterControl = ({
     >
       Filter:
     </label>
-    <Select
-      onValueChange={onChange}
-      defaultValue={String(value)}
-      disabled={disabled}
-    >
+    <Select onValueChange={onChange} defaultValue={value} disabled={disabled}>
       <SelectTrigger className="w-[120px]" id="filter-select">
         <SelectValue placeholder="Filter" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All Stars</SelectItem>
-        {[5, 4, 3, 2, 1].map((star) => (
-          <SelectItem key={star} value={String(star)}>
-            {star} Stars
-          </SelectItem>
-        ))}
+        <SelectItem value="5">5 Stars</SelectItem>
+        <SelectItem value="4">4 Stars</SelectItem>
+        <SelectItem value="3">3 Stars</SelectItem>
+        <SelectItem value="2">2 Stars</SelectItem>
+        <SelectItem value="1">1 Star</SelectItem>
       </SelectContent>
     </Select>
   </div>
 );
 
+// --- Count Display ---
 const ReviewCountInfo = ({
   isLoading,
   count,

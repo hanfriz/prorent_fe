@@ -9,18 +9,25 @@ import {
   StatsSection,
   QuickActions,
   RecentActivities as RecentTransactions,
-  PropertiesOverview,
 } from "./component";
 import { authStore } from "@/lib/stores/authStore";
 import { useDashboardReport } from "@/service/report/useReport";
 import Graph from "../report/mainComponent/graphComponent";
-import { DashboardHeaderSkeleton, GraphSkeleton, PropertiesOverviewSkeleton, QuickActionsSkeleton, RecentActivitiesSkeleton, StatsSectionSkeleton, WelcomeSectionSkeleton } from "./component/dashboardSkeleton";
+import {
+  DashboardHeaderSkeleton,
+  GraphSkeleton,
+  PropertiesOverviewSkeleton,
+  QuickActionsSkeleton,
+  RecentActivitiesSkeleton,
+  StatsSectionSkeleton,
+  WelcomeSectionSkeleton,
+} from "./component/dashboardSkeleton";
 
-interface DashboardStats {
+export interface DashboardStats {
   totalProperties: number;
   totalBookings: number;
   totalRevenue: number;
-  activeUsers: number;
+  totalProjectedRevenue: number;
 }
 
 export default function DashboardView() {
@@ -40,10 +47,11 @@ export default function DashboardView() {
 
   const stats: DashboardStats = useMemo(() => {
     return {
-      totalProperties: reportData?.properties?.length ?? 0,
-      totalBookings: reportData?.summary?.counts?.CONFIRMED ?? 0,
-      totalRevenue: reportData?.summary?.revenue?.actual ?? 0,
-      activeUsers: 0, // belum ada di API
+      totalProperties: reportData?.summary?.Global?.totalProperties ?? 0,
+      totalBookings: reportData?.summary?.Global?.totalActiveBookings ?? 0,
+      totalRevenue: reportData?.summary?.Global?.totalActualRevenue ?? 0,
+      totalProjectedRevenue:
+        reportData?.summary?.Global?.totalProjectedRevenue ?? 0,
     };
   }, [reportData]);
 
@@ -110,15 +118,6 @@ export default function DashboardView() {
           {isLoading ? <QuickActionsSkeleton /> : <QuickActions />}
           {isLoading ? <RecentActivitiesSkeleton /> : <RecentTransactions />}
         </div>
-
-        {/* Properties Overview */}
-        {isLoading ? (
-          <PropertiesOverviewSkeleton />
-        ) : (
-          !isError && (
-            <PropertiesOverview properties={reportData?.properties ?? []} />
-          )
-        )}
       </div>
     </div>
   );

@@ -1,17 +1,13 @@
-import { ReservationStatus } from '../enumInterface';
+import { PropertyRentalType, ReservationStatus } from '../enumInterface';
 
 export interface DashboardReportResponse {
    properties: PropertySummary[];
    summary: {
-      counts: StatusCounts;
-      revenue: RevenueSummary;
-   };
-   period: PeriodDetail;
-   pagination: {
-      page: number;
-      pageSize: number;
-      total: number;
-      totalPages: number;
+      // Add the nested structure from BE
+      Global: DashboardGlobalSummary; // Define this interface if not already matching BE
+      Aggregate: DashboardAggregateSummary; // Define this interface if not already matching BE
+      period: PeriodDetail;
+      pagination: Pagination; // Define this interface if not already matching BE
    };
 }
 
@@ -19,6 +15,9 @@ export interface RoomTypeWithAvailability {
    roomType: RoomTypeMin;
    counts: StatusCounts;
    revenue: RevenueSummary;
+   uniqueCustomers?: number; // Or number if you want the count like BE
+   // Assuming this maps to BE's reservationListItems
+   reservationListItems?: ReservationMin[]; // Or rename to reservationListItems to match BE exactly
    availability: {
       totalQuantity: number;
       dates: Array<{
@@ -27,9 +26,8 @@ export interface RoomTypeWithAvailability {
          isAvailable: boolean;
       }>;
    };
-   uniqueCustomers?: CustomerMin[];
-   data?: ReservationMin[];
    pagination?: any;
+   totalAmount?: number;
 }
 
 export interface RoomTypeMin {
@@ -45,12 +43,15 @@ export interface CustomerMin {
 
 export interface PropertySummary {
    property: PropertyMin;
-   roomTypes: RoomTypeWithAvailability[];
-   period: PeriodDetail;
+   period: PeriodDetail; // Add the summary object that was missing
    summary: {
       counts: StatusCounts;
       revenue: RevenueSummary;
+      totalRoomTypes: number;
    };
+
+   // roomTypes remains as is, assuming it maps to BE's roomTypes array of RoomTypeWithAvailability
+   roomTypes: RoomTypeWithAvailability[];
 }
 
 export interface PropertiesOverviewProps {
@@ -63,11 +64,13 @@ export interface PropertyMin {
    Picture: string | null;
    address: string | null;
    city: string | null;
+   province: string | null;
+   rentalType: PropertyRentalType;
 }
 
 export interface PeriodDetail {
-   startDate: Date | null;
-   endDate: Date | null;
+   startDate: string | null;
+   endDate: string | null;
 }
 
 export interface StatusCounts {
@@ -100,13 +103,36 @@ export interface ReservationReportFilters {
    search?: string; // Search by user email/name
 }
 
+export enum ReportFormat {
+   ALL = 'FULL',
+   PROPERTY = 'PROPERTY',
+   ROOM_TYPE = 'ROOM_TYPE'
+}
+
 export interface ReservationReportOptions {
    page?: number;
    reservationPage?: number | { [roomTypeId: string]: number };
    pageSize?: number;
    reservationPageSize?: number;
-   sortBy?: 'startDate' | 'endDate' | 'createdAt' | 'paymentAmount';
+   fetchAllData?: boolean;
+   format?: ReportFormat;
+   // 🔹 Sorting
+   sortBy?:
+      | 'name'
+      | 'revenue'
+      | 'confirmed'
+      | 'pending'
+      | 'city'
+      | 'address'
+      | 'province'
+      | 'startDate'
+      | 'endDate'
+      | 'createdAt'
+      | 'paymentAmount';
    sortDir?: 'asc' | 'desc';
+
+   // 🔹 Search
+   search?: string; // general search (property, room type, customer)
 }
 
 // --- Types ---
@@ -128,6 +154,13 @@ export interface ChartReportOptions {
    years?: number[];
    year?: number;
    days?: number;
+}
+
+export interface Pagination {
+   page: number;
+   pageSize: number;
+   total: number;
+   totalPages: number;
 }
 
 export interface Property {
@@ -184,10 +217,12 @@ export interface PropertyReportParams {
 export interface ReservationMin {
    id: string;
    userId: string;
+   roomId: string | null;
    startDate: Date;
    endDate: Date;
-   orderStatus: OrderStatus;
-   paymentAmount: number | null;
+   orderStatus: ReservationStatus;
+   paymentAmount: number;
+   invoiceNumber: string | null;
    user: {
       email: string;
       firstName: string | null;
@@ -200,4 +235,16 @@ export interface RoomTypeAccordionProps {
    startDate: Date;
    endDate: Date;
    onReservationPageChange: (roomTypeId: string, page: number) => void;
+}
+
+export interface DashboardGlobalSummary {
+   totalProperties: number;
+   totalActiveBookings: number; // active stays (startDate >= now)
+   totalActualRevenue: number;
+   totalProjectedRevenue: number;
+}
+
+export interface DashboardAggregateSummary {
+   counts: StatusCounts;
+   revenue: RevenueSummary;
 }

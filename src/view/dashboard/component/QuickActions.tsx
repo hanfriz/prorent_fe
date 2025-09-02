@@ -22,6 +22,14 @@ export default function QuickActions() {
     router.push("/my-properties");
   };
 
+  const handleViewReservationsList = () => {
+    router.push("/dashboard/reservations");
+  };
+
+  const handleViewReports = () => {
+    router.push("/dashboard/reports");
+  };
+
   return (
     <Card className="lg:col-span-1">
       <CardHeader>
@@ -45,6 +53,22 @@ export default function QuickActions() {
         >
           <Building className="mr-2 h-4 w-4" />
           My Properties
+        </Button>
+        <Button
+          className="w-full justify-start cursor-pointer"
+          variant="outline"
+          onClick={handleViewReservationsList}
+        >
+          <Eye className="mr-2 h-4 w-4" />
+          View Reservations
+        </Button>
+        <Button
+          className="w-full justify-start cursor-pointer"
+          variant="outline"
+          onClick={handleViewReports}
+        >
+          <BarChart3 className="mr-2 h-4 w-4" />
+          View Reports
         </Button>
       </CardContent>
     </Card>

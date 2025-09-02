@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useOwnerReservations } from "@/service/useReservation";
 import { useMemo } from "react";
+import { ReservationWithPayment } from "@/interface/paymentInterface";
 
 interface Transaction {
   id: string;
@@ -55,29 +56,46 @@ export default function RecentTransactions() {
 
     return reservationsData.reservations
       .slice(0, 3)
-      .map((reservation: any) => ({
-        id: reservation.id,
-        type:
-          reservation.status === "CANCELLED"
-            ? "cancellation"
-            : reservation.paymentProof
-            ? "payment"
-            : "booking",
-        propertyName: reservation.property?.name || "Unknown Property",
-        amount: reservation.totalPrice || 0,
-        status:
-          reservation.status?.toLowerCase() === "confirmed"
-            ? "completed"
-            : reservation.status?.toLowerCase() === "cancelled"
-            ? "cancelled"
-            : "pending",
-        date: reservation.createdAt,
-        guestName:
-          reservation.user?.name ||
-          reservation.user?.email?.split("@")[0] ||
-          "Guest",
-        paymentMethod: reservation.paymentProof ? "manual_transfer" : undefined,
-      }));
+      .map((reservation: ReservationWithPayment) => {
+        // Determine transaction type
+        let type: "booking" | "payment" | "cancellation" = "booking";
+        if (reservation.orderStatus === "CANCELLED") {
+          type = "cancellation";
+        } else if (reservation.PaymentProof) {
+          type = "payment";
+        }
+
+        // Determine status
+        let status: "completed" | "pending" | "cancelled" = "pending";
+        if (reservation.orderStatus === "CONFIRMED") {
+          status = "completed";
+        } else if (reservation.orderStatus === "CANCELLED") {
+          status = "cancelled";
+        }
+
+        // Get guest name
+        const guestName =
+          reservation.User?.firstName ||
+          reservation.User?.email?.split("@")[0] ||
+          "Guest";
+
+        // Get payment method
+        const paymentMethod = reservation.payment?.method
+          ? reservation.payment.method.toLowerCase().replace("_", " ")
+          : undefined;
+
+        return {
+          id: reservation.id,
+          type,
+          propertyName:
+            reservation.RoomType?.property?.name || "Unknown Property",
+          amount: reservation.payment?.amount || 0,
+          status,
+          date: reservation.createdAt,
+          guestName,
+          paymentMethod,
+        };
+      });
   }, [reservationsData]);
 
   const formatPrice = (price: number) => {
@@ -191,8 +209,8 @@ export default function RecentTransactions() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push("/my-transactions")}
-          className="flex items-center gap-2"
+          onClick={() => router.push("/dashboard/reservations")}
+          className="flex items-center gap-2 cursor-pointer"
         >
           View All
           <ArrowUpRight className="h-4 w-4" />
@@ -257,7 +275,7 @@ export default function RecentTransactions() {
                     </p>
                     {transaction.paymentMethod && (
                       <p className="text-xs text-gray-500 capitalize">
-                        {transaction.paymentMethod}
+                        {transaction.paymentMethod.replace("_", " ")}
                       </p>
                     )}
                   </div>

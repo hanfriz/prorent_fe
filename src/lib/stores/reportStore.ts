@@ -36,15 +36,18 @@ const defaultFilters: ReportFilters = {
    roomTypeId: undefined,
    startDate: null,
    endDate: null,
-   status: [],
-   search: ''
+   status: [], // Or map ReservationStatus if needed
+   search: '' // Or use the more specific search fields if available
+   // Note: ownerId is usually added dynamically when calling the service
 };
 
 const defaultOptions: ReservationReportOptions = {
    page: 1,
    pageSize: 20,
-   sortBy: 'startDate',
-   sortDir: 'desc'
+   sortBy: 'startDate', // Or 'name' depending on default sort for properties
+   sortDir: 'desc',
+   fetchAllData: false // <-- Add this line (Optional improvement as discussed)
+   // reservationPage and reservationPageSize are typically used per-room-type or handled differently
 };
 
 const defaultChartSettings: ChartSettings = {
@@ -103,7 +106,7 @@ export const useReportStore = create<ReportState>(set => ({
    resetFilters: () =>
       set({
          filters: { ...defaultFilters },
-         options: { ...defaultOptions },
+         options: { ...defaultOptions }, // Includes fetchAllData: false
          chartSettings: { ...defaultChartSettings }
       })
 }));

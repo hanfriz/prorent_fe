@@ -1,71 +1,54 @@
-// components/PublicReviewsList.tsx (example)
-import React, { useEffect } from 'react';
-import { useReviewStore } from '@/lib/stores/reviewStore'; // Adjust path
-import { getPublicReviews } from '@/service/review/reviewService'; // Adjust path
+// components/PublicReviewsList.tsx
+import React from "react";
+import { getPublicReviews } from "@/service/review/reviewService"; // This returns `useQuery`
+import { ReviewList } from "../propertyReviewComponent/reviewList"; // Reusable component
+import {
+  ReviewSkeleton,
+  ErrorState,
+  EmptyFilteredState,
+} from "../propertyReviewComponent/reviewInitialState";
 
 interface PublicReviewsListProps {
   propertyId: string;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
-const PublicReviewsList: React.FC<PublicReviewsListProps> = ({ propertyId }) => {
-  const { data, isLoading, error } = useReviewStore((state) => state.publicReviews);
-  // Or use individual selectors for better performance if needed:
-  // const publicReviewsData = useReviewStore((state) => state.publicReviews.data);
-  // const isLoading = useReviewStore((state) => state.publicReviews.isLoading);
-  // const error = useReviewStore((state) => state.publicReviews.error);
+const PublicReviewsList: React.FC<PublicReviewsListProps> = ({
+  propertyId,
+  page = 1,
+  limit = 10,
+  sortBy = "createdAt",
+  sortOrder = "desc",
+}) => {
+  // ✅ Use TanStack Query (already defined in reviewService)
+  const { data, isLoading, isError, error } = getPublicReviews({
+    propertyId,
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+  });
 
-  const fetchPublicReviewsStart = useReviewStore((state) => state.fetchPublicReviewsStart);
-  const fetchPublicReviewsSuccess = useReviewStore((state) => state.fetchPublicReviewsSuccess);
-  const fetchPublicReviewsFailure = useReviewStore((state) => state.fetchPublicReviewsFailure);
+  const reviews = data?.reviews;
+  const total = data?.total || 0;
 
-  useEffect(() => {
-  const fetchReviews = async () => {
-    if (!propertyId) return; // Don't fetch without propertyId
+  // ✅ Show loading, error, empty, or list
+  if (isLoading && !data) {
+    return <ReviewSkeleton />;
+  }
 
-    fetchPublicReviewsStart();
-    try {
-      // Call your service function (could also use TanStack Query here)
-      // Make sure getPublicReviews accepts the right params
-      const result = await getPublicReviews({ propertyId, page: 1, limit: 10 }); // Example params
-      if (result && result.data) {
-        fetchPublicReviewsSuccess(result.data);
-      } else {
-        // Handle the case where result is undefined or result.data is undefined
-        // For example, you could call fetchPublicReviewsFailure with an error message
-        fetchPublicReviewsFailure('Failed to fetch public reviews');
-      }
-    } catch (err: any) {
-      // Handle error from service (e.g., extract message)
-      const errorMessage = err.message || 'Failed to fetch public reviews';
-      fetchPublicReviewsFailure(errorMessage);
-    }
-  };
+  if (isError) {
+    return <ErrorState error={error} />;
+  }
 
-  fetchReviews();
-}, [propertyId, fetchPublicReviewsStart, fetchPublicReviewsSuccess, fetchPublicReviewsFailure]);
+  if (!reviews || reviews.length === 0) {
+    return <EmptyFilteredState />;
+  }
 
-  if (isLoading) return <div>Loading reviews...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data || data.reviews.length === 0) return <div>No reviews found.</div>;
-
-  return (
-    <div>
-      <h3>Public Reviews</h3>
-      <ul>
-        {data.reviews.map((review) => (
-          <li key={review.id}>
-            {/* Render review details */}
-            <p>{review.content}</p>
-            <p>Rating: {review.rating}</p>
-            {/* ... */}
-          </li>
-        ))}
-      </ul>
-      {/* Pagination controls could go here using data.page, data.totalPages etc. */}
-    </div>
-  );
+  return <ReviewList reviews={reviews} />;
 };
 
 export default PublicReviewsList;
