@@ -24,12 +24,6 @@ export const useChartData = () => {
 
    const chartData: ChartDataPoint[] = (queryResult.data as ChartReportData)?.data || [];
 
-   console.log('🔧 [Chart Data] Final extraction result:', {
-      chartDataLength: chartData.length,
-      isChartDataArray: Array.isArray(chartData),
-      firstItem: chartData[0]
-   });
-
    return {
       data: chartData,
       rawData: queryResult.data,
@@ -43,10 +37,6 @@ export const useChartData = () => {
 // Custom hook for chart settings
 export const useChartSettings = () => {
    const { chartSettings, setViewMode, setChartType, setDays, setSelectedYear } = useReportStore();
-
-   useEffect(() => {
-      console.log('🏪 [Chart Settings] Settings changed:', chartSettings);
-   }, [ chartSettings ]);
 
    return {
       chartSettings,
@@ -64,7 +54,7 @@ export const useChartError = (error: any) => {
    useEffect(() => {
       if (error) {
          setChartError(error as Error);
-         console.error('💥 [Chart Error] Chart data error:', error);
+         console.error(' [Chart Error] Chart data error:', error);
       }
    }, [ error ]);
 

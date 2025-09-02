@@ -198,7 +198,7 @@ export const useReportFilters = (ownerId: string | undefined) => {
    // --- Prepare Filters and Options for useDashboardReportCore ---
    const filtersForReportHook = useMemo(() => {
       if (!ownerId) {
-         console.warn('OwnerId is not available for filters');
+         console.error('Owner ID not found');
          return {};
       }
 

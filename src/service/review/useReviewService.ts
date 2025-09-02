@@ -18,7 +18,7 @@ export const useCreateReview = () => {
          queryClient.invalidateQueries({ queryKey: [ 'reviews', 'public' ] });
          queryClient.invalidateQueries({ queryKey: [ 'reviews', 'eligible-reservations' ] });
 
-         console.log('Review created:', newReview);
+         return newReview;
       },
       onError: error => {
          console.error('Error creating review:', error);
@@ -33,8 +33,7 @@ export const useReplyToReview = () => {
          replyToReview(reviewId, input),
       onSuccess: () => {
          // Example: Invalidate review queries
-         // queryClient.invalidateQueries({ queryKey: ['reviews'] });
-         console.log('Reply added successfully. Consider invalidating relevant queries.');
+         queryClient.invalidateQueries({ queryKey: [ 'reviews' ] });
       },
       onError: error => {
          console.error('Error replying to review:', error);
@@ -49,9 +48,8 @@ export const useUpdateReviewVisibility = () => {
       mutationFn: ({ reviewId, input }: { reviewId: string; input: UpdateReviewVisibilityInput }) =>
          updateReviewVisibility(reviewId, input),
       onSuccess: updatedReview => {
-         // Example: Invalidate review queries
-         // queryClient.invalidateQueries({ queryKey: ['reviews'] });
-         console.log('Review visibility updated successfully. Consider invalidating relevant queries.');
+         queryClient.invalidateQueries({ queryKey: [ 'reviews' ] });
+         return updatedReview;
       },
       onError: error => {
          console.error('Error updating review visibility:', error);

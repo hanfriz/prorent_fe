@@ -31,8 +31,6 @@ export const createReview = async (input: CreateReviewInput): Promise<Review> =>
    try {
       // 1. Validate input data using Zod schema
       const validatedData = createReviewSchema.parse(input);
-      console.log('Validated Create Review Data:', validatedData);
-
       // 2. Send POST request to the backend
       const response = await Axios.post<Review>('/review/', validatedData); // Matches POST /api/reviews
 
@@ -53,7 +51,6 @@ export const createReview = async (input: CreateReviewInput): Promise<Review> =>
 export const replyToReview = async (reviewId: string, input: ReplyToReviewInput): Promise<OwnerReply> => {
    try {
       const validatedBodyData = replyToReviewSchema.parse(input);
-      console.log('Validated Reply Body Data:', validatedBodyData);
       const response = await Axios.post<OwnerReply>(`/review/${reviewId}/reply`, validatedBodyData);
       return response.data;
    } catch (error: any) {
@@ -153,7 +150,6 @@ export const updateReviewVisibility = async (reviewId: string, input: UpdateRevi
    try {
       // 1. Validate the input data using Zod schema
       const validatedData = updateReviewVisibilitySchema.parse(input);
-      console.log('Validated Visibility Update Data:', validatedData);
       const response = await Axios.patch<Review>(`/review/${reviewId}/visibility`, validatedData);
       return response.data;
    } catch (error: any) {

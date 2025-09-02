@@ -128,7 +128,6 @@ export function useDashboardReport () {
          if (!input) {
             throw new Error('Invalid dashboard input');
          }
-         console.log('🟦 Dashboard Report Payload ->', input);
          return reportService.getDashboardReport(input.filters, input.options);
       },
       enabled: !!input

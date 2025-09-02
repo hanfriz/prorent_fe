@@ -11,7 +11,6 @@ import { z } from 'zod';
 export const createReservation = async (Input: CreateReservationInput): Promise<ReservationResponse> => {
    try {
       const validated = createReservationSchema.parse(Input);
-      console.log(validated);
       const res = await Axios.post<ReservationResponse>('/reservation/', validated);
       return res.data;
    } catch (error) {
@@ -24,7 +23,6 @@ export const uploadPaymentProof = async (reservationId: string, file: File) => {
    try {
       const formData = new FormData();
       formData.append('file', file, file.name);
-      console.log('Uploading file:', file.name, file.size, file.type);
       const res = await Axios.patch<RPResponse>(`/reservation/${reservationId}/upload-payment`, formData, {
          headers: {}
       });
