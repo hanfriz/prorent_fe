@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronDown,
   CalendarRangeIcon,
+  ChartAreaIcon,
 } from "lucide-react";
 
 interface User {
@@ -54,7 +55,13 @@ export default function DashboardHeader({
 
           {/* User Menu */}
           <div className="flex items-center gap-4">
-            <Link href="/reservations">
+            <Link href="/dashboard/reports">
+              <Button variant="ghost" className="cursor-pointer">
+                <ChartAreaIcon className="w-5 h-5 " />
+                <span className="hidden md:block">Reports</span>
+              </Button>
+            </Link>
+            <Link href="/dashboard/reservations">
               <Button variant="ghost" className="cursor-pointer">
                 <CalendarRangeIcon className="w-5 h-5 " />
                 <span className="hidden md:block">Reservations</span>

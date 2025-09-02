@@ -21,7 +21,6 @@ import RoomTypeCards from "./roomTypeCard";
 import AvailabilityCalendar from "./availabilityCalender";
 import { ArrowLeft } from "lucide-react";
 import { PropertySummary } from "@/interface/report/reportInterface";
-import RoomTypeAccordion from "./roomTypeAccordion";
 
 export default function PropertyReportPage() {
   const params = useParams();
@@ -169,12 +168,12 @@ export default function PropertyReportPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <RoomTypeAccordion
+          {/* <RoomTypeAccordion
             roomTypes={roomTypesWithPagination}
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
             onReservationPageChange={handleReservationPageChange}
-          />
+          /> */}
         </CardContent>
       </Card>
     </div>

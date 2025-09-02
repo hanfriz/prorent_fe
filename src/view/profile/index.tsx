@@ -3,7 +3,15 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Shield, Mail, Camera } from "lucide-react";
+import {
+  User,
+  Shield,
+  Mail,
+  Camera,
+  GitGraphIcon,
+  ChartBar,
+  ChartBarIcon,
+} from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   ProfileHeader,
@@ -12,6 +20,7 @@ import {
   AvatarUpload,
   EmailSettings,
 } from "./component";
+import ReservationList from "../userTransactionManagement";
 
 export default function ProfileView() {
   const { user, refreshUserData, isLoading } = useAuth();
@@ -59,6 +68,7 @@ export default function ProfileView() {
     { id: "avatar", label: "Avatar", icon: Camera },
     { id: "password", label: "Security", icon: Shield },
     { id: "email", label: "Email", icon: Mail },
+    { id: "reservationList", label: "Reservation List", icon: ChartBarIcon },
   ];
 
   return (
@@ -129,6 +139,17 @@ export default function ProfileView() {
               </CardHeader>
               <CardContent>
                 <EmailSettings user={user} />
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "reservationList" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Reservation List</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReservationList />
               </CardContent>
             </Card>
           )}

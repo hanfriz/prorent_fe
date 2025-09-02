@@ -133,6 +133,25 @@ export function getOwnerReservation (params?: GetUserReservationsParams) {
    });
 }
 
+export async function getReservationsByPropertyId (propertyId: string, params?: GetUserReservationsParams) {
+   const response = await Axios.get<RPResPagination>(`/reservation/property/${propertyId}`, {
+      params: {
+         page: params?.page || 1,
+         limit: params?.limit || 10,
+         sortBy: params?.sortBy || 'createdAt',
+         sortOrder: params?.sortOrder || 'desc',
+         status: params?.status,
+         startDate: params?.startDate,
+         endDate: params?.endDate,
+         search: params?.search,
+         minAmount: params?.minAmount,
+         maxAmount: params?.maxAmount,
+         roomTypeId: params?.roomTypeId
+      }
+   });
+   return response.data;
+}
+
 export async function cancelReservationByUser (reservationId: string) {
    const response = await Axios.post(`/reservation/${reservationId}/cancel`);
    return response.data;

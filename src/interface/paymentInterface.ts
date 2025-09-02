@@ -45,6 +45,11 @@ export interface ReservationWithPayment {
    payment: Payment | null;
    PaymentProof: PaymentProof | null;
    review: Review | null;
+   User: {
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+   };
 }
 
 export interface RPResponse {

@@ -1,22 +1,27 @@
-// --- Property Report Card Component ---
+// src/components/report/PropertyReportCard.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PropertySummary } from "@/interface/report/reportInterface";
 import { format } from "date-fns";
 import { RoomTypeCard } from "./roomTypeCard";
 import { StatCard } from "./helper";
+import { Button } from "@/components/ui/button";
 
 export const PropertyReportCard = ({
   propertySummary,
   dateRange,
+  onDownloadProperty,
   onDownloadRoomType,
-  onReservationPageChange, // Add this
-  reservationPageMap, // Add this
+  onReservationPageChange,
+  reservationPageMap,
+  onReservationFilterChange, // Add this prop
 }: {
   propertySummary: PropertySummary;
   dateRange: { startDate: Date | null; endDate: Date | null };
-  onDownloadRoomType: (roomTypeId: string) => void;
-  onReservationPageChange?: (roomTypeId: string, page: number) => void; // Add this
-  reservationPageMap?: Record<string, number>; // Add this
+  onDownloadProperty: (propertyId: string) => void; // Add this prop
+  onDownloadRoomType: (propertyId: string, roomTypeId: string) => void;
+  onReservationPageChange?: (roomTypeId: string, page: number) => void;
+  reservationPageMap?: Record<string, number>;
+  onReservationFilterChange?: (roomTypeId: string, filters: any) => void; // Add this prop
 }) => {
   const property = propertySummary.property;
   const summary = propertySummary.summary;
@@ -35,6 +40,14 @@ export const PropertyReportCard = ({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDownloadProperty(property.id)} // Property-level download
+              className="cursor-pointer"
+            >
+              Download Property Report
+            </Button>
             <span className="text-sm text-muted-foreground">
               Period:{" "}
               {dateRange.startDate
@@ -77,10 +90,11 @@ export const PropertyReportCard = ({
                 roomType={roomType}
                 propertyId={property.id}
                 onDownload={onDownloadRoomType}
-                onReservationPageChange={onReservationPageChange} // Add this
+                onReservationPageChange={onReservationPageChange}
                 reservationPage={
                   reservationPageMap?.[roomType.roomType.id] || 1
-                } // Add this
+                }
+                onReservationFilterChange={onReservationFilterChange} // Add this
               />
             ))}
           </div>

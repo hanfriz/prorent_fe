@@ -1,15 +1,14 @@
-// --- Room Type Card Component ---
+// src/components/report/RoomTypeCard.tsx
 import {
   PropertySummary,
   RoomTypeWithAvailability,
 } from "@/interface/report/reportInterface";
 import { useEffect, useState } from "react";
-import RoomTypeReservationsTable from "../detailPropertyComponent/roomTypeReservationTable";
+import RoomTypeReservationsTable from "../detailPropertyComponent/roomTypeReservationTable"; // Fixed import path
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useReportStore } from "@/lib/stores/reportStore";
-import { usePropertyReport } from "@/service/report/useReport"; // This might not be needed
-import AvailabilityCalendar from "../detailPropertyComponent/availabilityCalender";
+import AvailabilityCalendar from "@/view/report/detailPropertyComponent/availabilityCalender"; // Fixed import path
 import {
   Accordion,
   AccordionContent,
@@ -21,14 +20,16 @@ export const RoomTypeCard = ({
   roomType,
   propertyId,
   onDownload,
-  onReservationPageChange, // Add this
-  reservationPage = 1, // Add this with default
+  onReservationPageChange,
+  reservationPage = 1,
+  onReservationFilterChange,
 }: {
   roomType: RoomTypeWithAvailability;
   propertyId: string;
-  onDownload: (roomTypeId: string) => void;
-  onReservationPageChange?: (roomTypeId: string, page: number) => void; // Add this
-  reservationPage?: number; // Add this
+  onDownload: (propertyId: string, roomTypeId: string) => void;
+  onReservationPageChange?: (roomTypeId: string, page: number) => void;
+  reservationPage?: number;
+  onReservationFilterChange?: (roomTypeId: string, filters: any) => void;
 }) => {
   const { filters: storeFilters } = useReportStore();
   const [dateRange, setDateRange] = useState({
@@ -46,12 +47,6 @@ export const RoomTypeCard = ({
     });
   }, [storeFilters.startDate, storeFilters.endDate]);
 
-  const handleReservationPageChangeLocal = (page: number) => {
-    if (onReservationPageChange) {
-      onReservationPageChange(roomType.roomType.id, page);
-    }
-  };
-
   // Use the roomType data directly since it comes from the main report
   const currentRoomTypeData = roomType;
 
@@ -62,7 +57,7 @@ export const RoomTypeCard = ({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onDownload(roomType.roomType.id)}
+          onClick={() => onDownload(propertyId, roomType.roomType.id)}
           className="cursor-pointer"
         >
           Download Room Report
@@ -93,27 +88,11 @@ export const RoomTypeCard = ({
       {/* Reservation List Table */}
       <div className="mb-4 border-2 border-gray-200 rounded-lg p-2">
         <h5 className="text-sm font-semibold mb-2">Recent Reservations</h5>
-        {currentRoomTypeData.reservationListItems &&
-        currentRoomTypeData.reservationListItems.length > 0 ? (
-          <>
-            <RoomTypeReservationsTable
-              data={currentRoomTypeData.reservationListItems}
-              pagination={
-                currentRoomTypeData.pagination || {
-                  page: reservationPage,
-                  pageSize: 10,
-                  total: currentRoomTypeData.pagination?.total || 0,
-                  totalPages: currentRoomTypeData.pagination?.totalPages || 0,
-                }
-              }
-              onPageChange={handleReservationPageChangeLocal}
-            />
-          </>
-        ) : (
-          <p className="text-gray-500 text-sm">
-            No reservations found for this room type.
-          </p>
-        )}
+        <RoomTypeReservationsTable
+          propertyId={propertyId}
+          roomTypeId={roomType.roomType.id}
+          dateRange={dateRange}
+        />
       </div>
 
       {/* Availability Calendar Accordion */}
