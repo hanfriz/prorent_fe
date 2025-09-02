@@ -11,6 +11,7 @@ const OWNER_PROPERTY_KEYS = {
   list: (filters: any) => [...OWNER_PROPERTY_KEYS.lists(), filters] as const,
   details: () => [...OWNER_PROPERTY_KEYS.all, "detail"] as const,
   detail: (id: string) => [...OWNER_PROPERTY_KEYS.details(), id] as const,
+  roomTypes: (propertyId: string) => ["room-types", propertyId] as const,
 };
 
 // Hook for fetching owner property by ID
@@ -61,4 +62,14 @@ export function useInvalidateOwnerProperties() {
       });
     },
   };
+}
+
+// Hook for fetching room types by property ID
+export function useOwnerRoomTypes(propertyId: string) {
+  return useQuery({
+    queryKey: OWNER_PROPERTY_KEYS.roomTypes(propertyId),
+    queryFn: () => ownerPropertyService.getRoomTypesByProperty(propertyId),
+    enabled: !!propertyId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 }
