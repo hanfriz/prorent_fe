@@ -50,6 +50,12 @@ export interface OwnerPropertyPicture {
   updatedAt: string;
 }
 
+export interface OwnerPropertyGalleryItem {
+  propertyId: string;
+  pictureId: string;
+  picture: OwnerPropertyPicture;
+}
+
 export interface OwnerRoomType {
   id: string;
   propertyId: string;
@@ -95,7 +101,7 @@ export interface OwnerProperty {
   category: OwnerPropertyCategory;
   location: OwnerPropertyLocation;
   mainPicture: OwnerPropertyPicture;
-  gallery: OwnerPropertyPicture[];
+  gallery: OwnerPropertyGalleryItem[];
   rooms: OwnerRoom[];
   roomTypes: OwnerRoomType[];
   _count?: {

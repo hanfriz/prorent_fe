@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,31 +13,27 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useOwnerPropertyDetail } from "@/service/useOwnerProperty";
 import { ownerPropertyService } from "@/service/ownerPropertyService";
-import {
-  OwnerPropertyPicture,
-  OwnerPropertyGalleryItem,
-} from "@/interface/ownerPropertyInterface";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   Upload,
   Trash2,
-  Star,
   Image as ImageIcon,
   Loader2,
   X,
 } from "lucide-react";
 import Image from "next/image";
+import { useOwnerRoomTypes } from "@/service/useOwnerProperty";
 
-const GalleryManagement = () => {
+const RoomGalleryManagement = () => {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const propertyId = params.id as string;
+  const roomId = searchParams.get("roomId");
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -46,11 +41,18 @@ const GalleryManagement = () => {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   const {
-    data: property,
-    isLoading: isLoadingProperty,
-    error: propertyError,
-    refetch: refetchProperty,
-  } = useOwnerPropertyDetail(propertyId);
+    data: roomTypesData,
+    isLoading: isLoadingRoomTypes,
+    error: roomTypesError,
+    refetch: refetchRoomTypes,
+  } = useOwnerRoomTypes(propertyId);
+
+  // Find the current room from room types data
+  const currentRoom = roomTypesData?.data
+    ?.flatMap((roomType: any) => roomType.rooms || [])
+    ?.find((room: any) => room.id === roomId);
+
+  const roomGallery = currentRoom?.gallery || [];
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,22 +85,29 @@ const GalleryManagement = () => {
       return;
     }
 
+    if (!roomId) {
+      toast.error("Room ID tidak ditemukan");
+      return;
+    }
+
     setIsUploading(true);
     try {
-      // Upload files one by one and add to property gallery
+      // Upload files one by one and add to room gallery
       for (const file of selectedFiles) {
-        const altText = `${property?.data?.name || "Property"} - ${file.name}`;
-        await ownerPropertyService.uploadAndAddToPropertyGallery(
-          propertyId,
+        const altText = `${currentRoom?.name || "Room"} - ${file.name}`;
+        await ownerPropertyService.uploadAndAddToRoomGallery(
+          roomId,
           file,
           altText
         );
       }
 
-      toast.success("Gambar berhasil diupload dan ditambahkan ke galeri!");
+      toast.success(
+        "Gambar berhasil diupload dan ditambahkan ke galeri kamar!"
+      );
       setSelectedFiles([]);
-      // Refresh property data
-      refetchProperty();
+      // Refresh room types data to get updated gallery
+      refetchRoomTypes();
     } catch (error: any) {
       console.error("Upload error:", error);
       const errorMessage =
@@ -110,18 +119,20 @@ const GalleryManagement = () => {
   };
 
   const handleDeleteImage = async (imageId: string) => {
+    if (!roomId) {
+      toast.error("Room ID tidak ditemukan");
+      return;
+    }
+
     try {
-      // Remove from property gallery first, then delete the image
-      await ownerPropertyService.removeImageFromPropertyGallery(
-        propertyId,
-        imageId
-      );
+      // Remove from room gallery first, then delete the image
+      await ownerPropertyService.removeImageFromRoomGallery(roomId, imageId);
       await ownerPropertyService.deletePropertyImage(imageId);
-      toast.success("Gambar berhasil dihapus dari galeri!");
+      toast.success("Gambar berhasil dihapus dari galeri kamar!");
       setDeleteDialogOpen(false);
       setSelectedImageId(null);
-      // Refresh property data
-      refetchProperty();
+      // Refresh room types data
+      refetchRoomTypes();
     } catch (error: any) {
       console.error("Delete error:", error);
       const errorMessage =
@@ -130,20 +141,7 @@ const GalleryManagement = () => {
     }
   };
 
-  const handleSetMainPicture = async (imageId: string) => {
-    try {
-      await ownerPropertyService.setMainPicture(propertyId, imageId);
-      toast.success("Gambar utama berhasil diubah!");
-      // Refresh property data
-      refetchProperty();
-    } catch (error: any) {
-      console.error("Set main picture error:", error);
-      const errorMessage = error?.response?.data?.message || "Gagal mengubah gambar utama";
-      toast.error(errorMessage);
-    }
-  };
-
-  if (isLoadingProperty) {
+  if (isLoadingRoomTypes) {
     return (
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex items-center gap-4 mb-6">
@@ -178,23 +176,25 @@ const GalleryManagement = () => {
     );
   }
 
-  if (propertyError) {
+  if (roomTypesError || !currentRoom) {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-red-600 mb-2">
-                Error Loading Property
+                Error Loading Room
               </h3>
               <p className="text-gray-600 mb-4">
-                Gagal memuat data properti. Silakan coba lagi.
+                {!currentRoom
+                  ? "Kamar tidak ditemukan."
+                  : "Gagal memuat data kamar. Silakan coba lagi."}
               </p>
               <Button
-                onClick={() => router.push("/my-properties")}
+                onClick={() => router.push(`/my-properties/${propertyId}`)}
                 variant="outline"
               >
-                Kembali ke My Properties
+                Kembali ke Property
               </Button>
             </div>
           </CardContent>
@@ -203,12 +203,6 @@ const GalleryManagement = () => {
     );
   }
 
-  const propertyData = property?.data;
-  const gallery = (propertyData?.gallery || [])
-    .filter((item) => item && item.picture && item.picture.id)
-    .map((item) => item.picture); // Extract picture from gallery item
-  const mainPicture = propertyData?.mainPicture;
-
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -216,15 +210,15 @@ const GalleryManagement = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/my-properties")}
+          onClick={() => router.push(`/my-properties/${propertyId}`)}
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Kembali
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Kelola Galeri</h1>
-          <p className="text-gray-600">{propertyData?.name}</p>
+          <h1 className="text-2xl font-bold">Kelola Galeri Kamar</h1>
+          <p className="text-gray-600">{currentRoom.name}</p>
         </div>
       </div>
 
@@ -234,58 +228,38 @@ const GalleryManagement = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ImageIcon className="w-5 h-5" />
-              Galeri Properti ({gallery.length})
+              Galeri Kamar ({roomGallery.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {gallery.length === 0 ? (
+            {roomGallery.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Belum ada gambar di galeri</p>
+                <p>Belum ada gambar di galeri kamar</p>
                 <p className="text-sm">Upload gambar pertama untuk memulai</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {gallery.map((image: OwnerPropertyPicture, index: number) => (
+                {roomGallery.map((image: any, index: number) => (
                   <div
-                    key={image?.id || `gallery-image-${index}`}
+                    key={image?.picture?.id || `room-gallery-image-${index}`}
                     className="relative group aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-200 transition-colors"
                   >
                     <Image
-                      src={image?.url || "/prorent-logo.png"}
-                      alt={image?.alt || "Property image"}
+                      src={image?.picture?.url || "/prorent-logo.png"}
+                      alt={image?.picture?.alt || "Room image"}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 50vw, 33vw"
                     />
 
-                    {/* Main Picture Badge */}
-                    {mainPicture?.id === image.id && (
-                      <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600">
-                        <Star className="w-3 h-3 mr-1" />
-                        Utama
-                      </Badge>
-                    )}
-
                     {/* Action Buttons */}
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      {mainPicture?.id !== image.id && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleSetMainPicture(image.id)}
-                          className="gap-1"
-                        >
-                          <Star className="w-3 h-3" />
-                          Set Utama
-                        </Button>
-                      )}
-
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => {
-                          setSelectedImageId(image.id);
+                          setSelectedImageId(image?.picture?.id);
                           setDeleteDialogOpen(true);
                         }}
                         className="gap-1"
@@ -397,4 +371,4 @@ const GalleryManagement = () => {
   );
 };
 
-export default GalleryManagement;
+export default RoomGalleryManagement;
