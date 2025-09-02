@@ -90,6 +90,20 @@ export const ownerPropertyService = {
     }
   },
 
+  getRoomTypesByProperty: async (
+    propertyId: string
+  ): Promise<RoomTypesResponse> => {
+    try {
+      const response = await axiosInstance.get<RoomTypesResponse>(
+        `/owner/room-types?propertyId=${propertyId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error fetching room types:", error);
+      throw error;
+    }
+  },
+
   createProperty: async (
     data: CreatePropertyRequest
   ): Promise<SinglePropertyResponse> => {
@@ -426,6 +440,79 @@ export const ownerPropertyService = {
       return uploadResult;
     } catch (error: any) {
       console.error("Error uploading and adding image to gallery:", error);
+      throw error;
+    }
+  },
+
+  // Room Gallery Management Methods
+  uploadAndAddToRoomGallery: async (
+    roomId: string,
+    file: File,
+    alt?: string
+  ): Promise<ImageUploadResponse> => {
+    try {
+      // Step 1: Upload the image
+      const uploadResult = await ownerPropertyService.uploadRoomImage(
+        file,
+        alt
+      );
+
+      // Step 2: Add to room gallery
+      await ownerPropertyService.addImageToRoomGallery(
+        roomId,
+        uploadResult.data.id
+      );
+
+      return uploadResult;
+    } catch (error: any) {
+      console.error("Error uploading and adding image to room gallery:", error);
+      throw error;
+    }
+  },
+
+  addImageToRoomGallery: async (
+    roomId: string,
+    pictureId: string
+  ): Promise<any> => {
+    try {
+      const response = await axiosInstance.post(
+        `/owner/rooms/${roomId}/gallery`,
+        { pictureId }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error adding image to room gallery:", error);
+      throw error;
+    }
+  },
+
+  removeImageFromRoomGallery: async (
+    roomId: string,
+    pictureId: string
+  ): Promise<DeleteResponse> => {
+    try {
+      const response = await axiosInstance.delete<DeleteResponse>(
+        `/owner/rooms/${roomId}/gallery/${pictureId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error removing image from room gallery:", error);
+      throw error;
+    }
+  },
+
+  // Set main picture for property
+  setMainPicture: async (
+    propertyId: string,
+    pictureId: string
+  ): Promise<any> => {
+    try {
+      const response = await axiosInstance.patch(
+        `/owner/properties/${propertyId}/gallery/${pictureId}/set-main`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error setting main picture:", error);
       throw error;
     }
   },
