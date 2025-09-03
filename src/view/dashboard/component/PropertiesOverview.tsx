@@ -1,50 +1,95 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import PropertyCard from "./PropertyCard";
+// // src/view/report/PropertiesOverview.tsx
+// import { useState, useEffect } from "react";
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from "@/components/ui/card";
+// import { PropertyCard } from "@/view/report/mainComponent/propertyCard";
+// import { PropertiesOverviewProps } from "@/interface/report/reportInterface";
+// import { useDashboardReport } from "@/service/report/useReport";
+// import { useReportStore } from "@/lib/stores/reportStore";
+// import { FilterControls } from "./propertiesOverviewComponent/filterControl";
+// import { PropertyList } from "./propertiesOverviewComponent/propertyList";
+// import { PaginationControls } from "./propertiesOverviewComponent/paginationControl";
+// import { usePropertyFilters } from "./propertiesOverviewComponent/customHookFilter";
 
-export default function PropertiesOverview() {
-  const properties = [
-    {
-      id: 1,
-      name: "Sunset Villa 1",
-      location: "Jakarta, Indonesia",
-      price: "$2,500/month",
-      status: "Available",
-    },
-    {
-      id: 2,
-      name: "Sunset Villa 2",
-      location: "Jakarta, Indonesia",
-      price: "$2,500/month",
-      status: "Available",
-    },
-    {
-      id: 3,
-      name: "Sunset Villa 3",
-      location: "Jakarta, Indonesia",
-      price: "$2,500/month",
-      status: "Available",
-    },
-  ];
+// export default function PropertiesOverview({
+//   properties: initialProperties,
+// }: PropertiesOverviewProps) {
+//   const { data: reportData, isLoading, isFetching } = useDashboardReport();
+//   const { filters, options, setFilters, setOption } = useReportStore();
 
-  return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Properties Overview</CardTitle>
-        <CardDescription>Overview of your listed properties</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+//   const {
+//     searchTerm,
+//     dateRangeType,
+//     selectedYear,
+//     selectedMonth,
+//     customStartDate,
+//     customEndDate,
+//     handleSearchChange,
+//     handleSearch,
+//     handleSortChange,
+//     handleSortDirectionChange,
+//     handlePageChange,
+//     handleResetFilters,
+//     handleDateRangeTypeChange,
+//     handleYearChange,
+//     handleMonthChange,
+//     handleCustomStartDateChange,
+//     handleCustomEndDateChange,
+//     applyDateFilters,
+//   } = usePropertyFilters();
+
+//   const pagination = reportData?.summary?.pagination;
+//   const totalPages = pagination?.totalPages || 1;
+//   const currentPage = options.page || 1;
+
+//   return (
+//     <Card className="mt-6">
+//       <CardHeader>
+//         <CardTitle>Properties Overview</CardTitle>
+//         <CardDescription>Overview of your listed properties</CardDescription>
+//       </CardHeader>
+
+//       <FilterControls
+//         searchTerm={searchTerm}
+//         dateRangeType={dateRangeType}
+//         selectedYear={selectedYear}
+//         selectedMonth={selectedMonth}
+//         customStartDate={customStartDate}
+//         customEndDate={customEndDate}
+//         onSearchChange={handleSearchChange}
+//         onSearch={handleSearch}
+//         onSortChange={handleSortChange}
+//         onSortDirectionChange={handleSortDirectionChange}
+//         onResetFilters={handleResetFilters}
+//         onDateRangeTypeChange={handleDateRangeTypeChange}
+//         onYearChange={handleYearChange}
+//         onMonthChange={handleMonthChange}
+//         onCustomStartDateChange={handleCustomStartDateChange}
+//         onCustomEndDateChange={handleCustomEndDateChange}
+//         onApplyDates={applyDateFilters}
+//         sortBy={options.sortBy || "startDate"}
+//         sortDir={options.sortDir || "desc"}
+//       />
+
+//       <CardContent>
+//         <PropertyList
+//           reportData={reportData}
+//           isLoading={isLoading}
+//           isFetching={isFetching}
+//         />
+
+//         <PaginationControls
+//           currentPage={currentPage}
+//           totalPages={totalPages}
+//           isFetching={isFetching}
+//           onPageChange={handlePageChange}
+//         />
+//       </CardContent>
+//     </Card>
+//   );
+// }

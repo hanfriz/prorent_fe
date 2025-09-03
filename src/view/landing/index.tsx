@@ -11,11 +11,11 @@ import {
 export default function LandingPageView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-      <Navigation />
+      {/* <Navigation /> */}
       <HeroSection />
       <FeaturesSection />
       <UserTypesSection />
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

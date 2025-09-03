@@ -1,43 +1,79 @@
-// src/services/apiClient.ts
 import axios from 'axios';
+import { cookieUtils } from './cookieUtils';
 
-// --- Temporary Setup ---
-// TODO: Replace with actual base URL and auth logic
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL; // Example local dev URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
 
 const Axios = axios.create({
    baseURL: API_BASE_URL,
-   timeout: 10000,
-   headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN}`
-   }
+   timeout: 10000
 });
 
-// --- Example Interceptor for Development Logging ---
-// Uncomment if needed for debugging API calls
-/*
-apiClient.interceptors.request.use(
-  (config) => {
-    console.log('Outgoing Request:', config);
-    return config;
-  },
-  (error) => {
-    console.error('Request Error:', error);
-    return Promise.reject(error);
-  }
+// Request interceptor to add token from cookies
+Axios.interceptors.request.use(
+   config => {
+      const token = cookieUtils.getAccessToken();
+      if (token) {
+         config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+   },
+   error => {
+      return Promise.reject(error);
+   }
 );
 
-apiClient.interceptors.response.use(
-  (response) => {
-    console.log('Incoming Response:', response);
-    return response;
-  },
-  (error) => {
-    console.error('Response Error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
+// Response interceptor for token refresh and error handling
+Axios.interceptors.response.use(
+   response => response,
+   async error => {
+      const originalRequest = error.config;
+
+      // If 401 and we haven't already tried to refresh
+      if (error.response?.status === 401 && !originalRequest._retry) {
+         originalRequest._retry = true;
+
+         const refreshToken = cookieUtils.getRefreshToken();
+
+         if (refreshToken) {
+            try {
+               // Try to refresh the token
+               const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+                  refreshToken
+               });
+
+               if (response.data.success && response.data.data?.accessToken) {
+                  const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+                  // Update tokens in cookies
+                  cookieUtils.setTokens(accessToken, newRefreshToken);
+
+                  // Retry the original request with new token
+                  originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                  return Axios(originalRequest);
+               }
+            } catch (refreshError) {
+               // Refresh failed, clear session and redirect to login
+               // Only redirect if NOT skipped
+               if (!originalRequest._skipAuthRedirect) {
+                  cookieUtils.removeTokens();
+                  cookieUtils.removeUserInfo();
+                  if (typeof window !== 'undefined') {
+                     window.location.href = '/login';
+                  }
+               }
+
+               return Promise.reject(refreshError);
+            }
+         } else {
+            // No refresh token available, redirect to login
+            if (!originalRequest._skipAuthRedirect && typeof window !== 'undefined') {
+               window.location.href = '/login';
+            }
+         }
+      }
+
+      return Promise.reject(error);
+   }
 );
-*/
 
 export default Axios;

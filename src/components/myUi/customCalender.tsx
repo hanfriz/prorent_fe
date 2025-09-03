@@ -1,73 +1,93 @@
-// src/components/myUi/customCalender.tsx
+// src/components/myUi/customCalendar.tsx
 "use client";
 
 import * as React from "react";
-import { Calendar, CalendarDayButton } from "@/components/ui/calendar"; // Pastikan path benar
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import moment from "moment-timezone";
+import { cn } from "@/lib/utils";
 
-// --- Update Props Interface untuk mode single ---
 interface PriceCalendarProps {
-  // mode: "single" | "range"; // Tambahkan jika ingin fleksibel, untuk sekarang hardcode "single"
-  selected?: Date; // Ubah dari DateRange ke Date | undefined
-  onSelect?: (date: Date | undefined) => void; // Ubah callback
+  selected?: Date;
+  onSelect?: (date: Date | undefined) => void;
   defaultMonth?: Date;
   priceMap?: Record<string, number>;
   basePrice?: number;
 }
 
 export default function PriceCalendar({
-  // mode = "single", // Opsional jika ingin fleksibel
   selected,
   onSelect,
   defaultMonth,
   priceMap = {},
   basePrice = 0,
 }: PriceCalendarProps) {
-  // Gunakan selected (Date | undefined) langsung untuk defaultMonth jika tidak disediakan
-  const initialDefaultMonth = defaultMonth ?? selected ?? new Date(); // Fallback ke hari ini jika keduanya undefined
+  const initialDefaultMonth = defaultMonth ?? selected ?? new Date();
 
   return (
-    <Calendar
-      // mode={mode} // atau hardcode mode="single"
-      mode="single" // Karena kita modifikasi untuk single date
-      defaultMonth={initialDefaultMonth}
-      selected={selected} // selected adalah Date | undefined
-      onSelect={onSelect} // onSelect menerima Date | undefined
-      className="rounded-lg border shadow-sm"
-      captionLayout="dropdown"
-      formatters={{
-        formatMonthDropdown: (date) => {
-          return moment(date).tz("Asia/Jakarta").format("MMMM YYYY");
-        },
-      }}
-      components={{
-        DayButton: ({ children, modifiers, day, ...props }) => {
-          const dateStr = moment(day.date)
-            .tz("Asia/Jakarta")
-            .format("YYYY-MM-DD");
-          const price = priceMap[dateStr];
+    <div className="w-full overflow-x-hidden">
+      <div className="w-full max-w-full mx-auto">
+        <Calendar
+          mode="single"
+          defaultMonth={initialDefaultMonth}
+          selected={selected}
+          onSelect={onSelect}
+          className="rounded-lg border shadow-sm w-full overflow-x-scroll  lg:p-4"
+          captionLayout="dropdown"
+          formatters={{
+            formatMonthDropdown: (date) => {
+              return moment(date).tz("Asia/Jakarta").format("MMMM YYYY");
+            },
+          }}
+          classNames={{
+            caption_label: cn(
+              "flex items-center justify-center p-1 text-[clamp(1rem,1.2vw,1.4rem)] lg:text-[clamp(0.6rem,1.2vw,0.7rem)] font-semibold" // << ukuran font caption bulan/tahun
+            ),
+            dropdowns: cn(
+              "flex items-center justify-center gap-2 p-2 flex gap-2 justify-center items-center text-[clamp(0.6rem,0.6vw,1rem)] font-medium"
+            ),
+            chevron: cn("size-3 ml-1"),
+          }}
+          components={{
+            DayButton: ({ children, modifiers, day, ...props }) => {
+              const dateStr = moment(day.date)
+                .tz("Asia/Jakarta")
+                .format("YYYY-MM-DD");
+              const price = priceMap[dateStr];
 
-          return (
-            <CalendarDayButton day={day} modifiers={modifiers} {...props}>
-              {children}
-              {!modifiers.outside && (
-                <>
-                  {price !== undefined ? (
-                    <span className="text-[8px] text-green-600 mt-0.5">
-                      Rp. {price.toLocaleString("id-ID")}
-                    </span>
-                  ) : (
-                    <span className="text-[8px] text-black-400 mx-0.5">
-                      Rp.{" "}
-                      {basePrice > 0 ? basePrice.toLocaleString("id-ID") : ""}
-                    </span>
+              return (
+                <CalendarDayButton
+                  {...props}
+                  day={day}
+                  modifiers={modifiers}
+                  className={cn(
+                    "aspect-square w-full flex flex-col items-center justify-center",
+                    "p-1 text-center relative hover:bg-blue-50",
+                    // ukuran font tetap pakai clamp yg sudah ada
+                    "text-[clamp(1rem,1.5vw,2rem)]"
                   )}
-                </>
-              )}
-            </CalendarDayButton>
-          );
-        },
-      }}
-    />
+                >
+                  <div className="font-medium leading-none">{children}</div>
+                  {!modifiers.outside && (
+                    <div className="w-full overflow-hidden mt-0.5">
+                      {price !== undefined ? (
+                        <span className="max-[600px]:text-[clamp(0.5rem,1vw,0.3rem)] lg:text-[clamp(0.15rem,1vw,0.4rem)] text-green-600 font-semibold block leading-none">
+                          Rp {Math.round(price / 1000)}k
+                        </span>
+                      ) : (
+                        basePrice > 0 && (
+                          <span className="max-[600px]:text-[clamp(0.5rem,1vw,0.3rem)] lg:text-[clamp(0.15rem,1vw,0.4rem)] text-blue-600 font-semibold block leading-none">
+                            Rp {Math.round(basePrice / 1000)}k
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </CalendarDayButton>
+              );
+            },
+          }}
+        />
+      </div>
+    </div>
   );
 }

@@ -23,17 +23,16 @@ export default function VerifyEmailView() {
     const verifyEmail = async () => {
       try {
         const token = searchParams.get("token");
-        const password = searchParams.get("password");
 
-        if (!token || !password) {
+        if (!token) {
           setVerificationStatus("error");
-          setMessage("Invalid verification link. Missing token or password.");
+          setMessage("Invalid verification link. Missing token.");
           setIsVerifying(false);
           return;
         }
 
         // Call verification API
-        const response = await authService.verifyEmail({ token, password });
+        const response = await authService.verifyEmail({ token });
 
         if (response.success) {
           setVerificationStatus("success");

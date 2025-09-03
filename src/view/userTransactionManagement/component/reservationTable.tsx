@@ -1,0 +1,344 @@
+"use client";
+
+import React from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import {
+  RPResPagination,
+  ReservationWithPayment,
+} from "@/interface/paymentInterface";
+import { GetUserReservationsParams } from "@/interface/queryInterface";
+import ReservationActions from "@/view/userTransactionManagement/component/reservationAction";
+import { ReservationStatus } from "@/interface/enumInterface";
+
+interface ReservationTableProps {
+  reservations: ReservationWithPayment[];
+  pagination?: RPResPagination["pagination"];
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
+  onSortChange: (sortBy: string, sortOrder: "asc" | "desc") => void;
+  currentParams: GetUserReservationsParams;
+}
+
+const ReservationTable = ({
+  reservations,
+  pagination,
+  onPageChange,
+  onLimitChange,
+  onSortChange,
+  currentParams,
+}: ReservationTableProps) => {
+  const { sortBy = "createdAt", sortOrder = "desc" } = currentParams;
+
+  const handleSort = (column: string) => {
+    let backendSortBy: string | null = null;
+    switch (column) {
+      case "startDate":
+      case "endDate":
+      case "createdAt":
+      case "orderStatus":
+      case "property.name":
+      case "RoomType.name":
+      case "reservation.PaymentProof?.picture?.url":
+        backendSortBy = column;
+        break;
+      case "payment.invoiceNumber":
+        backendSortBy = "invoiceNumber";
+        break;
+      case "payment.amount":
+        backendSortBy = "totalAmount";
+        break;
+      case "id":
+        backendSortBy = "reservationNumber";
+        break;
+      default:
+        console.warn(`Unknown column for sorting: ${column}`);
+        return;
+    }
+    if (backendSortBy) {
+      const newSortOrder =
+        sortBy === backendSortBy && sortOrder === "asc" ? "desc" : "asc";
+      onSortChange(backendSortBy, newSortOrder);
+    }
+  };
+
+  const getStatusBadgeVariant = (status: ReservationStatus) => {
+    switch (status) {
+      case "PENDING_PAYMENT":
+        return "destructive";
+      case "PENDING_CONFIRMATION":
+        return "secondary";
+      case "CONFIRMED":
+        return "default";
+      case "CANCELLED":
+        return "outline";
+      default:
+        return "default";
+    }
+  };
+
+  const renderSortIndicator = (column: string) => {
+    if (sortBy !== column) return null;
+    return sortOrder === "asc" ? "↑" : "↓";
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Desktop / Tablet Table */}
+      <div className="hidden md:block border rounded-2xl overflow-hidden shadow-pr-soft">
+        <Table>
+          <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
+            <TableRow>
+              <TableHead
+                onClick={() => handleSort("payment.invoiceNumber")}
+                className="w-[130px] cursor-pointer"
+              >
+                Invoice {renderSortIndicator("payment.invoiceNumber")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("property.name")}
+                className="cursor-pointer"
+              >
+                Property {renderSortIndicator("property.name")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("RoomType.name")}
+                className="cursor-pointer"
+              >
+                Room Type {renderSortIndicator("RoomType.name")}
+              </TableHead>
+              <TableHead
+                onClick={() =>
+                  handleSort("reservation.PaymentProof?.picture?.url")
+                }
+                className="cursor-pointer"
+              >
+                Bukti Pembayaran{" "}
+                {renderSortIndicator("reservation.PaymentProof?.picture?.url")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("startDate")}
+                className="cursor-pointer"
+              >
+                Start {renderSortIndicator("startDate")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("endDate")}
+                className="cursor-pointer"
+              >
+                End {renderSortIndicator("endDate")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("payment.amount")}
+                className="cursor-pointer"
+              >
+                Amount {renderSortIndicator("payment.amount")}
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("orderStatus")}
+                className="cursor-pointer"
+              >
+                Status {renderSortIndicator("orderStatus")}
+              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {reservations.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-10 text-pr-mid"
+                >
+                  No reservations found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              reservations.map((reservation) => (
+                <TableRow
+                  key={reservation.id}
+                  className="hover:bg-pr-primary/5 transition"
+                >
+                  <TableCell className="font-semibold text-pr-dark">
+                    {reservation.payment?.invoiceNumber}
+                  </TableCell>
+                  <TableCell>{reservation.Property?.name || "N/A"}</TableCell>
+                  <TableCell>{reservation.RoomType?.name || "N/A"}</TableCell>
+                  <TableCell>
+                    {reservation.PaymentProof?.picture?.alt ||
+                      "Belum mengunggah bukti pembayaran"}
+                  </TableCell>
+                  <TableCell>
+                    {reservation.startDate
+                      ? format(new Date(reservation.startDate), "PPP")
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {reservation.endDate
+                      ? format(new Date(reservation.endDate), "PPP")
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {reservation.payment?.amount
+                      ? `Rp ${reservation.payment.amount.toLocaleString()}`
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={getStatusBadgeVariant(reservation.orderStatus)}
+                      className="uppercase"
+                    >
+                      {reservation.orderStatus.replace("_", " ")}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <ReservationActions reservation={reservation} />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+
+        {/* Pagination Controls */}
+        {pagination && (
+          <div className="flex items-center justify-between p-4 border-t bg-white">
+            <div className="text-sm text-pr-mid">
+              Showing{" "}
+              {(pagination.currentPage - 1) * (currentParams.limit || 10) + 1}{" "}
+              to{" "}
+              {Math.min(
+                pagination.currentPage * (currentParams.limit || 10),
+                pagination.totalCount
+              )}{" "}
+              of {pagination.totalCount} results
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(pagination.currentPage - 1)}
+                disabled={!pagination.hasPrev}
+                className="rounded-full"
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-pr-dark">
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(pagination.currentPage + 1)}
+                disabled={!pagination.hasNext}
+                className="rounded-full"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile: Card list */}
+      <div className="md:hidden space-y-3">
+        {reservations.length === 0 ? (
+          <div className="p-4 rounded-lg bg-white border text-center text-pr-mid">
+            No reservations found.
+          </div>
+        ) : (
+          reservations.map((r) => (
+            <div
+              key={r.id}
+              className="bg-white p-4 rounded-2xl border shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-pr-mid">Invoice</div>
+                    <div className="font-semibold text-pr-dark">
+                      {r.payment?.invoiceNumber}
+                    </div>
+                  </div>
+                  <div className="text-xs text-pr-mid mt-1">
+                    {r.Property?.name || "N/A"}
+                  </div>
+                  <div className="text-xs text-pr-mid">
+                    {r.RoomType?.name || "N/A"}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="mb-2">
+                    <Badge variant={getStatusBadgeVariant(r.orderStatus)}>
+                      {r.orderStatus.replace("_", " ")}
+                    </Badge>
+                  </div>
+                  <div className="text-sm font-semibold text-pr-dark">
+                    {r.payment?.amount
+                      ? `Rp ${r.payment.amount.toLocaleString()}`
+                      : "N/A"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between text-xs text-pr-mid">
+                <div>
+                  {r.startDate ? format(new Date(r.startDate), "PPP") : "N/A"}
+                </div>
+                <div>→</div>
+                <div>
+                  {r.endDate ? format(new Date(r.endDate), "PPP") : "N/A"}
+                </div>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <ReservationActions reservation={r} />
+              </div>
+            </div>
+          ))
+        )}
+
+        {/* Mobile pagination */}
+        {pagination && (
+          <div className="flex flex-col items-center justify-center mt-4 space-y-2">
+            <div className="text-sm text-pr-mid">
+              Page {pagination.currentPage} of {pagination.totalPages}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(pagination.currentPage - 1)}
+                disabled={!pagination.hasPrev}
+                className="rounded-full"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(pagination.currentPage + 1)}
+                disabled={!pagination.hasNext}
+                className="rounded-full"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ReservationTable;

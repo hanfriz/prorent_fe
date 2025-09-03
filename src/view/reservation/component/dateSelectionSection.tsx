@@ -1,3 +1,4 @@
+// src/view/reservation/component/dateSelectionSection.tsx
 import React from "react";
 import moment from "moment-timezone";
 import { CalendarIcon, ChevronDownIcon } from "lucide-react";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import PriceCalendar from "@/components/myUi/customCalender";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DateSelectionSectionProps {
   startDate?: Date;
@@ -17,6 +19,7 @@ interface DateSelectionSectionProps {
   setEndDate: (date?: Date) => void;
   priceMap: Record<string, number>;
   basePrice: number;
+  isLoading?: boolean;
 }
 
 export default function DateSelectionSection({
@@ -26,7 +29,26 @@ export default function DateSelectionSection({
   setEndDate,
   priceMap,
   basePrice,
+  isLoading,
 }: DateSelectionSectionProps) {
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-6 w-48" />
+        <div className="flex flex-col gap-6">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-lg font-medium mb-2">Pilih Tanggal Reservasi</h2>
@@ -89,7 +111,7 @@ function DateField({
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal border-gray-200 cursor-pointer",
               !selected && "text-muted-foreground"
             )}
           >
