@@ -1,4 +1,3 @@
-// components/reservations/ReservationFilters.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -18,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Search as SearchIcon, X as XIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ReservationStatus } from "@/interface/enumInterface";
@@ -55,17 +54,9 @@ const ReservationFilters = ({
   );
   const [localEndDate, setLocalEndDate] = useState<Date | undefined>(endDate);
 
-  useEffect(() => {
-    setLocalSearchTerm(searchTerm);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setLocalStartDate(startDate);
-  }, [startDate]);
-
-  useEffect(() => {
-    setLocalEndDate(endDate);
-  }, [endDate]);
+  useEffect(() => setLocalSearchTerm(searchTerm), [searchTerm]);
+  useEffect(() => setLocalStartDate(startDate), [startDate]);
+  useEffect(() => setLocalEndDate(endDate), [endDate]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchTerm(e.target.value);
@@ -100,121 +91,154 @@ const ReservationFilters = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:items-end gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <form onSubmit={handleSearchSubmit} className="flex-1">
-        <Label htmlFor="search" className="text-sm font-medium">
-          Search
-        </Label>
-        <div className="flex gap-2">
-          <Input
-            id="search"
-            type="text"
-            placeholder="Search by property, room type..."
-            value={localSearchTerm}
-            onChange={handleSearchChange}
-            className="flex-1"
-          />
-          <Button type="submit">Search</Button>
+    <div className="p-4 rounded-2xl bg-gradient-to-r from-pr-primary/8 via-pr-bg to-pr-mid/8 shadow-pr-soft border border-pr-mid/10">
+      <form
+        onSubmit={handleSearchSubmit}
+        className="flex flex-col md:flex-row md:items-end gap-4"
+      >
+        {/* Search */}
+        <div className="flex-1 min-w-0">
+          <Label htmlFor="search" className="text-sm font-medium text-pr-dark">
+            Search
+          </Label>
+          <div className="mt-2 flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                id="search"
+                type="text"
+                placeholder="Search by property, room type..."
+                value={localSearchTerm}
+                onChange={handleSearchChange}
+                className="pr-10"
+                aria-label="Search reservations"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-pr-mid">
+                <SearchIcon className="h-4 w-4" />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="bg-pr-primary hover:bg-pr-mid text-white"
+            >
+              Search
+            </Button>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="w-full md:w-[220px]">
+          <Label
+            htmlFor="status-filter"
+            className="text-sm font-medium text-pr-dark"
+          >
+            Status
+          </Label>
+          <Select
+            value={currentStatus || "all"}
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger id="status-filter" className="w-full mt-2">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {reservationStatuses.map((status: string) => (
+                <SelectItem key={status} value={status}>
+                  {status.replace("_", " ")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Date Range */}
+        <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+          <div>
+            <Label
+              htmlFor="start-date"
+              className="text-sm font-medium text-pr-dark"
+            >
+              Check-in
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  id="start-date"
+                  type="button"
+                  className={cn(
+                    "mt-2 w-full md:w-[180px] flex items-center gap-2 justify-start rounded-lg border px-3 py-2 text-sm bg-white",
+                    !localStartDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="h-4 w-4 text-pr-mid" />
+                  {localStartDate ? (
+                    format(localStartDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={localStartDate}
+                  onSelect={handleStartDateChange}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div>
+            <Label
+              htmlFor="end-date"
+              className="text-sm font-medium text-pr-dark"
+            >
+              Check-out
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  id="end-date"
+                  type="button"
+                  className={cn(
+                    "mt-2 w-full md:w-[180px] flex items-center gap-2 justify-start rounded-lg border px-3 py-2 text-sm bg-white",
+                    !localEndDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="h-4 w-4 text-pr-mid" />
+                  {localEndDate ? (
+                    format(localEndDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={localEndDate}
+                  onSelect={handleEndDateChange}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        {/* Clear */}
+        <div className="self-start md:self-end">
+          <Button
+            variant="outline"
+            onClick={handleClearFilters}
+            className="mt-2 md:mt-0 border-pr-mid text-pr-mid hover:bg-pr-primary/6"
+          >
+            <XIcon className="mr-2 h-4 w-4" />
+            Clear
+          </Button>
         </div>
       </form>
-
-      <div className="w-full md:w-auto">
-        <Label htmlFor="status-filter" className="text-sm font-medium">
-          Status
-        </Label>
-        <Select
-          value={currentStatus || "all"}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger id="status-filter" className="w-full md:w-[180px]">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {reservationStatuses.map((status: string) => (
-              <SelectItem key={status} value={status}>
-                {status.replace("_", " ")}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
-        <div className="flex flex-col">
-          <Label htmlFor="start-date" className="text-sm font-medium">
-            Check-in
-          </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="start-date"
-                variant={"outline"}
-                className={cn(
-                  "w-full md:w-[180px] justify-start text-left font-normal",
-                  !localStartDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {localStartDate ? (
-                  format(localStartDate, "PPP")
-                ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={localStartDate}
-                onSelect={handleStartDateChange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="flex flex-col">
-          <Label htmlFor="end-date" className="text-sm font-medium">
-            Check-out
-          </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="end-date"
-                variant={"outline"}
-                className={cn(
-                  "w-full md:w-[180px] justify-start text-left font-normal",
-                  !localEndDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {localEndDate ? (
-                  format(localEndDate, "PPP")
-                ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={localEndDate}
-                onSelect={handleEndDateChange}
-                autoFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      <Button
-        variant="outline"
-        onClick={handleClearFilters}
-        className="mt-4 md:mt-0"
-      >
-        Clear Filters
-      </Button>
     </div>
   );
 };

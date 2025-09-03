@@ -52,25 +52,33 @@ export function ManualTransferForm({
   );
 }
 
-function BankTransferDetails() {
+export function BankTransferDetails() {
   return (
-    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-      <h3 className="font-medium text-blue-800 dark:text-blue-200">
+    <div className="bg-pr-bg p-6 rounded-2xl border border-pr-mid/30 shadow-pr-soft">
+      <h3 className="text-lg font-semibold text-pr-dark">
         Bank Transfer Details
       </h3>
-      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-        Transfer to the following account and upload your payment proof:
+      <p className="text-sm text-pr-mid mt-1">
+        Silakan transfer ke rekening berikut dan unggah bukti pembayaran Anda:
       </p>
-      <div className="mt-2 text-sm">
+
+      <div className="mt-4 space-y-2 text-sm text-pr-dark">
         <p>
-          <span className="font-medium">Bank:</span> Bank Name
+          <span className="font-medium text-pr-mid">Bank:</span> Bank Mandiri
         </p>
         <p>
-          <span className="font-medium">Account Number:</span> 1234567890
+          <span className="font-medium text-pr-mid">Nomor Rekening:</span>{" "}
+          1234567890
         </p>
         <p>
-          <span className="font-medium">Account Name:</span> Company Name
+          <span className="font-medium text-pr-mid">Atas Nama:</span> PT.
+          ProRent Indonesia
         </p>
+      </div>
+
+      <div className="mt-4 p-3 rounded-xl bg-pr-primary/10 text-pr-dark text-sm">
+        Pastikan jumlah transfer sesuai dengan nominal di tagihan agar proses
+        verifikasi berjalan lancar.
       </div>
     </div>
   );

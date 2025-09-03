@@ -97,7 +97,6 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({
         // TanStack Query should automatically refetch related data if configured correctly
       },
       onError: (error) => {
-        console.error("Error creating review:", error);
         alert(`Error submitting review: ${error.message || "Unknown error"}`);
       },
     });

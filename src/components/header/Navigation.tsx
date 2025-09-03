@@ -60,7 +60,7 @@ export default function Navigation() {
                         Profile
                       </Button>
                     </Link>
-                    <Link href="/reservation">
+                    <Link href="/reservation/me">
                       <Button variant="ghost">My Reservations</Button>
                     </Link>
                   </>

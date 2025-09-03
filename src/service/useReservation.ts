@@ -26,7 +26,28 @@ const RESERVATION_KEYS = {
    detail: (id: string) => [ ...RESERVATION_KEYS.details(), id ] as const,
    owner: () => [ ...RESERVATION_KEYS.all, 'owner' ] as const,
    user: () => [ ...RESERVATION_KEYS.all, 'user' ] as const,
-   property: (propertyId: string) => [ ...RESERVATION_KEYS.all, 'property', propertyId ] as const
+   property: (propertyId: string) => [ ...RESERVATION_KEYS.all, 'property', propertyId ] as const,
+   propertyRoomType: (
+      propertyId: string,
+      roomTypeId: string,
+      filters?: Omit<GetUserReservationsParams, 'roomTypeId'>
+   ) =>
+      [
+         ...RESERVATION_KEYS.property(propertyId),
+         'roomType',
+         roomTypeId,
+         'filters',
+         JSON.stringify({
+            page: filters?.page,
+            limit: filters?.limit,
+            startDate: filters?.startDate,
+            endDate: filters?.endDate,
+            status: filters?.status,
+            search: filters?.search,
+            sortBy: filters?.sortBy,
+            sortOrder: filters?.sortOrder
+         })
+      ] as const
 };
 
 // Hook for fetching user's reservations
@@ -151,22 +172,27 @@ export function useRecentTransactions (limit: number = 3) {
    return useQuery({
       queryKey: [ ...RESERVATION_KEYS.owner(), 'recent', limit ],
       queryFn: async () => {
-         // Use existing hook but extract data
          const ownerReservations = getOwnerReservation({ limit, page: 1 });
 
-         // Since we can't call hook here, we'll need to create a separate service function
-         // For now, return empty array and implement this differently
          return [];
       },
       staleTime: 1000 * 60 * 2 // 2 minutes
    });
 }
-
 // Hook for fetching reservations by property ID
 export function usePropertyReservations (propertyId: string, params?: GetUserReservationsParams) {
    return useQuery({
-      queryKey: [ ...RESERVATION_KEYS.property(propertyId), params ], // or add filters if needed
+      queryKey: RESERVATION_KEYS.propertyRoomType(propertyId, params?.roomTypeId || '', {
+         page: params?.page,
+         limit: params?.limit,
+         startDate: params?.startDate,
+         endDate: params?.endDate,
+         status: params?.status,
+         search: params?.search,
+         sortBy: params?.sortBy,
+         sortOrder: params?.sortOrder
+      }),
       queryFn: () => getReservationsByPropertyId(propertyId, params),
-      enabled: !!propertyId // only run when propertyId exists
+      enabled: !!propertyId && !!params?.roomTypeId
    });
 }

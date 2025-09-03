@@ -64,7 +64,7 @@ export function usePaymentForm () {
       queryClient.setQueryData([ 'reservation', reservationId ], data);
       setReservationData(data.reservation);
       toast.success('Payment proof uploaded successfully!');
-      router.push(`/reservation`);
+      router.push(`/reservation/me`);
    }
 
    function handleMutationError (error: any) {

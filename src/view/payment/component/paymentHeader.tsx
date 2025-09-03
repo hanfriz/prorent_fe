@@ -2,29 +2,35 @@
 "use client";
 
 import { CheckCircle } from "lucide-react";
+import { BankTransferDetails } from "./manualTransferForm";
 
 interface PaymentHeaderProps {
   reservationData: any;
   isPaymentProofUploaded: boolean;
 }
 
-export function PaymentHeader({ reservationData, isPaymentProofUploaded }: PaymentHeaderProps) {
+export function PaymentHeader({
+  reservationData,
+  isPaymentProofUploaded,
+}: PaymentHeaderProps) {
   return (
     <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-      <h2 className="text-xl font-semibold">
+      <h2 className="text-xl text-center font-semibold">
         Reservation for {reservationData.RoomType?.property?.name}
       </h2>
-      <p>Room Type: {reservationData.RoomType?.name}</p>
-      <p>
+      <p className="font-semibold text-center">
+        Room Type: {reservationData.RoomType?.name}
+      </p>
+      <p className="font-semibold text-center">
         Dates: {new Date(reservationData.startDate).toLocaleDateString()} -{" "}
         {new Date(reservationData.endDate).toLocaleDateString()}
       </p>
-      <p>
-        Total Amount: Rp. {reservationData.payment?.amount.toLocaleString("id-ID")}
+      <p className="font-semibold text-center mb-5">
+        Total Amount: Rp.{" "}
+        {reservationData.payment?.amount.toLocaleString("id-ID")}
       </p>
-      {isPaymentProofUploaded && (
-        <PaymentSuccessMessage />
-      )}
+      <BankTransferDetails />
+      {isPaymentProofUploaded && <PaymentSuccessMessage />}
     </div>
   );
 }

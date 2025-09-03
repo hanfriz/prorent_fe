@@ -1,3 +1,4 @@
+// PublicPropertyDetail.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -53,6 +54,9 @@ export default function PublicPropertyDetail({
 
   const { setField, setDisplayData } = useReservationStore();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+
+  const email = user?.email;
+  const UserName = `${user?.firstName} ${user?.lastName}`;
 
   useEffect(() => {
     if (property && property.roomTypes.length > 0) {
@@ -455,267 +459,15 @@ export default function PublicPropertyDetail({
 
           {/* Right Column - Booking and Calendar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Room Selection & Booking */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Book This Property</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Pricing Display */}
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">
-                    {getSelectedRoomType()
-                      ? formatPrice(getSelectedRoomType()?.basePrice!)
-                      : (() => {
-                          const prices = property.roomTypes.map(
-                            (rt) => rt.basePrice
-                          );
-                          const minPrice = Math.min(...prices);
-                          const maxPrice = Math.max(...prices);
-                          return minPrice === maxPrice
-                            ? formatPrice(minPrice)
-                            : `${formatPrice(minPrice)} - ${formatPrice(
-                                maxPrice
-                              )}`;
-                        })()}
-                  </p>
-                  <p className="text-gray-600">per night</p>
-                </div>
-
-                {/* Room Type Selection */}
-                <div>
-                  <Label htmlFor="roomType" className="text-sm font-medium">
-                    {getRoomSelectionLabel()}
-                  </Label>
-                  {canUserSelectRoomType() ? (
-                    <Select
-                      value={selectedRoomTypeId || ""}
-                      onValueChange={setSelectedRoomTypeId}
-                    >
-                      <SelectTrigger className="w-full mt-1">
-                        <SelectValue placeholder="Pilih tipe kamar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {property?.roomTypes.map((roomType) => (
-                          <SelectItem key={roomType.id} value={roomType.id}>
-                            <div className="flex justify-between items-center w-full">
-                              <span>{roomType.name}</span>
-                              <span className="text-sm text-gray-500 ml-2">
-                                ({getAvailableRoomsForType(roomType.id)}{" "}
-                                tersedia)
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="mt-1 p-3 bg-gray-50 rounded-md border">
-                      <span className="text-sm font-medium text-gray-900">
-                        {getSelectedRoomType()?.name ||
-                          (property?.roomTypes.length > 0
-                            ? property.roomTypes[0].name
-                            : "No room types available")}
-                      </span>
-                      {property?.rentalType === "WHOLE_PROPERTY" && (
-                        <span className="text-xs text-gray-500 block mt-1">
-                          Sewa seluruh properti
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Room Type Details */}
-                {getSelectedRoomType() && (
-                  <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
-                    <div className="text-sm space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Kapasitas:</span>
-                        <span className="font-medium">
-                          {getSelectedRoomType()?.capacity} orang
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Kamar tersedia:</span>
-                        <span className="font-medium">
-                          {getAvailableRoomsForType(selectedRoomTypeId!)}
-                        </span>
-                      </div>
-                      {getSelectedRoomType()?.description && (
-                        <div className="mt-2">
-                          <span className="text-gray-600 text-xs">
-                            Deskripsi:
-                          </span>
-                          <p className="text-xs text-gray-700 mt-1">
-                            {getSelectedRoomType()?.description}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Date Selection */}
-                <div>
-                  <Label htmlFor="dateRange" className="text-sm font-medium">
-                    Tanggal Check-in & Check-out
-                  </Label>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
-                    <div>
-                      <Input
-                        type="date"
-                        placeholder="Check-in"
-                        className="w-full"
-                        min={new Date().toISOString().split("T")[0]}
-                        value={selectedDateRange?.checkIn || ""}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setSelectedDateRange((prev) => ({
-                            ...prev,
-                            checkIn: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="date"
-                        placeholder="Check-out"
-                        className="w-full"
-                        min={
-                          selectedDateRange?.checkIn ||
-                          new Date().toISOString().split("T")[0]
-                        }
-                        value={selectedDateRange?.checkOut || ""}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setSelectedDateRange((prev) => ({
-                            ...prev,
-                            checkOut: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Total Calculation */}
-                {selectedDateRange?.checkIn &&
-                  selectedDateRange?.checkOut &&
-                  getSelectedRoomType() && (
-                    <div className="pt-3 border-t border-gray-200">
-                      <div className="flex justify-between text-sm text-gray-600 mb-2">
-                        <span>
-                          {formatPrice(getSelectedRoomType()?.basePrice!)} x{" "}
-                          {Math.ceil(
-                            (new Date(selectedDateRange.checkOut).getTime() -
-                              new Date(selectedDateRange.checkIn).getTime()) /
-                              (1000 * 60 * 60 * 24)
-                          )}{" "}
-                          malam
-                        </span>
-                        <span>
-                          {formatPrice(
-                            getSelectedRoomType()?.basePrice! *
-                              Math.ceil(
-                                (new Date(
-                                  selectedDateRange.checkOut
-                                ).getTime() -
-                                  new Date(
-                                    selectedDateRange.checkIn
-                                  ).getTime()) /
-                                  (1000 * 60 * 60 * 24)
-                              )
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between font-semibold text-lg">
-                        <span>Total</span>
-                        <span className="text-blue-600">
-                          {formatPrice(
-                            getSelectedRoomType()?.basePrice! *
-                              Math.ceil(
-                                (new Date(
-                                  selectedDateRange.checkOut
-                                ).getTime() -
-                                  new Date(
-                                    selectedDateRange.checkIn
-                                  ).getTime()) /
-                                  (1000 * 60 * 60 * 24)
-                              )
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                {/* Booking Actions */}
-                <div className="space-y-2 pt-2">
-                  <Alert className="mb-3">
-                    <AlertDescription className="text-xs">
-                      Untuk melakukan reservasi, silakan login atau daftar akun
-                      terlebih dahulu.
-                    </AlertDescription>
-                  </Alert>
-                </div>
-                {/* Conditional Buttons */}
-                <div className="space-y-2">
-                  {isAuthenticated ? (
-                    <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => {
-                        const firstRoomType = property.roomTypes[0];
-
-                        // Set initial reservation form data
-                        setField("userId", user.id); // if available, or set later
-                        setField("propertyId", property.id);
-                        setField("roomTypeId", firstRoomType.id);
-                        setField("paymentType", PaymentType.MANUAL_TRANSFER);
-
-                        // 🖼️ Set display-only data
-                        setDisplayData({
-                          propertyName: property.name,
-                          propertyType: property.category.name,
-                          roomTypeName: firstRoomType.name,
-                          basePrice: firstRoomType.basePrice,
-                          mainImageUrl: property.pictures?.main?.url || "",
-                        });
-                        router.push("/reservation");
-                      }}
-                    >
-                      🛏️ Make Reservation
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        className="w-full"
-                        onClick={() => router.push("/login")}
-                      >
-                        Login to Book
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => router.push("/register")}
-                      >
-                        Register New Account
-                      </Button>
-                    </>
-                  )}
-                </div>
-
-                {/* Additional Info */}
-                <div className="text-xs text-gray-500 space-y-1 pt-2 border-t">
-                  <p>• Pembatalan gratis hingga 24 jam</p>
-                  <p>• Konfirmasi booking instan</p>
-                  <p>• Customer support 24/7</p>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Calendar for Date Selection */}
             <PropertyCalendar
+              userName={UserName}
+              email={email}
               propertyId={propertyId}
-              basePrice={getSelectedRoomType()?.basePrice || 0}
+              property={property} // ✅ Pass the entire property object
+              roomTypes={property?.roomTypes || []}
+              selectedRoomTypeId={selectedRoomTypeId}
+              onRoomTypeSelect={setSelectedRoomTypeId}
               onDateSelect={(dateRange) => {
                 if (dateRange) {
                   setSelectedDateRange({
@@ -725,6 +477,8 @@ export default function PublicPropertyDetail({
                   });
                 }
               }}
+              basePrice={getSelectedRoomType()?.basePrice || 0}
+              priceMap={{}}
             />
 
             {/* Property Quick Info */}

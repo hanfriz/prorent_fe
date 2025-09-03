@@ -46,8 +46,6 @@ export async function getChartReportMonthly (params: {
       params: Object.fromEntries(searchParams)
    });
 
-   console.log(' Axios response:', response);
-   console.log(' Axios response data:', response.data);
    const data = response.data;
 
    return data;

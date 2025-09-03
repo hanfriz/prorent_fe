@@ -68,7 +68,6 @@ export default function ProfileView() {
     { id: "avatar", label: "Avatar", icon: Camera },
     { id: "password", label: "Security", icon: Shield },
     { id: "email", label: "Email", icon: Mail },
-    { id: "reservationList", label: "Reservation List", icon: ChartBarIcon },
   ];
 
   return (
@@ -139,17 +138,6 @@ export default function ProfileView() {
               </CardHeader>
               <CardContent>
                 <EmailSettings user={user} />
-              </CardContent>
-            </Card>
-          )}
-
-          {activeTab === "reservationList" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Reservation List</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ReservationList />
               </CardContent>
             </Card>
           )}
