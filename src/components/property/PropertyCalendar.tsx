@@ -1,3 +1,4 @@
+// PropertyCalendar.tsx
 "use client";
 
 import * as React from "react";
@@ -6,6 +7,31 @@ import PriceCalendar from "@/components/myUi/customCalender";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type {
+  RoomType,
+  PublicPropertyDetail,
+} from "@/interface/publicPropertyInterface"; // ✅ Import PublicPropertyDetail
+import { useReservationStore } from "@/lib/stores/reservationStore";
+import { PaymentType } from "@/interface/enumInterface";
 
 interface PropertyCalendarProps {
   onDateSelect?: (dateRange: DateRange | undefined) => void;
@@ -13,8 +39,12 @@ interface PropertyCalendarProps {
   minDate?: Date;
   maxDate?: Date;
   propertyId?: string;
+  property?: PublicPropertyDetail; // ✅ Add property prop
   priceMap?: Record<string, number>;
   basePrice?: number;
+  roomTypes?: RoomType[];
+  onRoomTypeSelect?: (roomTypeId: string) => void;
+  selectedRoomTypeId?: string;
 }
 
 export default function PropertyCalendar({
@@ -23,14 +53,22 @@ export default function PropertyCalendar({
   minDate = new Date(),
   maxDate,
   propertyId,
+  property, // ✅ Destructure property
   priceMap = {},
   basePrice = 0,
+  roomTypes = [],
+  onRoomTypeSelect,
+  selectedRoomTypeId,
 }: PropertyCalendarProps) {
   const [checkInDate, setCheckInDate] = React.useState<Date | undefined>();
   const [checkOutDate, setCheckOutDate] = React.useState<Date | undefined>();
   const [currentStep, setCurrentStep] = React.useState<"checkin" | "checkout">(
     "checkin"
   );
+  const [showAuthDialog, setShowAuthDialog] = React.useState(false);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const { setField, setDisplayData } = useReservationStore();
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) return;
@@ -59,19 +97,6 @@ export default function PropertyCalendar({
     }
   };
 
-  const isDateDisabled = (date: Date) => {
-    // Disable past dates
-    if (date < minDate) return true;
-
-    // Disable dates beyond max date
-    if (maxDate && date > maxDate) return true;
-
-    // Disable specific dates if provided
-    return disabledDates.some(
-      (disabledDate) => date.toDateString() === disabledDate.toDateString()
-    );
-  };
-
   const formatDateRange = () => {
     if (!checkInDate) return "Select check-in date";
     if (!checkOutDate)
@@ -98,6 +123,57 @@ export default function PropertyCalendar({
     onDateSelect?.(undefined);
   };
 
+  const handleBookingClick = () => {
+    if (!propertyId || !selectedRoomTypeId) {
+      alert("Please select a property and room type first.");
+      return;
+    }
+
+    if (!checkInDate || !checkOutDate) {
+      alert("Please select both check-in and check-out dates.");
+      return;
+    }
+
+    if (isAuthenticated) {
+      // Prepare reservation data
+      const selectedRoomType = roomTypes.find(
+        (rt) => rt.id === selectedRoomTypeId
+      );
+
+      if (selectedRoomType && property) {
+        // ✅ Check both selectedRoomType and property
+        // Set reservation store data
+        setField("propertyId", propertyId);
+        setField("roomTypeId", selectedRoomTypeId);
+        setField("startDate", new Date(checkInDate)); // ✅ Use toISOString() for consistency
+        setField("endDate", new Date(checkOutDate)); // ✅ Use toISOString() for consistency
+        setField("paymentType", PaymentType.MANUAL_TRANSFER);
+
+        // Set display data using property information
+        setDisplayData({
+          propertyName: property.name || "Property",
+          propertyType: property.category?.name || "General",
+          roomTypeName: selectedRoomType.name,
+          basePrice: selectedRoomType.basePrice,
+          mainImageUrl: property.pictures?.main?.url || "",
+        });
+
+        // Navigate to reservation creation page
+        router.push("/reservation");
+      }
+    } else {
+      // Show authentication dialog
+      setShowAuthDialog(true);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(price);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -107,6 +183,35 @@ export default function PropertyCalendar({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Room Type Selection */}
+        {roomTypes && roomTypes.length > 0 && (
+          <div className="space-y-2 w-full">
+            <label className="text-sm font-medium">Select Room Type</label>
+            <Select value={selectedRoomTypeId} onValueChange={onRoomTypeSelect}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a room type" />
+              </SelectTrigger>
+              <SelectContent>
+                {roomTypes.map((roomType) => (
+                  <SelectItem
+                    key={roomType.id}
+                    value={roomType.id}
+                    className="w-full"
+                  >
+                    <div className="flex justify-between w-full items-center">
+                      <span className="truncate">{roomType.name}</span>
+                      <span className="mx-2">-</span>
+                      <span className="text-blue-600 font-medium whitespace-nowrap">
+                        {formatPrice(roomType.basePrice)}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="font-semibold">{formatDateRange()}</p>
           {checkInDate && checkOutDate && (
@@ -162,21 +267,35 @@ export default function PropertyCalendar({
           <p>• Select check-in date first, then check-out date</p>
         </div>
 
-        {checkInDate && checkOutDate && (
+        {checkInDate && checkOutDate && selectedRoomTypeId && (
           <Button
             className="w-full"
-            onClick={() => {
-              const dateRange: DateRange = {
-                from: checkInDate,
-                to: checkOutDate,
-              };
-              console.log("Book dates:", dateRange);
-              // Handle booking logic here
-            }}
+            onClick={handleBookingClick}
+            disabled={authLoading}
           >
-            Continue to Booking ({calculateNights()} nights)
+            {authLoading
+              ? "Checking..."
+              : `Continue to Booking (${calculateNights()} nights)`}
           </Button>
         )}
+
+        <AlertDialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Authentication Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                You need to be logged in to make a reservation. Would you like
+                to go to the login page?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push("/login")}>
+                Go to Login
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

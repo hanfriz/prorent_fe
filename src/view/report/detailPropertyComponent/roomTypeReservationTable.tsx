@@ -1,5 +1,7 @@
 // src/components/report/RoomTypeReservationsTable.tsx
-import React, { useState } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { usePropertyReservations } from "@/service/useReservation";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -61,9 +63,8 @@ export default function RoomTypeReservationsTable({
     queryParams
   );
 
-  const reservations = data?.reservations || []; // Assuming RPResPagination structure
+  const reservations = data?.reservations || [];
   const pagination = data?.pagination;
-
   // Filter handlers
   const handleSearch = (term: string) => {
     setSearchTerm(term);

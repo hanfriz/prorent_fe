@@ -165,9 +165,6 @@ export const useReportFilters = (ownerId: string | undefined) => {
    const { data: allPropertiesData, isLoading: isLoadingProperties } = useQuery({
       queryKey: [ 'allPropertiesForReport', ownerId ],
       queryFn: async () => {
-         if (!ownerId) {
-            throw new Error('Owner ID not found');
-         }
          const res = await propertyService.getMyProperties();
          return res?.data || [];
       },
@@ -179,7 +176,7 @@ export const useReportFilters = (ownerId: string | undefined) => {
    const { data: roomTypesForSelectedPropertyData, isLoading: isLoadingRoomTypes } = useQuery({
       queryKey: [ 'roomTypesForSelectedProperty', selectedPropertyId, ownerId ],
       queryFn: async () => {
-         if (!ownerId || selectedPropertyId === 'all' || !selectedPropertyId) {
+         if (selectedPropertyId === 'all' || !selectedPropertyId) {
             return [];
          }
          try {
@@ -198,7 +195,6 @@ export const useReportFilters = (ownerId: string | undefined) => {
    // --- Prepare Filters and Options for useDashboardReportCore ---
    const filtersForReportHook = useMemo(() => {
       if (!ownerId) {
-         console.error('Owner ID not found');
          return {};
       }
 

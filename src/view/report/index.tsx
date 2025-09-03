@@ -55,11 +55,18 @@ export default function MainReportPage() {
     isError: isReportError,
   } = useReportData(filters, options, !!ownerId);
 
-  if (!ownerId) return <div>Please log in.</div>;
   if (isReportLoading || isLoadingProperties) return <ReportPageSkeleton />;
 
   if (isReportError)
     return <div className="text-red-500 p-6">Error loading report data.</div>;
+
+  if (!ownerId) {
+    return (
+      <div className="container mx-auto py-8">
+        Please log in to view reports.
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 space-y-6">
