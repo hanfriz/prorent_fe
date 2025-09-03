@@ -57,6 +57,11 @@ export default function PublicPropertyDetail({
 
   useEffect(() => {
     if (property && property.roomTypes.length > 0) {
+      // Always auto-select first room type if none is selected
+      if (!selectedRoomTypeId) {
+        setSelectedRoomTypeId(property.roomTypes[0].id);
+      }
+
       if (property.rentalType === "WHOLE_PROPERTY") {
         // Auto-select first room type for whole property
         setSelectedRoomTypeId(property.roomTypes[0].id);
@@ -75,6 +80,9 @@ export default function PublicPropertyDetail({
           // Fallback: select first room type if no rooms data or no available rooms
           setSelectedRoomTypeId(property.roomTypes[0].id);
         }
+      } else {
+        // Fallback: if no rentalType or unknown rentalType, select first room type
+        setSelectedRoomTypeId(property.roomTypes[0].id);
       }
     }
   }, [property]);

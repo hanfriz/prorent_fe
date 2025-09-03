@@ -28,12 +28,11 @@ export default function PriceCalendar({
 
   return (
     <Calendar
-      // mode={mode} // atau hardcode mode="single"
-      mode="single" // Karena kita modifikasi untuk single date
+      mode="single"
       defaultMonth={initialDefaultMonth}
-      selected={selected} // selected adalah Date | undefined
-      onSelect={onSelect} // onSelect menerima Date | undefined
-      className="rounded-lg border shadow-sm"
+      selected={selected}
+      onSelect={onSelect}
+      className="rounded-lg border shadow-sm w-full"
       captionLayout="dropdown"
       formatters={{
         formatMonthDropdown: (date) => {
@@ -48,21 +47,27 @@ export default function PriceCalendar({
           const price = priceMap[dateStr];
 
           return (
-            <CalendarDayButton day={day} modifiers={modifiers} {...props}>
-              {children}
+            <CalendarDayButton
+              day={day}
+              modifiers={modifiers}
+              {...props}
+              className="h-12 w-full flex flex-col items-center justify-center p-1 text-center relative hover:bg-blue-50 text-xs"
+            >
+              <div className="text-xs font-medium leading-none">{children}</div>
               {!modifiers.outside && (
-                <>
+                <div className="w-full overflow-hidden mt-0.5">
                   {price !== undefined ? (
-                    <span className="text-[8px] text-green-600 mt-0.5">
-                      Rp. {price.toLocaleString("id-ID")}
+                    <span className="text-[8px] text-green-600 font-semibold block leading-none">
+                      Rp {Math.round(price / 1000)}k
                     </span>
                   ) : (
-                    <span className="text-[8px] text-black-400 mx-0.5">
-                      Rp.{" "}
-                      {basePrice > 0 ? basePrice.toLocaleString("id-ID") : ""}
-                    </span>
+                    basePrice > 0 && (
+                      <span className="text-[8px] text-blue-600 font-semibold block leading-none">
+                        Rp {Math.round(basePrice / 1000)}k
+                      </span>
+                    )
                   )}
-                </>
+                </div>
               )}
             </CalendarDayButton>
           );
