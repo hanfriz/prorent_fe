@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
 import { useReservationForm } from "./component/useReservationForm";
 import PropertyInfoCard from "./component/propertyInfoCard";
 import PaymentInfoCard from "./component/paymentInfoCard";
@@ -9,85 +8,70 @@ import DateSelectionSection from "./component/dateSelectionSection";
 import SubmitButton from "./component/submitButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useRouter } from "next/navigation";
 import { useReservationStore } from "@/lib/stores/reservationStore";
-import { CreateReservationInput } from "@/validation/reservationValidation";
-import { format } from "date-fns";
+import { PaymentType } from "@/interface/enumInterface";
+import { useAuth } from "@/lib/hooks/useAuth";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function CreateReservationPage() {
   const router = useRouter();
-  const { isAuthenticated, user: currentUser } = useAuth();
+  const { formData, displayData, setField, reset } = useReservationStore();
 
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    formData.startDate ? new Date(formData.startDate) : undefined
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    formData.endDate ? new Date(formData.endDate) : undefined
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Control dialog
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { formData, displayData } = useReservationStore();
-
-  // Fill userId if not already set
-  useEffect(() => {
-    if (currentUser?.id && !formData.userId) {
-      useReservationStore.getState().setField("userId", currentUser.id);
-    }
-  }, [currentUser, formData.userId]);
-
-  // Validate required form data
-  useEffect(() => {
-    if (!formData.propertyId || !formData.roomTypeId) {
-      console.warn("Missing required reservation data in store");
-      router.push("/properties");
-      return;
-    }
-
-    const timer = setTimeout(() => setIsLoading(false), 300);
+  // Simulate loading
+  useState(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 600);
     return () => clearTimeout(timer);
-  }, [formData.propertyId, formData.roomTypeId, router]);
-
-  // 🔒 Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  const displayReservationData = {
-    propertyName: displayData.propertyName || "Unnamed Property",
-    propertyType: displayData.propertyType || "General",
-    roomTypeName: displayData.roomTypeName || "Room",
-    basePrice: displayData.basePrice || 0,
-    mainImageUrl: displayData.mainImageUrl,
-    payerEmail: currentUser?.email || formData.payerEmail,
-    paymentType: formData.paymentType,
-  };
-
-  const formInputData: Partial<CreateReservationInput> = {
-    ...formData,
-    startDate,
-    endDate,
-    payerEmail: displayReservationData.payerEmail,
-  };
-
-  const { form, priceMap, isFormValid } = useReservationForm({
-    mockReservationData: formInputData,
-    startDate,
-    endDate,
   });
 
-  if (isLoading || !isAuthenticated) {
-    return <LoadingSkeleton />;
+  const { form, priceMap, isFormValid } = useReservationForm({
+    displayData,
+    formData,
+    startDate,
+    endDate,
+    setField,
+  });
+
+  const { nights, estimatedTotal } = useMemo(() => {
+    if (!startDate || !endDate) return { nights: 0, estimatedTotal: 0 };
+    const diff = Math.max(
+      0,
+      Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24))
+    );
+    // estimate: sum priceMap or use base price
+    let total = 0;
+    let day = new Date(startDate);
+    for (let i = 0; i < diff; i++) {
+      const key = day.toISOString().slice(0, 10);
+      total += priceMap[key] ?? displayData.basePrice ?? 0;
+      day.setDate(day.getDate() + 1);
+    }
+    return { nights: diff, estimatedTotal: total };
+  }, [startDate, endDate, priceMap, displayData.basePrice]);
+
+  const { isAuthenticated, user } = useAuth();
+  const { fromPropertyId } = useReservationStore();
+
+  const Role = user?.role;
+  const isOwner = Role === "OWNER";
+
+  if (isLoading || (!displayData.propertyName && !formData.propertyId)) {
+    if (!isLoading) {
+      setTimeout(() => router.push(`/properties/${fromPropertyId}`), 100);
+    }
+    return <LoadingState />;
   }
 
   const handleStartDateChange = (date?: Date) => {
@@ -97,21 +81,18 @@ export default function CreateReservationPage() {
     }
   };
 
-  // ✅ Open dialog only if form is valid
-  const handleOpenDialog = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isFormValid()) return;
-    setIsDialogOpen(true);
+  const handleEndDateChange = (date?: Date) => {
+    if (date && startDate && date <= startDate) return;
+    setEndDate(date);
   };
 
-  // ✅ Actual submission happens here
-  const handleConfirmSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid()) return;
+
     setIsSubmitting(true);
     try {
       await form.handleSubmit();
-      // Optional: Clear store after success
-      // useReservationStore.getState().reset();
-      router.push("/my-reservations");
     } catch (error) {
       console.error("Submission error:", error);
     } finally {
@@ -119,149 +100,143 @@ export default function CreateReservationPage() {
     }
   };
 
-  const totalNights =
-    startDate && endDate
-      ? Math.ceil(
-          (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      : 0;
-
-  const totalPrice =
-    totalNights > 0 ? totalNights * displayReservationData.basePrice : 0;
+  // compute total nights and estimated price
 
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-6">
-      <Toaster />
+    <div className="max-w-6xl mx-auto p-6">
+      <Toaster richColors />
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          onClick={() => {
+            if (formData.propertyId) {
+              router.push(`/properties/${fromPropertyId}`);
+            } else {
+              router.push("/properties");
+            }
+          }}
+          className="cursor-pointer text-white bg-gradient-to-r from-pr-primary to-pr-mid hover:underline text-sm flex items-center gap-2"
+        >
+          ← Kembali ke Properti
+        </Button>
+      </div>
 
-      <h1 className="text-2xl font-semibold">Make Reservation</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        {/* LEFT: main form */}
+        <div className="md:col-span-2 space-y-6">
+          <h1 className="text-2xl font-semibold text-pr-dark">
+            Buat Reservasi
+          </h1>
 
-      <PropertyInfoCard data={displayReservationData} />
+          <div className="bg-white rounded-2xl p-5 shadow-pr-soft border">
+            <PropertyInfoCard data={displayData} isLoading={isLoading} />
+            <div className="mt-4 border-t pt-4">
+              <PaymentInfoCard
+                data={{
+                  payerEmail: formData.payerEmail || "N/A",
+                  paymentType:
+                    formData.paymentType || PaymentType.MANUAL_TRANSFER,
+                }}
+                form={form}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className="mt-4 border-t pt-4">
+              <DateSelectionSection
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={handleStartDateChange}
+                setEndDate={handleEndDateChange}
+                priceMap={priceMap}
+                basePrice={displayData.basePrice || 0}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className="mt-6">
+              <SubmitButton
+                form={form}
+                isValid={isFormValid()}
+                onSubmit={handleSubmit}
+                isPending={isSubmitting}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        </div>
 
-      <PaymentInfoCard
-        data={{
-          ...displayReservationData,
-          paymentType: displayReservationData.paymentType?.toString() ?? "",
-        }}
-      />
+        {/* RIGHT: sticky summary */}
+        <aside className="md:col-span-1">
+          <div className="sticky mt-[3.45rem] space-y-6">
+            <div className="bg-white rounded-2xl p-5 shadow-pr-soft border">
+              <div className="flex items-start gap-3">
+                <div className="w-24 h-16 rounded-lg bg-gray-100 overflow-hidden">
+                  {displayData.mainImageUrl ? (
+                    // Next/Image optional
+                    <img
+                      src={displayData.mainImageUrl}
+                      alt={displayData.propertyName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-pr-dark">
+                    {displayData.propertyName || "Nama Properti"}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {displayData.propertyType || "-"}
+                  </p>
+                  <p className="mt-2 text-sm text-pr-mid font-medium">
+                    {displayData.roomTypeName || "-"}
+                  </p>
+                </div>
+              </div>
 
-      <DateSelectionSection
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={handleStartDateChange}
-        setEndDate={setEndDate}
-        priceMap={priceMap}
-        basePrice={displayReservationData.basePrice}
-      />
+              <div className="mt-4 border-t pt-3 text-sm space-y-2">
+                <div className="flex justify-between">
+                  <span>Per malam</span>
+                  <span className="font-medium">
+                    {displayData.basePrice
+                      ? `Rp ${displayData.basePrice.toLocaleString()}`
+                      : "Rp -"}{" "}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Durasi</span>
+                  <span>{nights} malam</span>
+                </div>
+                <div className="flex justify-between text-pr-dark font-semibold">
+                  <span>Total estimasi</span>
+                  <span>Rp {estimatedTotal.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
 
-      {/* Use form with AlertDialog */}
-      <form onSubmit={handleOpenDialog}>
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogTrigger asChild>
-            <button type="submit" style={{ display: "none" }} />
-          </AlertDialogTrigger>
-
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Your Reservation</AlertDialogTitle>
-              <AlertDialogDescription>
-                Please review your reservation details before confirming.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-
-            <div className="space-y-3 text-sm">
-              <p>
-                <strong>Property:</strong> {displayReservationData.propertyName}
-              </p>
-              <p>
-                <strong>Room Type:</strong>{" "}
-                {displayReservationData.roomTypeName}
-              </p>
-              <p>
-                <strong>Dates:</strong>{" "}
-                {startDate ? format(startDate, "PPP") : "–"} →{" "}
-                {endDate ? format(endDate, "PPP") : "–"}
-              </p>
-              <p>
-                <strong>Nights:</strong> {totalNights}
-              </p>
-              <p>
-                <strong>Price per Night:</strong>{" "}
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(displayReservationData.basePrice)}
-              </p>
-              <p className="font-semibold text-blue-600">
-                <strong>Total:</strong>{" "}
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(totalPrice)}
-              </p>
-              <p>
-                <strong>Payment Method:</strong>{" "}
-                {displayReservationData.paymentType === "MANUAL_TRANSFER"
-                  ? "Bank Transfer"
-                  : "Credit Card (Xendit)"}
+            <div className="bg-white rounded-2xl p-4 shadow-pr-soft border">
+              <h4 className="text-sm font-medium mb-2 text-pr-dark">Catatan</h4>
+              <p className="text-xs text-gray-600">
+                Pastikan tanggal yang dipilih sudah benar. Total akan divalidasi
+                pada saat checkout.
               </p>
             </div>
 
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isSubmitting}>
-                Back to Edit
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleConfirmSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="mr-2">Submitting...</span>
-                    <svg
-                      className="animate-spin h-4 w-4 inline-block"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      ></path>
-                    </svg>
-                  </>
-                ) : (
-                  "Confirm Reservation"
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Submit Button (triggers dialog) */}
-        <SubmitButton
-          form={form}
-          isValid={isFormValid()}
-          onSubmit={handleOpenDialog}
-          isPending={isSubmitting}
-        />
-      </form>
+            <div className="bg-gradient-to-r from-pr-primary to-pr-mid rounded-xl p-3 text-white text-center">
+              <div className="text-sm font-medium">Butuh bantuan?</div>
+              <div className="text-xs mt-1">Hubungi support@prorent.id</div>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
 
-function LoadingSkeleton() {
+function LoadingState() {
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 space-y-6">
       <Skeleton className="h-8 w-64" />
       <Skeleton className="h-24 w-full rounded-lg" />
       <Skeleton className="h-24 w-full rounded-lg" />

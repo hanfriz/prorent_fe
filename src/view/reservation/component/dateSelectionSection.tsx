@@ -1,3 +1,4 @@
+// src/view/reservation/component/dateSelectionSection.tsx
 import React from "react";
 import moment from "moment-timezone";
 import { CalendarIcon, ChevronDownIcon } from "lucide-react";
@@ -28,7 +29,7 @@ export default function DateSelectionSection({
   setEndDate,
   priceMap,
   basePrice,
-  isLoading
+  isLoading,
 }: DateSelectionSectionProps) {
   if (isLoading) {
     return (
@@ -80,8 +81,6 @@ export default function DateSelectionSection({
   );
 }
 
-// ... DateField component remains the same
-
 function DateField({
   label,
   id,
@@ -112,7 +111,7 @@ function DateField({
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal border-gray-200 cursor-pointer",
               !selected && "text-muted-foreground"
             )}
           >

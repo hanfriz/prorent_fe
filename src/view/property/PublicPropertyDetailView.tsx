@@ -55,6 +55,9 @@ export default function PublicPropertyDetail({
   const { setField, setDisplayData } = useReservationStore();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
 
+  const email = user?.email;
+  const UserName = `${user?.firstName} ${user?.lastName}`;
+
   useEffect(() => {
     if (property && property.roomTypes.length > 0) {
       // Always auto-select first room type if none is selected
@@ -458,6 +461,8 @@ export default function PublicPropertyDetail({
           <div className="lg:col-span-1 space-y-6">
             {/* Calendar for Date Selection */}
             <PropertyCalendar
+              userName={UserName}
+              email={email}
               propertyId={propertyId}
               property={property} // ✅ Pass the entire property object
               roomTypes={property?.roomTypes || []}

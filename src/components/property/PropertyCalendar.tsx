@@ -1,4 +1,4 @@
-// PropertyCalendar.tsx
+// src/components/property/PropertyCalendar.tsx
 "use client";
 
 import * as React from "react";
@@ -38,8 +38,10 @@ interface PropertyCalendarProps {
   disabledDates?: Date[];
   minDate?: Date;
   maxDate?: Date;
+  userName?: string;
+  email?: string;
   propertyId?: string;
-  property?: PublicPropertyDetail; // ✅ Add property prop
+  property?: PublicPropertyDetail;
   priceMap?: Record<string, number>;
   basePrice?: number;
   roomTypes?: RoomType[];
@@ -52,8 +54,10 @@ export default function PropertyCalendar({
   disabledDates = [],
   minDate = new Date(),
   maxDate,
+  userName,
+  email,
   propertyId,
-  property, // ✅ Destructure property
+  property,
   priceMap = {},
   basePrice = 0,
   roomTypes = [],
@@ -66,9 +70,12 @@ export default function PropertyCalendar({
     "checkin"
   );
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const router = useRouter();
-  const { setField, setDisplayData } = useReservationStore();
+  const { setField, setDisplayData, setFromPropertyId } = useReservationStore();
+
+  const User = user?.role;
+  const isOwner = User === "OWNER";
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) return;
@@ -141,13 +148,15 @@ export default function PropertyCalendar({
       );
 
       if (selectedRoomType && property) {
-        // ✅ Check both selectedRoomType and property
-        // Set reservation store data
+        setField("userId", userName || "");
+        setField("payerEmail", email || "");
         setField("propertyId", propertyId);
         setField("roomTypeId", selectedRoomTypeId);
-        setField("startDate", new Date(checkInDate)); // ✅ Use toISOString() for consistency
-        setField("endDate", new Date(checkOutDate)); // ✅ Use toISOString() for consistency
+        setField("startDate", new Date(checkInDate));
+        setField("endDate", new Date(checkOutDate));
         setField("paymentType", PaymentType.MANUAL_TRANSFER);
+
+        setFromPropertyId(propertyId);
 
         // Set display data using property information
         setDisplayData({
@@ -265,13 +274,18 @@ export default function PropertyCalendar({
           <p>• Check-out time: 12:00</p>
           <p>• Minimum stay: 1 night</p>
           <p>• Select check-in date first, then check-out date</p>
+          {checkInDate && checkOutDate && selectedRoomTypeId && isOwner && (
+            <p className="text-red-500">
+              • please login to your personal user account to make a reservation
+            </p>
+          )}
         </div>
 
         {checkInDate && checkOutDate && selectedRoomTypeId && (
           <Button
             className="w-full"
             onClick={handleBookingClick}
-            disabled={authLoading}
+            disabled={authLoading || isOwner}
           >
             {authLoading
               ? "Checking..."
