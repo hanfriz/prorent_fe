@@ -72,7 +72,7 @@ const ReservationList = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 m-5 p-5">
       <ReservationFilters
         onSearch={handleSearch}
         onStatusFilter={handleStatusFilter}
