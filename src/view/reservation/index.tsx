@@ -21,6 +21,8 @@ import {
   validateDateRange,
 } from "./component/calenderHelper";
 import * as React from "react";
+import LoadingState from "./helperComponent/loadingState";
+import RightColumn from "./component/rightColumnHelper";
 
 export default function CreateReservationPage() {
   const router = useRouter();
@@ -194,7 +196,6 @@ export default function CreateReservationPage() {
       setIsSubmitting(false);
     }
   };
-  // compute total nights and estimated price
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -260,96 +261,12 @@ export default function CreateReservationPage() {
         </div>
 
         {/* RIGHT: sticky summary */}
-        <aside className="md:col-span-1">
-          <div className="sticky mt-[3.45rem] space-y-6">
-            <div className="bg-white rounded-2xl p-5 shadow-pr-soft border">
-              <div className="flex items-start gap-3">
-                <div className="w-24 h-16 rounded-lg bg-gray-100 overflow-hidden">
-                  {displayData.mainImageUrl ? (
-                    // Next/Image optional
-                    <img
-                      src={displayData.mainImageUrl}
-                      alt={displayData.propertyName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
-                      No Image
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-pr-dark">
-                    {displayData.propertyName || "Nama Properti"}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {displayData.propertyType || "-"}
-                  </p>
-                  <p className="mt-2 text-sm text-pr-mid font-medium">
-                    {displayData.roomTypeName || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t pt-3 text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span>Per malam</span>
-                  <span className="font-medium">
-                    {displayData.basePrice
-                      ? `Rp ${displayData.basePrice.toLocaleString()}`
-                      : "Rp -"}{" "}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Durasi</span>
-                  <span>{nights} malam</span>
-                </div>
-                <div className="flex justify-between text-pr-dark font-semibold">
-                  <span>Total estimasi</span>
-                  <span>Rp {estimatedTotal.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 shadow-pr-soft border">
-              <h4 className="text-sm font-medium mb-2 text-pr-dark">Catatan</h4>
-              <p className="text-xs text-gray-600">
-                Pastikan tanggal yang dipilih sudah benar. Total akan divalidasi
-                pada saat checkout.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-r from-pr-primary to-pr-mid rounded-xl p-3 text-white text-center">
-              <div className="text-sm font-medium">Butuh bantuan?</div>
-              <div className="text-xs mt-1">Hubungi support@prorent.id</div>
-            </div>
-          </div>
-        </aside>
+        <RightColumn
+          displayData={displayData}
+          nights={nights}
+          estimatedTotal={estimatedTotal}
+        />
       </div>
-    </div>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      <Skeleton className="h-8 w-64" />
-      <Skeleton className="h-24 w-full rounded-lg" />
-      <Skeleton className="h-24 w-full rounded-lg" />
-      <div className="space-y-6">
-        <Skeleton className="h-6 w-48" />
-        <div className="flex flex-col gap-6">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full rounded-md" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-full rounded-md" />
-          </div>
-        </div>
-      </div>
-      <Skeleton className="h-10 w-full rounded-md" />
     </div>
   );
 }

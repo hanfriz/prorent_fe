@@ -26,9 +26,9 @@ export default function SubmitButton({
     <form onSubmit={onSubmit}>
       <button
         type="submit"
-        disabled={!isValid || isPending}
+        disabled={!isValid || isPending || isLoading}
         className={`w-full py-3 rounded-lg text-white font-semibold transition-all ${
-          isValid
+          isValid || !isLoading || !isPending
             ? "bg-gradient-to-r from-pr-primary to-pr-mid shadow-md cursor-pointer hover:shadow-lg"
             : "bg-gray-300 cursor-not-allowed"
         }`}

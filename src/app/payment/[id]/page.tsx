@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import PaymentForm from "@/view/payment";
+import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 
 export default async function PaymentPage({
   params,
@@ -9,7 +10,9 @@ export default async function PaymentPage({
   const { id } = await params;
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <PaymentForm />
+      <RoleBasedRoute allowedRoles={["USER"]}>
+        <PaymentForm />
+      </RoleBasedRoute>
     </Suspense>
   );
 }
