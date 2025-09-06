@@ -14,10 +14,38 @@ import { PaymentType } from "@/interface/enumInterface";
 import { useAuth } from "@/lib/hooks/useAuth";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useAvailabilityCalendar } from "@/service/useReservation";
+import {
+  addOneMinute,
+  formatDateToJakartaYYYYMMDD,
+  validateDateRange,
+} from "./component/calenderHelper";
+import * as React from "react";
 
 export default function CreateReservationPage() {
   const router = useRouter();
   const { formData, displayData, setField, reset } = useReservationStore();
+
+  const {
+    data: availabilityData,
+    isLoading: isAvailabilityLoading,
+    error: availabilityError,
+  } = useAvailabilityCalendar(formData.roomTypeId, undefined, undefined);
+
+  const unavailableDateSet = React.useMemo(() => {
+    if (!availabilityData?.unavailableDates) return new Set<string>();
+    return new Set(
+      availabilityData.unavailableDates.map((d) => {
+        const date = new Date(d.date + "T17:00:00Z");
+        if (isNaN(date.getTime())) {
+          throw new Error(
+            `Invalid date format: ${d.date}. Use YYYY-MM-DD format`
+          );
+        }
+        return formatDateToJakartaYYYYMMDD(date);
+      })
+    );
+  }, [availabilityData]);
 
   const [startDate, setStartDate] = useState<Date | undefined>(
     formData.startDate ? new Date(formData.startDate) : undefined
@@ -25,6 +53,7 @@ export default function CreateReservationPage() {
   const [endDate, setEndDate] = useState<Date | undefined>(
     formData.endDate ? new Date(formData.endDate) : undefined
   );
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,18 +75,23 @@ export default function CreateReservationPage() {
 
   const { nights, estimatedTotal } = useMemo(() => {
     if (!startDate || !endDate) return { nights: 0, estimatedTotal: 0 };
+
+    // ✅ Calculate nights (safe — time diff is timezone-agnostic)
     const diff = Math.max(
       0,
       Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24))
     );
-    // estimate: sum priceMap or use base price
+
+    // ✅ Calculate total price using Jakarta dates, starting from startDate + 1 minute
     let total = 0;
-    let day = new Date(startDate);
+    let currentDate = addOneMinute(startDate); // ✅ Start 1 minute after check-in
+
     for (let i = 0; i < diff; i++) {
-      const key = day.toISOString().slice(0, 10);
-      total += priceMap[key] ?? displayData.basePrice ?? 0;
-      day.setDate(day.getDate() + 1);
+      const dateKey = formatDateToJakartaYYYYMMDD(currentDate);
+      total += priceMap[dateKey] ?? displayData.basePrice ?? 0;
+      currentDate.setDate(currentDate.getDate() + 1);
     }
+
     return { nights: diff, estimatedTotal: total };
   }, [startDate, endDate, priceMap, displayData.basePrice]);
 
@@ -76,19 +110,80 @@ export default function CreateReservationPage() {
 
   const handleStartDateChange = (date?: Date) => {
     setStartDate(date);
-    if (endDate && date && date >= endDate) {
-      setEndDate(undefined);
+    if (endDate && date) {
+      const startStr = formatDateToJakartaYYYYMMDD(addOneMinute(date));
+      const endStr = formatDateToJakartaYYYYMMDD(endDate);
+      if (startStr >= endStr) {
+        setEndDate(undefined);
+      } else {
+        // ✅ Validate range
+        const invalidDates = validateDateRange(
+          date,
+          endDate,
+          unavailableDateSet
+        );
+        if (invalidDates.length > 0) {
+          const formatted = invalidDates.join(", ");
+          alert(`Unavailable dates in range: ${formatted}`);
+        }
+      }
     }
   };
 
   const handleEndDateChange = (date?: Date) => {
-    if (date && startDate && date <= startDate) return;
+    if (date && startDate) {
+      const startStr = formatDateToJakartaYYYYMMDD(addOneMinute(startDate));
+      const endStr = formatDateToJakartaYYYYMMDD(date);
+      if (endStr <= startStr) return;
+
+      // ✅ Validate range
+      const invalidDates = validateDateRange(
+        startDate,
+        date,
+        unavailableDateSet
+      );
+      if (invalidDates.length > 0) {
+        const formatted = invalidDates.join(", ");
+        alert(`Unavailable dates in range: ${formatted}`);
+        return;
+      }
+    }
     setEndDate(date);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid()) return;
+
+    // ✅ Validate date range
+    if (!startDate || !endDate) {
+      alert("Please select both check-in and check-out dates.");
+      return;
+    }
+
+    const invalidDates = validateDateRange(
+      startDate,
+      endDate,
+      unavailableDateSet
+    );
+
+    if (invalidDates.length > 0) {
+      const formattedDates = invalidDates
+        .map((dateStr) => {
+          const d = new Date(dateStr);
+          return d.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+        })
+        .join(", ");
+
+      alert(
+        `Dates ${formattedDates} are unavailable. Please adjust your stay.`
+      );
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -99,7 +194,6 @@ export default function CreateReservationPage() {
       setIsSubmitting(false);
     }
   };
-
   // compute total nights and estimated price
 
   return (
@@ -149,6 +243,8 @@ export default function CreateReservationPage() {
                 priceMap={priceMap}
                 basePrice={displayData.basePrice || 0}
                 isLoading={isLoading}
+                isAvailabilityLoadings={isAvailabilityLoading}
+                unavailableDates={unavailableDateSet}
               />
             </div>
             <div className="mt-6">

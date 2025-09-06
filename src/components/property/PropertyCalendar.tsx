@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import { type DateRange } from "react-day-picker";
-import PriceCalendar from "@/components/myUi/customCalender";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
@@ -32,6 +31,13 @@ import type {
 } from "@/interface/publicPropertyInterface"; // ✅ Import PublicPropertyDetail
 import { useReservationStore } from "@/lib/stores/reservationStore";
 import { PaymentType } from "@/interface/enumInterface";
+import { useAvailabilityCalendar } from "@/service/useReservation";
+import PriceAvailabilityCalendar from "../myUi/customAvailabilityCalender ";
+import moment from "moment-timezone";
+import {
+  addOneMinute,
+  formatDateToJakartaYYYYMMDD,
+} from "@/view/reservation/component/calenderHelper";
 
 interface PropertyCalendarProps {
   onDateSelect?: (dateRange: DateRange | undefined) => void;
@@ -77,8 +83,42 @@ export default function PropertyCalendar({
   const User = user?.role;
   const isOwner = User === "OWNER";
 
+  // ✅ Fetch availability for selected room type
+  const {
+    data: availabilityData,
+    isLoading: isAvailabilityLoading,
+    error: availabilityError,
+  } = useAvailabilityCalendar(selectedRoomTypeId, undefined, undefined); // Defaults to current year
+
+  // ✅ Create Set of unavailable dates for O(1) lookup
+  const unavailableDateSet = React.useMemo(() => {
+    if (!availabilityData?.unavailableDates) return new Set<string>();
+    return new Set(
+      availabilityData.unavailableDates.map((d) => {
+        const date = new Date(d.date + "T17:00:00Z");
+        console.log(date);
+        if (isNaN(date.getTime())) {
+          throw new Error(
+            `Invalid date format: ${d.date}. Use YYYY-MM-DD format`
+          );
+        }
+        return formatDateToJakartaYYYYMMDD(date);
+      })
+    );
+  }, [availabilityData]);
+
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) return;
+
+    const dateKey = formatDateToJakartaYYYYMMDD(selectedDate);
+
+    // ✅ ONLY block if selecting check-in AND date is unavailable
+    if (currentStep === "checkin" && unavailableDateSet.has(dateKey)) {
+      alert(
+        "This date is not available for check-in. Please choose another date."
+      );
+      return;
+    }
 
     if (currentStep === "checkin") {
       setCheckInDate(selectedDate);
@@ -88,13 +128,12 @@ export default function PropertyCalendar({
       // Ensure checkout is after checkin
       if (checkInDate && selectedDate > checkInDate) {
         setCheckOutDate(selectedDate);
-        // Create DateRange and call onDateSelect
         const dateRange: DateRange = {
           from: checkInDate,
           to: selectedDate,
         };
         onDateSelect?.(dateRange);
-        setCurrentStep("checkin"); // Reset for next selection
+        setCurrentStep("checkin");
       } else {
         // If selected date is before or same as checkin, reset
         setCheckInDate(selectedDate);
@@ -130,6 +169,21 @@ export default function PropertyCalendar({
     onDateSelect?.(undefined);
   };
 
+  const validateDateRange = (from: Date, to: Date): string[] => {
+    const invalidDates: string[] = [];
+    const currentDate = addOneMinute(from);
+
+    while (currentDate < to) {
+      const dateKey = formatDateToJakartaYYYYMMDD(currentDate); // ✅ FIXED
+      if (unavailableDateSet.has(dateKey)) {
+        invalidDates.push(dateKey);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return invalidDates;
+  };
+
   const handleBookingClick = () => {
     if (!propertyId || !selectedRoomTypeId) {
       alert("Please select a property and room type first.");
@@ -141,8 +195,28 @@ export default function PropertyCalendar({
       return;
     }
 
+    // ✅ Validate entire date range
+    const invalidDates = validateDateRange(checkInDate, checkOutDate);
+
+    if (invalidDates.length > 0) {
+      const formattedDates = invalidDates
+        .map((dateStr) => {
+          const d = new Date(dateStr);
+          return d.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+        })
+        .join(", ");
+
+      alert(
+        `Dates ${formattedDates} are unavailable. Please adjust your stay.`
+      );
+      return;
+    }
+
     if (isAuthenticated) {
-      // Prepare reservation data
       const selectedRoomType = roomTypes.find(
         (rt) => rt.id === selectedRoomTypeId
       );
@@ -158,7 +232,6 @@ export default function PropertyCalendar({
 
         setFromPropertyId(propertyId);
 
-        // Set display data using property information
         setDisplayData({
           propertyName: property.name || "Property",
           propertyType: property.category?.name || "General",
@@ -167,11 +240,9 @@ export default function PropertyCalendar({
           mainImageUrl: property.pictures?.main?.url || "",
         });
 
-        // Navigate to reservation creation page
         router.push("/reservation");
       }
     } else {
-      // Show authentication dialog
       setShowAuthDialog(true);
     }
   };
@@ -236,12 +307,15 @@ export default function PropertyCalendar({
         </div>
 
         <div className="space-y-2">
-          <PriceCalendar
+          <PriceAvailabilityCalendar
             selected={getSelectedDate()}
             onSelect={handleDateSelect}
             defaultMonth={checkInDate || new Date()}
             priceMap={priceMap}
             basePrice={basePrice}
+            // ✅ Pass unavailable dates to calendar
+            unavailableDates={unavailableDateSet}
+            isAvailabilityLoading={isAvailabilityLoading}
           />
         </div>
 
@@ -276,7 +350,7 @@ export default function PropertyCalendar({
           <p>• Select check-in date first, then check-out date</p>
           {checkInDate && checkOutDate && selectedRoomTypeId && isOwner && (
             <p className="text-red-500">
-              • please login to your personal user account to make a reservation
+              • Please login to your personal user account to make a reservation
             </p>
           )}
         </div>
@@ -285,9 +359,9 @@ export default function PropertyCalendar({
           <Button
             className="w-full"
             onClick={handleBookingClick}
-            disabled={authLoading || isOwner}
+            disabled={authLoading || isOwner || isAvailabilityLoading}
           >
-            {authLoading
+            {authLoading || isAvailabilityLoading
               ? "Checking..."
               : `Continue to Booking (${calculateNights()} nights)`}
           </Button>
