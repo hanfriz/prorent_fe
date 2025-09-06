@@ -16,8 +16,6 @@ interface UseRegisterFormProps {
 }
 
 export const useRegisterForm = ({ role }: UseRegisterFormProps = {}) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
@@ -26,8 +24,6 @@ export const useRegisterForm = ({ role }: UseRegisterFormProps = {}) => {
     resolver: zodResolver(registerValidationSchema),
     defaultValues: {
       email: "",
-      password: "",
-      confirmPassword: "",
       role: role || "USER", // Use prop role or default to USER
     },
   });
@@ -48,7 +44,6 @@ export const useRegisterForm = ({ role }: UseRegisterFormProps = {}) => {
 
       const registerData = {
         email: data.email,
-        password: data.password,
         role: finalRole,
         socialLogin: "NONE" as const,
       };
@@ -91,10 +86,6 @@ export const useRegisterForm = ({ role }: UseRegisterFormProps = {}) => {
 
   return {
     form,
-    showPassword,
-    setShowPassword,
-    showConfirmPassword,
-    setShowConfirmPassword,
     isLoading,
     successMessage,
     onSubmit,

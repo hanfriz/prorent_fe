@@ -2,7 +2,7 @@ import { Role, SocialLogin } from "./enumInterface";
 
 export interface RegisterRequest {
   email: string;
-  password: string;
+  password?: string; // Make password optional
   role: Role;
   socialLogin: SocialLogin;
 }
@@ -53,10 +53,11 @@ export interface VerifyEmailResponse {
   success: boolean;
   message: string;
   data?: {
-    userId: string;
-    email: string;
-    role: Role;
-    isVerified: boolean;
+    userId?: string;
+    email?: string;
+    role?: Role;
+    isVerified?: boolean;
+    requiresRedirect?: boolean;
   };
 }
 
@@ -100,5 +101,18 @@ export interface CheckEmailResponse {
     exists: boolean;
     isVerified?: boolean;
     socialLogin?: SocialLogin;
+  };
+}
+
+export interface ValidateTokenRequest {
+  token: string;
+}
+
+export interface ValidateTokenResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    valid: boolean;
+    userEmail?: string;
   };
 }

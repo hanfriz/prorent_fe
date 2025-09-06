@@ -6,6 +6,8 @@ import {
   LoginResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
+  ValidateTokenRequest,
+  ValidateTokenResponse,
   OAuthLoginRequest,
   OAuthLoginResponse,
   CheckEmailRequest,
@@ -102,6 +104,13 @@ export const authService = {
     data: VerifyEmailRequest
   ): Promise<VerifyEmailResponse> => {
     const response = await Axios.post("/auth/verify-email", data);
+    return response.data;
+  },
+
+  validateToken: async (
+    data: ValidateTokenRequest
+  ): Promise<ValidateTokenResponse> => {
+    const response = await Axios.post("/auth/validate-token", data);
     return response.data;
   },
 
