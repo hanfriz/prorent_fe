@@ -34,8 +34,10 @@ export default function VerifyEmailView() {
   >("loading");
   const [message, setMessage] = useState("");
   const [token, setToken] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const form = useForm<VerifyEmailFormData>({
     resolver: zodResolver(verifyEmailValidationSchema),
@@ -68,6 +70,9 @@ export default function VerifyEmailView() {
           // Show password creation form
           setVerificationStatus("create-password");
           setMessage("Please create your password to complete verification.");
+          if (response.data.userEmail) {
+            setUserEmail(response.data.userEmail);
+          }
         } else {
           setVerificationStatus("error");
           setMessage(
@@ -146,6 +151,41 @@ export default function VerifyEmailView() {
       enqueueSnackbar(errorMessage, { variant: "error" });
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!userEmail) {
+      enqueueSnackbar(
+        "Email address not found. Please try registering again.",
+        { variant: "error" }
+      );
+      return;
+    }
+
+    try {
+      setIsResending(true);
+      const response = await authService.resendVerification({
+        email: userEmail,
+      });
+
+      if (response.success) {
+        enqueueSnackbar(
+          "Verification email sent successfully! Please check your inbox.",
+          { variant: "success" }
+        );
+      } else {
+        enqueueSnackbar(
+          response.message || "Failed to resend verification email.",
+          { variant: "error" }
+        );
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to resend verification email.";
+      enqueueSnackbar(errorMessage, { variant: "error" });
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -344,6 +384,29 @@ export default function VerifyEmailView() {
 
                 {verificationStatus === "error" && (
                   <div className="space-y-4">
+                    {userEmail && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <p className="text-yellow-800 text-sm text-center mb-3">
+                          Your verification link may have expired. Would you
+                          like to receive a new one?
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={handleResendVerification}
+                          disabled={isResending}
+                          className="w-full"
+                        >
+                          {isResending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Sending...
+                            </>
+                          ) : (
+                            "Resend Verification Email"
+                          )}
+                        </Button>
+                      </div>
+                    )}
                     <Button
                       onClick={() => router.push("/login")}
                       className="w-full"
