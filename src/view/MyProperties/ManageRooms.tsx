@@ -647,7 +647,9 @@ const ManageRooms = () => {
                         : room.roomType?.basePrice || 0
                     }
                     onChangeMonth={(month) => {
-                      console.log(`📅 Room ${room.name} changed to month: ${month}`);
+                      console.log(
+                        `📅 Room ${room.name} changed to month: ${month}`
+                      );
                     }}
                   />
                 ))}
@@ -723,7 +725,7 @@ const ManageRooms = () => {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="total-quantity">Jumlah Kamar *</Label>
                 <Input
                   id="total-quantity"
@@ -738,7 +740,7 @@ const ManageRooms = () => {
                   }
                   required
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-2">

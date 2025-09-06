@@ -449,12 +449,6 @@ export function OwnerPropertyDetailView({
                           </div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Quantity:</span>
-                          <div className="font-semibold">
-                            {roomType.totalQuantity} rooms
-                          </div>
-                        </div>
-                        <div>
                           <span className="text-gray-600">Type:</span>
                           <div className="font-semibold">
                             {roomType.isWholeUnit ? "Whole Unit" : "Individual"}
