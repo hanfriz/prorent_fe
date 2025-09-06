@@ -4,7 +4,7 @@ import UserTypeCard from "./UserTypeCard";
 
 const userTypes = [
   {
-    title: "For Tenants",
+    title: "For Users",
     description:
       "Looking for your next home? Browse thousands of verified properties and book with confidence.",
     icon: (
@@ -28,14 +28,14 @@ const userTypes = [
       "Secure online booking",
       "Direct communication with owners",
     ],
-    buttonText: "Sign Up as Tenant",
+    buttonText: "Sign In as User",
     buttonVariant: "default" as const,
-    href: "/register/user",
+    href: "/login/user",
     iconBgColor: "bg-blue-100",
     iconColor: "text-blue-600",
   },
   {
-    title: "For Property Owners",
+    title: "For Owners",
     description:
       "Maximize your property's potential. List your properties and connect with qualified tenants.",
     icon: (
@@ -59,9 +59,9 @@ const userTypes = [
       "Automated payment collection",
       "Property management dashboard",
     ],
-    buttonText: "Sign Up as Owner",
+    buttonText: "Sign In as Owner",
     buttonVariant: "outline" as const,
-    href: "/register/owner",
+    href: "/login/owner",
     iconBgColor: "bg-green-100",
     iconColor: "text-green-600",
   },

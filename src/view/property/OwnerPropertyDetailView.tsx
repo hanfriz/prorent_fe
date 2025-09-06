@@ -33,6 +33,17 @@ import {
 } from "lucide-react";
 import { OwnerProperty } from "@/interface/ownerPropertyInterface";
 import { ownerPropertyService } from "@/service/ownerPropertyService";
+import dynamic from "next/dynamic";
+
+// Dynamically import the map component to avoid SSR issues
+const PropertyMap = dynamic(() => import("@/components/map/PropertyMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  ),
+});
 
 interface OwnerPropertyDetailViewProps {
   propertyId: string;
@@ -438,12 +449,6 @@ export function OwnerPropertyDetailView({
                           </div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Quantity:</span>
-                          <div className="font-semibold">
-                            {roomType.totalQuantity} rooms
-                          </div>
-                        </div>
-                        <div>
                           <span className="text-gray-600">Type:</span>
                           <div className="font-semibold">
                             {roomType.isWholeUnit ? "Whole Unit" : "Individual"}
@@ -473,6 +478,344 @@ export function OwnerPropertyDetailView({
                       </Link>
                     </div>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Rooms Management */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Rooms</CardTitle>
+                  <Link href={`/my-properties/${property.id}/rooms/create`}>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Room
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {property.rooms.map((room) => (
+                    <div
+                      key={room.id}
+                      className="border rounded-lg p-4 hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-lg">{room.name}</h4>
+                          <p className="text-sm text-gray-600">
+                            {room.roomType?.name}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              room.isAvailable ? "default" : "destructive"
+                            }
+                            className={
+                              room.isAvailable
+                                ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                : ""
+                            }
+                          >
+                            {room.isAvailable ? "Available" : "Unavailable"}
+                          </Badge>
+                          <div className="flex gap-1">
+                            <Link
+                              href={`/my-properties/${property.id}/rooms/${room.id}/edit`}
+                            >
+                              <Button variant="outline" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Add delete room functionality if needed
+                                toast.info(
+                                  "Delete room functionality to be implemented"
+                                );
+                              }}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">
+                            Price per night:
+                          </span>
+                          <span className="font-semibold text-green-600">
+                            {room.roomType
+                              ? formatPrice(room.roomType.basePrice)
+                              : "N/A"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Capacity:</span>
+                          <span className="font-semibold">
+                            {room.roomType?.capacity} guests
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Type:</span>
+                          <span className="font-semibold">
+                            {room.roomType?.isWholeUnit
+                              ? "Whole Unit"
+                              : "Individual Room"}
+                          </span>
+                        </div>
+                        {room.roomType?.description && (
+                          <div className="pt-2 border-t">
+                            <p className="text-gray-700 text-xs">
+                              {room.roomType.description}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {room.gallery && room.gallery.length > 0 && (
+                        <div className="mt-3 pt-3 border-t">
+                          <p className="text-xs text-gray-500 mb-2">
+                            Room Gallery ({room.gallery.length} images)
+                          </p>
+                          <div className="flex gap-1 overflow-x-auto">
+                            {room.gallery
+                              .slice(0, 3)
+                              .map((galleryItem: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="flex-shrink-0 w-12 h-12 rounded overflow-hidden"
+                                >
+                                  <Image
+                                    src={
+                                      galleryItem.picture?.url ||
+                                      "/prorent-logo.png"
+                                    }
+                                    alt={
+                                      galleryItem.picture?.alt ||
+                                      `Room image ${index + 1}`
+                                    }
+                                    width={48}
+                                    height={48}
+                                    className="object-cover w-full h-full"
+                                  />
+                                </div>
+                              ))}
+                            {room.gallery.length > 3 && (
+                              <div className="flex-shrink-0 w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-500">
+                                +{room.gallery.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {property.rooms.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-500">
+                      <Home className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p className="mb-4">No rooms created yet</p>
+                      <p className="text-sm mb-4 text-gray-400">
+                        Create room types first, then add individual rooms
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        {property.roomTypes.length === 0 ? (
+                          <Link
+                            href={`/my-properties/${property.id}/room-types/create`}
+                          >
+                            <Button>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Create Room Type First
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/my-properties/${property.id}/rooms/create`}
+                          >
+                            <Button>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Create First Room
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gallery Management */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Property Gallery</CardTitle>
+                  <Link href={`/my-properties/${property.id}/gallery`}>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Manage Gallery
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {property.gallery && property.gallery.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {property.gallery.map((galleryItem, index) => (
+                      <div
+                        key={galleryItem.pictureId}
+                        className="relative group"
+                      >
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                          <Image
+                            src={galleryItem.picture.url}
+                            alt={galleryItem.picture.alt}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-200"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                          />
+                        </div>
+                        <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-o  pacity duration-200">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="bg-white bg-opacity-90 hover:bg-opacity-100"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <div className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded truncate">
+                            {galleryItem.picture.alt}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="mb-4">No images in gallery yet</p>
+                    <p className="text-sm mb-4 text-gray-400">
+                      Add images to showcase your property
+                    </p>
+                    <Link href={`/my-properties/${property.id}/gallery`}>
+                      <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Images
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Location Map */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Location</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Address Information */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-1">
+                          Address
+                        </h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">
+                          {property.location.address}
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+                          <div>
+                            <span className="text-gray-500">City:</span>
+                            <span className="ml-2 font-medium">
+                              {property.location.city.name}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Province:</span>
+                            <span className="ml-2 font-medium">
+                              {property.location.city.province.name}
+                            </span>
+                          </div>
+                          {property.location.latitude &&
+                            property.location.longitude && (
+                              <div className="col-span-2">
+                                <span className="text-gray-500">
+                                  Coordinates:
+                                </span>
+                                <span className="ml-2 font-mono text-xs bg-gray-200 px-1 rounded">
+                                  {property.location.latitude},{" "}
+                                  {property.location.longitude}
+                                </span>
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Interactive Map */}
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-gray-900">
+                      Interactive Map
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Exact location of {property.name} on the map
+                    </p>
+                    {property.location.latitude &&
+                    property.location.longitude &&
+                    !isNaN(parseFloat(property.location.latitude)) &&
+                    !isNaN(parseFloat(property.location.longitude)) ? (
+                      <PropertyMap
+                        latitude={parseFloat(property.location.latitude)}
+                        longitude={parseFloat(property.location.longitude)}
+                        propertyName={property.name}
+                        address={property.location.address}
+                      />
+                    ) : (
+                      <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="text-center">
+                          <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                          <p className="text-gray-600">
+                            Location coordinates not available
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Please update the property location to display the
+                            map
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

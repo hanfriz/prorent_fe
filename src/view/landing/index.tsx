@@ -2,17 +2,17 @@
 
 import {
   Navigation,
-  HeroSection,
   FeaturesSection,
   UserTypesSection,
   Footer,
 } from "./components";
+import HeroCarousel from "@/components/HeroCarousel";
 
 export default function LandingPageView() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <div className="min-h-screen">
       {/* <Navigation /> */}
-      <HeroSection />
+      <HeroCarousel />
       <FeaturesSection />
       <UserTypesSection />
       {/* <Footer /> */}

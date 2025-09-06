@@ -6,8 +6,21 @@ import {
   LoginResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
+  ValidateTokenRequest,
+  ValidateTokenResponse,
+  ResendVerificationRequest,
+  ResendVerificationResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  OAuthLoginRequest,
+  OAuthLoginResponse,
+  CheckEmailRequest,
+  CheckEmailResponse,
 } from "@/interface/authInterface";
 import { cookieUtils } from "@/lib/cookieUtils";
+import { AUTH_ENDPOINTS } from "@/constants/endpoint";
 
 export const authService = {
   register: async (data: RegisterRequest): Promise<RegisterResponse> => {
@@ -33,6 +46,41 @@ export const authService = {
     }
 
     return result;
+  },
+
+  loginWithProvider: async (
+    data: OAuthLoginRequest
+  ): Promise<OAuthLoginResponse> => {
+    const response = await Axios.post(AUTH_ENDPOINTS.LOGIN_WITH_PROVIDER, data);
+    const result = response.data;
+
+    if (result.success && result.token) {
+      cookieUtils.setTokens(result.token, result.token);
+
+      if (result.data) {
+        // Store user info in the expected format
+        const userInfo = {
+          id: result.data.userId,
+          email: result.data.email,
+          role: result.data.role,
+          isVerified: result.data.isVerified,
+          socialLogin: result.data.socialLogin,
+        };
+        cookieUtils.setUserInfo(userInfo);
+      }
+    } else {
+      console.log("OAuth login not successful or token missing:", {
+        success: result.success,
+        hasToken: !!result.token,
+      });
+    }
+
+    return result;
+  },
+
+  checkEmail: async (data: CheckEmailRequest): Promise<CheckEmailResponse> => {
+    const response = await Axios.post(AUTH_ENDPOINTS.CHECK_EMAIL, data);
+    return response.data;
   },
 
   logout: async (): Promise<void> => {
@@ -62,6 +110,34 @@ export const authService = {
     data: VerifyEmailRequest
   ): Promise<VerifyEmailResponse> => {
     const response = await Axios.post("/auth/verify-email", data);
+    return response.data;
+  },
+
+  validateToken: async (
+    data: ValidateTokenRequest
+  ): Promise<ValidateTokenResponse> => {
+    const response = await Axios.post("/auth/validate-token", data);
+    return response.data;
+  },
+
+  resendVerification: async (
+    data: ResendVerificationRequest
+  ): Promise<ResendVerificationResponse> => {
+    const response = await Axios.post("/auth/resend-verify", data);
+    return response.data;
+  },
+
+  forgotPassword: async (
+    data: ForgotPasswordRequest
+  ): Promise<ForgotPasswordResponse> => {
+    const response = await Axios.post("/auth/reset-password-request", data);
+    return response.data;
+  },
+
+  resetPassword: async (
+    data: ResetPasswordRequest
+  ): Promise<ResetPasswordResponse> => {
+    const response = await Axios.post("/auth/reset-password-confirm", data);
     return response.data;
   },
 

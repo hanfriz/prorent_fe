@@ -230,7 +230,7 @@ const CreateRoomType = () => {
               </div>
 
               {/* Total Quantity */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="totalQuantity">Jumlah Kamar *</Label>
                 <Input
                   id="totalQuantity"
@@ -254,7 +254,7 @@ const CreateRoomType = () => {
                     Total kamar dengan tipe ini
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
 
             {/* Description */}

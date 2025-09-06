@@ -4,48 +4,59 @@ export const API_BASE_URL =
 
 // Authentication Endpoints
 export const AUTH_ENDPOINTS = {
-  REGISTER_USER: "/api/auth/register/user",
-  VERIFY_EMAIL: "/api/auth/verify-email",
-  RESEND_VERIFY: "/api/auth/resend-verify",
-  LOGIN: "/api/auth/login",
-  RESET_PASSWORD_REQUEST: "/api/auth/reset-password-request",
-  RESET_PASSWORD_CONFIRM: "/api/auth/reset-password-confirm",
-  ME: "/api/auth/me",
+  REGISTER_USER: "/auth/register/user",
+  VERIFY_EMAIL: "/auth/verify-email",
+  RESEND_VERIFY: "/auth/resend-verify",
+  LOGIN: "/auth/login",
+  LOGIN_WITH_PROVIDER: "/auth/login-with-provider",
+  CHECK_EMAIL: "/auth/check-email",
+  RESET_PASSWORD_REQUEST: "/auth/reset-password-request",
+  RESET_PASSWORD_CONFIRM: "/auth/reset-password-confirm",
+  ME: "/auth/me",
 } as const;
 
 // Public Property Endpoints
 export const PUBLIC_PROPERTY_ENDPOINTS = {
-  SEARCH_PROPERTIES: "/api/public/properties",
-  GET_PROPERTY_DETAILS: (id: string) => `/api/public/properties/${id}`,
+  SEARCH_PROPERTIES: "/public/properties",
+  GET_PROPERTY_DETAILS: (id: string) => `/public/properties/${id}`,
   GET_CALENDAR_PRICING: (id: string) =>
-    `/api/public/properties/${id}/calendar-pricing`,
-  GET_PROPERTY_ROOMS: (id: string) => `/api/public/properties/${id}/rooms`,
+    `/public/properties/${id}/calendar-pricing`,
+  GET_PROPERTY_ROOMS: (id: string) => `/public/properties/${id}/rooms`,
 } as const;
 
 // Upload Endpoints
 export const UPLOAD_ENDPOINTS = {
-  UPLOAD_FILE: "/api/upload",
-  DELETE_FILE: (id: string) => `/api/upload/${id}`,
-  GET_FILE_INFO: (id: string) => `/api/upload/${id}`,
-  LIST_FILES: "/api/upload",
+  UPLOAD_FILE: "/upload",
+  DELETE_FILE: (id: string) => `/upload/${id}`,
+  GET_FILE_INFO: (id: string) => `/upload/${id}`,
+  LIST_FILES: "/upload",
 } as const;
 
 // Utility Endpoints
 export const UTILITY_ENDPOINTS = {
-  TEST_EMAIL: "/api/utility/test-email",
-  RESEND_EMAIL: "/api/utility/resend-email",
-  EMAIL_STATUS: "/api/utility/email-status",
-  HEALTH_CHECK: "/api/utility/health",
-  SERVICE_INFO: "/api/utility/info",
+  TEST_EMAIL: "/utility/test-email",
+  RESEND_EMAIL: "/utility/resend-email",
+  EMAIL_STATUS: "/utility/email-status",
+  HEALTH_CHECK: "/utility/health",
+  SERVICE_INFO: "/utility/info",
 } as const;
 
 // User Endpoints
 export const USER_ENDPOINTS = {
-  GET_PROFILE: "/api/users/me",
-  UPDATE_PROFILE: "/api/users/me",
-  CHANGE_PASSWORD: "/api/users/me/password",
-  UPLOAD_AVATAR: "/api/users/me/avatar",
-  REVERIFY_EMAIL: "/api/users/reverify-email",
+  GET_PROFILE: "/users/me",
+  UPDATE_PROFILE: "/users/me",
+  CHANGE_PASSWORD: "/users/me/password",
+  UPLOAD_AVATAR: "/users/me/avatar",
+  REVERIFY_EMAIL: "/users/reverify-email",
+} as const;
+
+// Room Endpoints
+export const ROOM_ENDPOINTS = {
+  SET_BULK_AVAILABILITY: (roomId: string) => `/rooms/${roomId}/availability`,
+  GET_MONTHLY_AVAILABILITY: (roomId: string) => `/rooms/${roomId}/availability`,
+  // Public availability endpoint (no auth required)
+  GET_PUBLIC_AVAILABILITY: (roomId: string) =>
+    `/public/properties/rooms/${roomId}/availability`,
 } as const;
 
 // Reservation Endpoints
