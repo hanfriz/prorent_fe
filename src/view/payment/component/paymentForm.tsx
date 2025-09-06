@@ -20,8 +20,9 @@ import { PaymentHeader } from "./paymentHeader";
 import { PaymentActions } from "./paymentAction";
 import { usePaymentForm } from "./usePaymentForm";
 import { useReservationStore } from "@/lib/stores/reservationStore";
-import { Card } from "@/components/ui/card";
 import moment from "moment-timezone";
+import { CountDown, tick } from "./countDown";
+import { ErrorMessage, getErrorDisplayMessage } from "./errorComponent";
 
 export default function PaymentForm() {
   const params = useParams();
@@ -153,7 +154,20 @@ export function PaymentFormContent({
   isPaymentProofUploaded,
 }: any) {
   // Countdown state (hanya UI)
-  const [timeLeft, setTimeLeft] = useState<string>("");
+  const [timeRemaining, setTimeRemaining] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  const [isExpired, setIsExpired] = useState(false);
+
   const file = form?.state?.values?.file;
 
   const previewUrl = useMemo(() => {
@@ -174,27 +188,15 @@ export function PaymentFormContent({
     const exp = reservationData?.expiresAt;
     if (!exp) return;
 
-    const tick = () => {
-      // Bandingkan expiredDate dengan lokal Asia/Jakarta, sesuai permintaan
-      const now = moment().tz("Asia/Jakarta");
-      const expiry = moment(exp).tz("Asia/Jakarta");
-      const diff = expiry.diff(now);
+    tick(exp, setIsExpired, setTimeRemaining);
 
-      if (diff <= 0) {
-        setTimeLeft("Expired");
-        return;
-      }
-      const dur = moment.duration(diff);
-      const h = Math.floor(dur.asHours());
-      const m = dur.minutes().toString().padStart(2, "00");
-      const s = dur.seconds().toString().padStart(2, "00");
-      setTimeLeft(`${h}J ${m}M ${s}D`);
-    };
+    const interval = setInterval(
+      () => tick(exp, setIsExpired, setTimeRemaining),
+      1000
+    );
 
-    tick();
-    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [reservationData?.expiredDate]);
+  }, [reservationData?.expiresAt, setIsExpired, setTimeRemaining]);
 
   return (
     <section className="bg-gradient-to-br from-pr-primary/10 via-pr-bg to-pr-mid/10 py-10">
@@ -204,19 +206,13 @@ export function PaymentFormContent({
           isPaymentProofUploaded={isPaymentProofUploaded}
         />
 
-        {timeLeft && (
-          <Card className="mb-8 p-4 text-center rounded-2xl border border-pr-primary shadow-pr-soft bg-pr-bg">
-            {timeLeft === "Expired" ? (
-              <span className="text-base md:text-lg font-semibold text-red-600">
-                Reservasi sudah kedaluwarsa
-              </span>
-            ) : (
-              <span className="text-base md:text-lg font-semibold text-pr-dark">
-                Sisa waktu pembayaran:{" "}
-                <span className="text-pr-primary">{timeLeft}</span>
-              </span>
-            )}
-          </Card>
+        {!isExpired && (
+          <CountDown
+            days={timeRemaining.days}
+            hours={timeRemaining.hours}
+            minutes={timeRemaining.minutes}
+            seconds={timeRemaining.seconds}
+          />
         )}
 
         <form
@@ -273,22 +269,4 @@ export function PaymentFormContent({
       </div>
     </section>
   );
-}
-
-function ErrorMessage({ message }: { message: string }) {
-  return (
-    <section className="bg-white py-8 antialiased dark:bg-gray-900 md:py-16">
-      <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
-        <div className="mx-auto max-w-3xl space-y-8">
-          <div className="p-4 text-red-500 text-center">{message}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function getErrorDisplayMessage(error: any): string {
-  return error instanceof Error
-    ? error.message
-    : "Failed to load reservation details";
 }

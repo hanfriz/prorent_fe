@@ -33,6 +33,8 @@ export interface Reservation {
 export type ReservationResponse = {
    reservation: Reservation;
    message: string;
+   paymentUrl: string | null;
+   reservationId: string | null;
 };
 
 export type Props = {

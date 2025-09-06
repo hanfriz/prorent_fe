@@ -118,7 +118,12 @@ export function useReservationForm({
         const res = await createMutation.mutateAsync(payload);
         console.log("res", res);
         const data = res.reservation;
-        setReservationId(data.id);
+        if (payload.paymentType === PaymentType.MANUAL_TRANSFER) {
+          setReservationId(data.id);
+          router.push(`/payment/${data.id}`);
+        } else {
+          router.push(res.paymentUrl ?? "");
+        }
         router.push(`/payment/${data.id}`);
       } catch (err) {
         console.error("Submission failed:", err);
