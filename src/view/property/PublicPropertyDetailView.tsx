@@ -18,6 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PropertyMap from "@/components/map/PropertyMap";
+
+// Utility function to format date as YYYY-MM-DD using local timezone
+const formatDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 import { useAuth } from "@/lib/hooks/useAuth";
 import PropertyCalendar from "@/components/property/PropertyCalendar";
 import { PropertyDetailSkeleton } from "@/components/sekeleton/PropertySkeleton";
@@ -471,9 +479,12 @@ export default function PublicPropertyDetail({
               onDateSelect={(dateRange) => {
                 if (dateRange) {
                   setSelectedDateRange({
-                    checkIn:
-                      dateRange.from?.toISOString().split("T")[0] || null,
-                    checkOut: dateRange.to?.toISOString().split("T")[0] || null,
+                    checkIn: dateRange.from
+                      ? formatDateString(dateRange.from)
+                      : null,
+                    checkOut: dateRange.to
+                      ? formatDateString(dateRange.to)
+                      : null,
                   });
                 }
               }}

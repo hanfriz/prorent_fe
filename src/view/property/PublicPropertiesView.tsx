@@ -11,6 +11,7 @@ import { PropertyFilters } from "@/components/property/PropertyFilters";
 import { PropertyPagination } from "@/components/property/PropertyPagination";
 import { PropertyListSkeleton } from "@/components/sekeleton/PropertySkeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Home } from "lucide-react";
 import PropertyReviews from "../review/component/propertyReview";
 
@@ -92,23 +93,78 @@ export default function PublicPropertiesView() {
         {/* Loading State */}
         {loading && <PropertyListSkeleton />}
 
+        {/* Results Summary and Filters Status */}
+        {!loading && !error && (
+          <div className="bg-white rounded-lg border p-4 mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-1">
+                  {pagination.totalItems} Properties Found
+                </h2>
+                <p className="text-gray-600">
+                  Showing{" "}
+                  {(pagination.currentPage - 1) * pagination.itemsPerPage + 1} -{" "}
+                  {Math.min(
+                    pagination.currentPage * pagination.itemsPerPage,
+                    pagination.totalItems
+                  )}{" "}
+                  of {pagination.totalItems} results
+                </p>
+              </div>
+
+              {/* Active Filters Display */}
+              {(searchParams.search ||
+                searchParams.city ||
+                searchParams.category ||
+                searchParams.minPrice ||
+                searchParams.maxPrice ||
+                searchParams.capacity) && (
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-sm text-gray-600">Active filters:</span>
+                  {searchParams.search && (
+                    <Badge variant="secondary" className="text-xs">
+                      Search: "{searchParams.search}"
+                    </Badge>
+                  )}
+                  {searchParams.city && (
+                    <Badge variant="secondary" className="text-xs">
+                      City: {searchParams.city}
+                    </Badge>
+                  )}
+                  {searchParams.category && (
+                    <Badge variant="secondary" className="text-xs">
+                      Category: {searchParams.category}
+                    </Badge>
+                  )}
+                  {searchParams.minPrice && (
+                    <Badge variant="secondary" className="text-xs">
+                      Min: Rp {searchParams.minPrice.toLocaleString("id-ID")}
+                    </Badge>
+                  )}
+                  {searchParams.maxPrice && (
+                    <Badge variant="secondary" className="text-xs">
+                      Max: Rp {searchParams.maxPrice.toLocaleString("id-ID")}
+                    </Badge>
+                  )}
+                  {searchParams.capacity && (
+                    <Badge variant="secondary" className="text-xs">
+                      Capacity: {searchParams.capacity}+
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Properties Grid */}
         {!loading && properties.length > 0 && (
           <>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {pagination.totalItems} Properties Found
-              </h2>
-              <p className="text-gray-600">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </p>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {properties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
-            </div>            
+            </div>
 
             {/* Pagination */}
             <PropertyPagination
@@ -125,15 +181,73 @@ export default function PublicPropertiesView() {
 
         {/* Empty State */}
         {!loading && properties.length === 0 && !error && (
-          <div className="text-center py-12">
-            <Home className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="text-center py-16">
+            <Home className="h-24 w-24 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">
               No Properties Found
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
               We couldn't find any properties matching your criteria. Try
-              adjusting your filters.
+              adjusting your search filters or explore different locations.
             </p>
+
+            {/* Quick Actions for Empty State */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => {
+                  setSearchParams({
+                    page: 1,
+                    limit: 10,
+                    sortBy: "name",
+                    sortOrder: "asc",
+                  });
+                  handleSearch({
+                    page: 1,
+                    limit: 10,
+                    sortBy: "name",
+                    sortOrder: "asc",
+                  });
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Clear All Filters
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
+
+            {/* Popular Searches */}
+            <div className="mt-12">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">
+                Popular Destinations
+              </h4>
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "Jakarta",
+                  "Bali",
+                  "Bandung",
+                  "Yogyakarta",
+                  "Surabaya",
+                  "Medan",
+                ].map((city) => (
+                  <button
+                    key={city}
+                    onClick={() => {
+                      const newParams = { ...searchParams, city, page: 1 };
+                      setSearchParams(newParams);
+                      handleSearch(newParams);
+                    }}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors text-sm"
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

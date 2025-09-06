@@ -31,7 +31,10 @@ export const publicPropertyService = {
       const url = `/public/properties${
         queryParams.toString() ? "?" + queryParams.toString() : ""
       }`;
-      const response = await axiosInstance.get<PublicPropertiesResponse>(url);
+      const response = await axiosInstance.get<PublicPropertiesResponse>(url, {
+        // Skip auth redirect on error
+        _skipAuthRedirect: true,
+      } as any);
 
       return response.data;
     } catch (error: any) {
@@ -45,7 +48,11 @@ export const publicPropertyService = {
   ): Promise<PublicPropertyDetailResponse> => {
     try {
       const response = await axiosInstance.get<PublicPropertyDetailResponse>(
-        `/public/properties/${id}`
+        `/public/properties/${id}`,
+        {
+          // Skip auth redirect on error
+          _skipAuthRedirect: true,
+        } as any
       );
       return response.data;
     } catch (error: any) {

@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,36 +16,32 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { toast } from "sonner";
-import { useOwnerPropertyDetail } from "@/service/useOwnerProperty";
-import { ownerPropertyService } from "@/service/ownerPropertyService";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar, DollarSign, Settings } from "lucide-react";
 import {
   OwnerRoomType,
   OwnerRoom,
   CreateRoomTypeRequest,
   CreateRoomRequest,
+} from "@/interface/ownerPropertyInterface";
+import { toast } from "sonner";
+import { EnhancedRoomAvailabilityCalendar } from "@/components/availability/EnhancedRoomAvailabilityCalendar";
+import { useOwnerPropertyDetail } from "@/service/useOwnerProperty";
+import { ownerPropertyService } from "@/service/ownerPropertyService";
+import {
   UpdateRoomRequest,
   formatPrice,
 } from "@/interface/ownerPropertyInterface";
@@ -52,6 +55,8 @@ import {
   Bed,
   Home,
   Loader2,
+  Check,
+  X,
 } from "lucide-react";
 
 interface RoomTypeForm {
@@ -74,11 +79,14 @@ const ManageRooms = () => {
   const params = useParams();
   const propertyId = params.id as string;
 
-  const [activeTab, setActiveTab] = useState<"room-types" | "rooms">(
-    "room-types"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "room-types" | "rooms" | "availability"
+  >("room-types");
   const [roomTypeDialogOpen, setRoomTypeDialogOpen] = useState(false);
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
+  const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
+  const [selectedRoomForAvailability, setSelectedRoomForAvailability] =
+    useState<OwnerRoom | null>(null);
   const [editingRoomType, setEditingRoomType] = useState<OwnerRoomType | null>(
     null
   );
@@ -110,6 +118,15 @@ const ManageRooms = () => {
     error: propertyError,
     refetch,
   } = useOwnerPropertyDetail(propertyId);
+
+  // Helper function for formatting price
+  const formatPrice = (price: string | number) => {
+    const numPrice = typeof price === "string" ? parseFloat(price) : price;
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(numPrice || 0);
+  };
 
   useEffect(() => {
     if (editingRoomType) {
@@ -160,8 +177,8 @@ const ManageRooms = () => {
           id: editingRoomType.id,
         };
         await ownerPropertyService.updateRoomType(
-          propertyId, 
-          editingRoomType.id, 
+          propertyId,
+          editingRoomType.id,
           updateData
         );
         toast.success("Tipe kamar berhasil diperbarui!");
@@ -308,7 +325,7 @@ const ManageRooms = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/my-properties")}
+          onClick={() => router.back()}
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -322,7 +339,7 @@ const ManageRooms = () => {
 
       {/* Tab Navigation */}
       <div className="w-full">
-        <div className="grid w-full grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg">
+        <div className="grid w-full grid-cols-3 gap-2 p-1 bg-gray-100 rounded-lg">
           <Button
             variant={activeTab === "room-types" ? "default" : "ghost"}
             onClick={() => setActiveTab("room-types")}
@@ -338,6 +355,14 @@ const ManageRooms = () => {
           >
             <Bed className="w-4 h-4" />
             Kamar ({rooms.length})
+          </Button>
+          <Button
+            variant={activeTab === "availability" ? "default" : "ghost"}
+            onClick={() => setActiveTab("availability")}
+            className="gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            Availability
           </Button>
         </div>
 
@@ -543,6 +568,95 @@ const ManageRooms = () => {
             )}
           </div>
         )}
+
+        {/* Availability Content */}
+        {activeTab === "availability" && (
+          <div className="space-y-6 mt-6">
+            {/* Header */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Room Availability Management
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Manage availability for each room individually. Set specific
+                  dates as available or unavailable for bookings.
+                </p>
+              </CardHeader>
+            </Card>
+
+            {/* Summary Stats */}
+            {rooms.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Availability Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <Bed className="h-6 w-6 mx-auto mb-2 text-blue-600" />
+                      <p className="font-semibold">{rooms.length}</p>
+                      <p className="text-sm text-gray-600">Total Rooms</p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <Check className="h-6 w-6 mx-auto mb-2 text-green-600" />
+                      <p className="font-semibold text-green-600">
+                        {rooms.filter((room) => room.isAvailable).length}
+                      </p>
+                      <p className="text-sm text-gray-600">Active Rooms</p>
+                    </div>
+                    <div className="text-center p-3 bg-red-50 rounded-lg">
+                      <X className="h-6 w-6 mx-auto mb-2 text-red-600" />
+                      <p className="font-semibold text-red-600">
+                        {rooms.filter((room) => !room.isAvailable).length}
+                      </p>
+                      <p className="text-sm text-gray-600">Inactive Rooms</p>
+                    </div>
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <Home className="h-6 w-6 mx-auto mb-2 text-blue-600" />
+                      <p className="font-semibold">{roomTypes.length}</p>
+                      <p className="text-sm text-gray-600">Room Types</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {rooms.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No rooms available</p>
+                  <p className="text-sm">
+                    Add rooms first to manage availability
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {rooms.map((room: OwnerRoom) => (
+                  <EnhancedRoomAvailabilityCalendar
+                    key={room.id}
+                    roomId={room.id}
+                    roomName={room.name}
+                    roomTypeName={room.roomType?.name || "Unknown"}
+                    roomPrice={
+                      typeof room.roomType?.basePrice === "string"
+                        ? parseFloat(room.roomType.basePrice)
+                        : room.roomType?.basePrice || 0
+                    }
+                    onChangeMonth={(month) => {
+                      console.log(
+                        `📅 Room ${room.name} changed to month: ${month}`
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Room Type Dialog */}
@@ -611,7 +725,7 @@ const ManageRooms = () => {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="total-quantity">Jumlah Kamar *</Label>
                 <Input
                   id="total-quantity"
@@ -626,7 +740,7 @@ const ManageRooms = () => {
                   }
                   required
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-2">

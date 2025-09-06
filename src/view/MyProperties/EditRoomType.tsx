@@ -17,6 +17,7 @@ import {
   UpdateRoomTypeRequest,
 } from "@/interface/ownerPropertyInterface";
 import { ownerPropertyService } from "@/service/ownerPropertyService";
+import PeakRateManager from "@/components/PeakRateManager";
 
 interface EditRoomTypeForm {
   name: string;
@@ -415,6 +416,15 @@ const EditRoomType = () => {
           </form>
         </CardContent>
       </Card>
+
+      {/* Peak Rate Management */}
+      {roomType && (
+        <PeakRateManager
+          roomTypeId={roomTypeId}
+          roomTypeName={roomType.name}
+          basePrice={parseFloat(roomType.basePrice.replace(/[^\d]/g, "")) || 0}
+        />
+      )}
     </div>
   );
 };

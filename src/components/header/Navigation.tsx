@@ -24,7 +24,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Image
-              src="/prorent-logo.png"
+              src="/prorent-logo-removebg-preview.png"
               alt="ProRent Logo"
               width={90}
               height={36}

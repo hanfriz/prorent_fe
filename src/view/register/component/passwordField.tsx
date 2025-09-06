@@ -2,20 +2,31 @@
 
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Control } from "react-hook-form";
-import { RegisterFormData } from "@/validation/authValidation";
+import { VerifyEmailFormData } from "@/validation/authValidation";
 
 interface PasswordFieldProps {
-  control: Control<RegisterFormData>;
+  control: Control<VerifyEmailFormData>;
   name: "password" | "confirmPassword";
   label: string;
   placeholder: string;
 }
 
-export default function PasswordField({ control, name, label, placeholder }: PasswordFieldProps) {
+export default function PasswordField({
+  control,
+  name,
+  label,
+  placeholder,
+}: PasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (

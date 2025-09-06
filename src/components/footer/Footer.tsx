@@ -35,7 +35,7 @@ export default function Footer() {
                 alt="ProRent Logo"
                 width={100}
                 height={32}
-                className="mr-3"
+                className="mr-3 border rounded-2xl"
               />
             </div>
             <p className="text-gray-400 mb-4">
