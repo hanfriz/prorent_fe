@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import { type DateRange } from "react-day-picker";
-import EnhancedPriceCalendar from "@/components/myUi/EnhancedPriceCalendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
@@ -18,14 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-// Utility function to format date as YYYY-MM-DD using local timezone
-const formatDateString = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 import { useRouter } from "next/navigation";
 import {
   Select,
@@ -40,9 +31,13 @@ import type {
 } from "@/interface/publicPropertyInterface"; // ✅ Import PublicPropertyDetail
 import { useReservationStore } from "@/lib/stores/reservationStore";
 import { PaymentType } from "@/interface/enumInterface";
-import { useRoomAvailability } from "@/hooks/useRoomAvailability";
-import { roomService } from "@/service/roomService";
-import { usePriceMapForRoomType } from "@/service/usePricing";
+import { useAvailabilityCalendar } from "@/service/useReservation";
+import PriceAvailabilityCalendar from "../myUi/customAvailabilityCalender ";
+import moment from "moment-timezone";
+import {
+  addOneMinute,
+  formatDateToJakartaYYYYMMDD,
+} from "@/view/reservation/component/calenderHelper";
 
 interface PropertyCalendarProps {
   onDateSelect?: (dateRange: DateRange | undefined) => void;
@@ -84,85 +79,6 @@ export default function PropertyCalendar({
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const router = useRouter();
   const { setField, setDisplayData, setFromPropertyId } = useReservationStore();
-
-  // Fetch pricing data for the selected room type
-  const {
-    data: dynamicPriceMap,
-    isLoading: priceMapLoading,
-    error: priceMapError,
-  } = usePriceMapForRoomType(propertyId || "", selectedRoomTypeId || "");
-
-  // Fallback to static priceMap prop if no dynamic data
-  const finalPriceMap = React.useMemo(() => {
-    if (Object.keys(dynamicPriceMap).length > 0) {
-      return dynamicPriceMap;
-    }
-    return priceMap;
-  }, [dynamicPriceMap, priceMap]);
-
-  // Get the first room for the selected room type to check availability
-  const selectedRoom = React.useMemo(() => {
-    if (!property?.rooms || !selectedRoomTypeId) return null;
-    return property.rooms.find(
-      (room) => room.roomType.id === selectedRoomTypeId && room.isAvailable
-    );
-  }, [property?.rooms, selectedRoomTypeId]);
-
-  // Memoize roomId to prevent unnecessary re-renders
-  const memoizedRoomId = React.useMemo(() => {
-    return selectedRoom?.id || "";
-  }, [selectedRoom?.id]);
-
-  // Use room availability hook for the selected room
-  const {
-    availabilityData,
-    getMonthlyAvailability,
-    isLoading: availabilityLoading,
-  } = useRoomAvailability({
-    roomId: memoizedRoomId,
-    onError: (error) => console.error("Availability error:", error),
-  });
-
-  // Load availability data when room changes - with dependency tracking
-  React.useEffect(() => {
-    if (memoizedRoomId) {
-      const currentMonth = roomService.getCurrentMonth();
-      getMonthlyAvailability(currentMonth);
-    }
-  }, [memoizedRoomId]); // Remove getMonthlyAvailability from dependencies to prevent infinite loop
-
-  // Create availability map for quick lookup
-  const availabilityMap = React.useMemo(() => {
-    const map: Record<string, boolean> = {};
-    availabilityData?.forEach((item) => {
-      map[item.date] = item.isAvailable;
-    });
-    return map;
-  }, [availabilityData]);
-
-  // Check if a date range is available
-  const isDateRangeAvailable = React.useCallback(
-    (startDate: Date, endDate: Date) => {
-      if (!selectedRoom) return true; // If no room selected, assume available
-
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-
-      // Check each date in the range
-      for (let date = start; date < end; date.setDate(date.getDate() + 1)) {
-        const dateString = formatDateString(date);
-        const isAvailable = availabilityMap[dateString];
-
-        // If any date is explicitly unavailable, return false
-        if (isAvailable === false) {
-          return false;
-        }
-      }
-
-      return true;
-    },
-    [selectedRoom, availabilityMap]
-  );
 
   const User = user?.role;
   const isOwner = User === "OWNER";
@@ -211,22 +127,13 @@ export default function PropertyCalendar({
     } else {
       // Ensure checkout is after checkin
       if (checkInDate && selectedDate > checkInDate) {
-        // Check if the date range is available
-        if (isDateRangeAvailable(checkInDate, selectedDate)) {
-          setCheckOutDate(selectedDate);
-          // Create DateRange and call onDateSelect
-          const dateRange: DateRange = {
-            from: checkInDate,
-            to: selectedDate,
-          };
-          onDateSelect?.(dateRange);
-          setCurrentStep("checkin"); // Reset for next selection
-        } else {
-          // Show alert if dates are not available
-          alert(
-            "Some dates in your selected range are not available. Please choose different dates."
-          );
-        }
+        setCheckOutDate(selectedDate);
+        const dateRange: DateRange = {
+          from: checkInDate,
+          to: selectedDate,
+        };
+        onDateSelect?.(dateRange);
+        setCurrentStep("checkin");
       } else {
         // If selected date is before or same as checkin, reset
         setCheckInDate(selectedDate);
@@ -354,10 +261,6 @@ export default function PropertyCalendar({
           <CalendarIcon className="h-5 w-5" />
           Select Your Dates
         </CardTitle>
-        <p className="text-sm text-gray-600">
-          Choose your check-in and check-out dates. Unavailable dates are
-          automatically disabled.
-        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Room Type Selection */}
@@ -404,16 +307,15 @@ export default function PropertyCalendar({
         </div>
 
         <div className="space-y-2">
-          <EnhancedPriceCalendar
+          <PriceAvailabilityCalendar
             selected={getSelectedDate()}
             onSelect={handleDateSelect}
             defaultMonth={checkInDate || new Date()}
-            priceMap={finalPriceMap}
+            priceMap={priceMap}
             basePrice={basePrice}
-            availabilityMap={availabilityMap}
-            checkInDate={checkInDate}
-            checkOutDate={checkOutDate}
-            currentStep={currentStep}
+            // ✅ Pass unavailable dates to calendar
+            unavailableDates={unavailableDateSet}
+            isAvailabilityLoading={isAvailabilityLoading}
           />
         </div>
 
