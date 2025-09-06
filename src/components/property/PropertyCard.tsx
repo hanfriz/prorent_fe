@@ -18,8 +18,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <Link href={`/properties/${property.id}`}>
-      <Card className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+    <Link href={`/properties/${property.id}`} className="h-full">
+      <Card className="group hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full flex flex-col">
         <CardHeader className="p-0">
           <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
             <Image
@@ -35,7 +35,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-4 flex flex-col flex-1">
           <h3 className="font-semibold text-lg mb-2 line-clamp-1">
             {property.name}
           </h3>
@@ -47,7 +47,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </span>
           </div>
 
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-1">
             {property.description}
           </p>
 
@@ -64,7 +64,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
           </div>
 
-          <div className="border-t pt-3">
+          <div className="border-t pt-3 mt-auto">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Price per night</p>
