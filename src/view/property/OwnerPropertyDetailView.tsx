@@ -487,7 +487,7 @@ export function OwnerPropertyDetailView({
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Rooms</CardTitle>
-                  <Link href={`/my-properties/${property.id}/rooms/create`}>
+                  <Link href={`/my-properties/${property.id}/rooms`}>
                     <Button size="sm">
                       <Plus className="w-4 h-4 mr-1" />
                       Add Room
