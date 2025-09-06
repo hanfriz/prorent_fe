@@ -59,3 +59,46 @@ export interface VerifyEmailResponse {
     isVerified: boolean;
   };
 }
+
+export interface OAuthLoginRequest {
+  email: string;
+  emailVerified: boolean;
+  providerId: string;
+  federatedId: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  displayName?: string;
+  photoUrl?: string;
+  idToken: string;
+  role: Role;
+}
+
+export interface OAuthLoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    userId: string;
+    email: string;
+    role: Role;
+    isVerified: boolean;
+    socialLogin: SocialLogin;
+    isNewUser: boolean;
+  };
+  token: string;
+}
+
+export interface CheckEmailRequest {
+  email: string;
+}
+
+export interface CheckEmailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    email: string;
+    exists: boolean;
+    isVerified?: boolean;
+    socialLogin?: SocialLogin;
+  };
+}

@@ -6,8 +6,13 @@ import {
   LoginResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
+  OAuthLoginRequest,
+  OAuthLoginResponse,
+  CheckEmailRequest,
+  CheckEmailResponse,
 } from "@/interface/authInterface";
 import { cookieUtils } from "@/lib/cookieUtils";
+import { AUTH_ENDPOINTS } from "@/constants/endpoint";
 
 export const authService = {
   register: async (data: RegisterRequest): Promise<RegisterResponse> => {
@@ -33,6 +38,41 @@ export const authService = {
     }
 
     return result;
+  },
+
+  loginWithProvider: async (
+    data: OAuthLoginRequest
+  ): Promise<OAuthLoginResponse> => {
+    const response = await Axios.post(AUTH_ENDPOINTS.LOGIN_WITH_PROVIDER, data);
+    const result = response.data;
+
+    if (result.success && result.token) {
+      cookieUtils.setTokens(result.token, result.token);
+
+      if (result.data) {
+        // Store user info in the expected format
+        const userInfo = {
+          id: result.data.userId,
+          email: result.data.email,
+          role: result.data.role,
+          isVerified: result.data.isVerified,
+          socialLogin: result.data.socialLogin,
+        };
+        cookieUtils.setUserInfo(userInfo);
+      }
+    } else {
+      console.log("OAuth login not successful or token missing:", {
+        success: result.success,
+        hasToken: !!result.token,
+      });
+    }
+
+    return result;
+  },
+
+  checkEmail: async (data: CheckEmailRequest): Promise<CheckEmailResponse> => {
+    const response = await Axios.post(AUTH_ENDPOINTS.CHECK_EMAIL, data);
+    return response.data;
   },
 
   logout: async (): Promise<void> => {
