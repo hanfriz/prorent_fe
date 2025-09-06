@@ -160,8 +160,8 @@ const ManageRooms = () => {
           id: editingRoomType.id,
         };
         await ownerPropertyService.updateRoomType(
-          propertyId, 
-          editingRoomType.id, 
+          propertyId,
+          editingRoomType.id,
           updateData
         );
         toast.success("Tipe kamar berhasil diperbarui!");
@@ -308,7 +308,7 @@ const ManageRooms = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/my-properties")}
+          onClick={() => router.back()}
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
