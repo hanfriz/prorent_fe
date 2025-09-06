@@ -46,3 +46,12 @@ export type Props = {
 export interface ReservationActionsProps {
    reservation: ReservationWithPayment; // Pass the full reservation object
 }
+
+export type UnavailableDate = {
+   date: string; // "YYYY-MM-DD"
+   isAvailable: false;
+};
+
+export type AvailabilityCalendarResponse = {
+   unavailableDates: UnavailableDate[];
+};

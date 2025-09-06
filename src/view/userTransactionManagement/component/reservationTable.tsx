@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -19,6 +19,11 @@ import {
 import { GetUserReservationsParams } from "@/interface/queryInterface";
 import ReservationActions from "@/view/userTransactionManagement/component/reservationAction";
 import { ReservationStatus } from "@/interface/enumInterface";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ReservationTableProps {
   reservations: ReservationWithPayment[];
@@ -37,7 +42,23 @@ const ReservationTable = ({
   onSortChange,
   currentParams,
 }: ReservationTableProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+  } | null>(null);
+
   const { sortBy = "createdAt", sortOrder = "desc" } = currentParams;
+
+  const openImageModal = (url: string, alt: string) => {
+    setSelectedImage({ url, alt });
+    setIsModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+  };
 
   const handleSort = (column: string) => {
     let backendSortBy: string | null = null;
@@ -72,6 +93,7 @@ const ReservationTable = ({
   };
 
   const getStatusBadgeVariant = (status: ReservationStatus) => {
+    // gunakan variant yang tersedia di Badge component Anda (hindari "success" jika tidak didefinisikan)
     switch (status) {
       case "PENDING_PAYMENT":
         return "destructive";
@@ -91,124 +113,223 @@ const ReservationTable = ({
     return sortOrder === "asc" ? "↑" : "↓";
   };
 
+  const formatCurrency = (v?: number) =>
+    v ? `Rp ${v.toLocaleString()}` : "N/A";
+
   return (
     <div className="space-y-4">
       {/* Desktop / Tablet Table */}
-      <div className="hidden md:block border rounded-2xl overflow-hidden shadow-pr-soft">
-        <Table>
-          <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
-            <TableRow>
-              <TableHead
-                onClick={() => handleSort("payment.invoiceNumber")}
-                className="w-[130px] cursor-pointer"
-              >
-                Invoice {renderSortIndicator("payment.invoiceNumber")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("property.name")}
-                className="cursor-pointer"
-              >
-                Property {renderSortIndicator("property.name")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("RoomType.name")}
-                className="cursor-pointer"
-              >
-                Room Type {renderSortIndicator("RoomType.name")}
-              </TableHead>
-              <TableHead
-                onClick={() =>
-                  handleSort("reservation.PaymentProof?.picture?.url")
-                }
-                className="cursor-pointer"
-              >
-                Bukti Pembayaran{" "}
-                {renderSortIndicator("reservation.PaymentProof?.picture?.url")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("startDate")}
-                className="cursor-pointer"
-              >
-                Start {renderSortIndicator("startDate")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("endDate")}
-                className="cursor-pointer"
-              >
-                End {renderSortIndicator("endDate")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("payment.amount")}
-                className="cursor-pointer"
-              >
-                Amount {renderSortIndicator("payment.amount")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("orderStatus")}
-                className="cursor-pointer"
-              >
-                Status {renderSortIndicator("orderStatus")}
-              </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {reservations.length === 0 ? (
+      <div className="hidden md:block border rounded-2xl overflow-x-auto bg-white shadow-pr-soft">
+        <div className="min-w-[1000px]">
+          <Table>
+            <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="text-center py-10 text-pr-mid"
+                <TableHead
+                  onClick={() => handleSort("payment.invoiceNumber")}
+                  className="w-[130px] cursor-pointer"
                 >
-                  No reservations found.
-                </TableCell>
+                  Invoice {renderSortIndicator("payment.invoiceNumber")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("property.name")}
+                  className="cursor-pointer"
+                >
+                  Property {renderSortIndicator("property.name")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("RoomType.name")}
+                  className="cursor-pointer"
+                >
+                  Room Type {renderSortIndicator("RoomType.name")}
+                </TableHead>
+                <TableHead
+                  onClick={() =>
+                    handleSort("reservation.PaymentProof?.picture?.url")
+                  }
+                  className="cursor-pointer"
+                >
+                  Bukti Pembayaran{" "}
+                  {renderSortIndicator(
+                    "reservation.PaymentProof?.picture?.url"
+                  )}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("startDate")}
+                  className="cursor-pointer"
+                >
+                  Start {renderSortIndicator("startDate")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("endDate")}
+                  className="cursor-pointer"
+                >
+                  End {renderSortIndicator("endDate")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("payment.amount")}
+                  className="cursor-pointer"
+                >
+                  Amount {renderSortIndicator("payment.amount")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("orderStatus")}
+                  className="cursor-pointer"
+                >
+                  Status {renderSortIndicator("orderStatus")}
+                </TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              reservations.map((reservation) => (
-                <TableRow
-                  key={reservation.id}
-                  className="hover:bg-pr-primary/5 transition"
-                >
-                  <TableCell className="font-semibold text-pr-dark">
-                    {reservation.payment?.invoiceNumber}
-                  </TableCell>
-                  <TableCell>{reservation.Property?.name || "N/A"}</TableCell>
-                  <TableCell>{reservation.RoomType?.name || "N/A"}</TableCell>
-                  <TableCell>
-                    {reservation.PaymentProof?.picture?.alt ||
-                      "Belum mengunggah bukti pembayaran"}
-                  </TableCell>
-                  <TableCell>
-                    {reservation.startDate
-                      ? format(new Date(reservation.startDate), "PPP")
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    {reservation.endDate
-                      ? format(new Date(reservation.endDate), "PPP")
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    {reservation.payment?.amount
-                      ? `Rp ${reservation.payment.amount.toLocaleString()}`
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={getStatusBadgeVariant(reservation.orderStatus)}
-                      className="uppercase"
-                    >
-                      {reservation.orderStatus.replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <ReservationActions reservation={reservation} />
+            </TableHeader>
+
+            <TableBody>
+              {reservations.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="text-center py-10 text-pr-mid"
+                  >
+                    No reservations found.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                reservations.map((reservation) => (
+                  <TableRow
+                    key={reservation.id}
+                    className="hover:bg-pr-primary/5 transition"
+                  >
+                    {/* Invoice with tooltip & truncate */}
+                    <TableCell className="font-semibold text-pr-dark whitespace-nowrap max-w-[160px]">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="truncate max-w-[160px] cursor-help">
+                            {reservation.payment?.invoiceNumber || "N/A"}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <span>
+                            {reservation.payment?.invoiceNumber || "N/A"}
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+
+                    {/* Property with tooltip */}
+                    <TableCell className="max-w-[220px] text-sm text-pr-mid">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="truncate max-w-[220px] cursor-help">
+                            {reservation.Property?.name || "N/A"}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <span>{reservation.Property?.name || "N/A"}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+
+                    {/* Room Type with tooltip */}
+                    <TableCell className="max-w-[200px]">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="truncate max-w-[200px] cursor-help">
+                            {reservation.RoomType?.name || "N/A"}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <span>{reservation.RoomType?.name || "N/A"}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+
+                    {/* Proof: thumbnail + click to open modal */}
+                    <TableCell className="max-w-[160px]">
+                      {reservation.PaymentProof?.picture?.url ? (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              openImageModal(
+                                reservation.PaymentProof!.picture!.url!,
+                                reservation.PaymentProof!.picture!.alt ||
+                                  "Bukti Pembayaran"
+                              )
+                            }
+                            className="inline-block rounded overflow-hidden border border-pr-mid/20"
+                            aria-label="Open payment proof"
+                          >
+                            <img
+                              src={reservation.PaymentProof.picture.url}
+                              alt={
+                                reservation.PaymentProof.picture.alt ||
+                                "Payment Proof"
+                              }
+                              className="h-10 w-14 object-cover"
+                              loading="lazy"
+                            />
+                          </button>
+
+                          <div className="text-sm">
+                            <button
+                              onClick={() =>
+                                openImageModal(
+                                  reservation.PaymentProof!.picture!.url!,
+                                  reservation.PaymentProof!.picture!.alt ||
+                                    "Bukti Pembayaran"
+                                )
+                              }
+                              className="text-pr-primary hover:underline"
+                            >
+                              View
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-pr-mid">
+                          Belum mengunggah
+                        </div>
+                      )}
+                    </TableCell>
+
+                    {/* Dates */}
+                    <TableCell className="whitespace-nowrap text-sm">
+                      {reservation.startDate
+                        ? format(new Date(reservation.startDate), "PPP")
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">
+                      {reservation.endDate
+                        ? format(new Date(reservation.endDate), "PPP")
+                        : "N/A"}
+                    </TableCell>
+
+                    {/* Amount */}
+                    <TableCell className="whitespace-nowrap">
+                      {formatCurrency(reservation.payment?.amount)}
+                    </TableCell>
+
+                    {/* Status with Badge; for CONFIRMED add green override */}
+                    <TableCell>
+                      <Badge
+                        variant={getStatusBadgeVariant(reservation.orderStatus)}
+                        className={
+                          reservation.orderStatus === "CONFIRMED"
+                            ? "uppercase bg-green-100 text-green-800"
+                            : "uppercase"
+                        }
+                      >
+                        {reservation.orderStatus.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell className="text-right">
+                      <ReservationActions reservation={reservation} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
         {/* Pagination Controls */}
         {pagination && (
@@ -262,24 +383,45 @@ const ReservationTable = ({
               key={r.id}
               className="bg-white p-4 rounded-2xl border shadow-sm"
             >
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="text-sm text-pr-mid">Invoice</div>
-                    <div className="font-semibold text-pr-dark">
+                    <div className="font-semibold text-pr-dark truncate">
                       {r.payment?.invoiceNumber}
                     </div>
                   </div>
-                  <div className="text-xs text-pr-mid mt-1">
+
+                  <div className="mt-2 text-sm text-pr-mid truncate">
                     {r.Property?.name || "N/A"}
                   </div>
-                  <div className="text-xs text-pr-mid">
+                  <div className="mt-1 text-xs text-pr-mid truncate">
                     {r.RoomType?.name || "N/A"}
                   </div>
+
+                  <div className="mt-2 text-xs text-pr-mid flex gap-2">
+                    <div>
+                      {r.startDate
+                        ? format(new Date(r.startDate), "PPP")
+                        : "N/A"}
+                    </div>
+                    <div>→</div>
+                    <div>
+                      {r.endDate ? format(new Date(r.endDate), "PPP") : "N/A"}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
+
+                <div className="w-28 flex-shrink-0 text-right">
                   <div className="mb-2">
-                    <Badge variant={getStatusBadgeVariant(r.orderStatus)}>
+                    <Badge
+                      variant={getStatusBadgeVariant(r.orderStatus)}
+                      className={
+                        r.orderStatus === "CONFIRMED"
+                          ? "bg-green-100 text-green-800"
+                          : undefined
+                      }
+                    >
                       {r.orderStatus.replace("_", " ")}
                     </Badge>
                   </div>
@@ -291,18 +433,44 @@ const ReservationTable = ({
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center justify-between text-xs text-pr-mid">
+              <div className="mt-3 flex items-center justify-between">
                 <div>
-                  {r.startDate ? format(new Date(r.startDate), "PPP") : "N/A"}
+                  {r.PaymentProof?.picture?.url ? (
+                    <>
+                      <button
+                        onClick={() =>
+                          openImageModal(
+                            r.PaymentProof!.picture!.url!,
+                            r.PaymentProof!.picture!.alt || "Payment Proof"
+                          )
+                        }
+                        className="inline-block rounded overflow-hidden border border-pr-mid/20 mr-2"
+                      >
+                        <img
+                          src={r.PaymentProof.picture.url}
+                          alt={r.PaymentProof.picture.alt || "Payment Proof"}
+                          className="h-10 w-12 object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                      <button
+                        onClick={() =>
+                          openImageModal(
+                            r.PaymentProof!.picture!.url!,
+                            r.PaymentProof!.picture!.alt || "Payment Proof"
+                          )
+                        }
+                        className="text-pr-primary text-sm hover:underline"
+                      >
+                        View Proof
+                      </button>
+                    </>
+                  ) : null}
                 </div>
-                <div>→</div>
-                <div>
-                  {r.endDate ? format(new Date(r.endDate), "PPP") : "N/A"}
-                </div>
-              </div>
 
-              <div className="mt-3 flex justify-end">
-                <ReservationActions reservation={r} />
+                <div>
+                  <ReservationActions reservation={r} />
+                </div>
               </div>
             </div>
           ))
@@ -337,6 +505,35 @@ const ReservationTable = ({
           </div>
         )}
       </div>
+
+      {/* Simple Image Modal */}
+      {isModalOpen && selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={closeImageModal}
+          />
+          <div className="relative max-w-3xl w-full mx-4">
+            <div className="bg-white rounded-xl p-4 shadow-xl">
+              <div className="flex justify-end">
+                <button
+                  onClick={closeImageModal}
+                  className="text-pr-mid font-semibold"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="mt-2">
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.alt}
+                  className="w-full h-auto rounded-md max-h-[75vh] object-contain"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

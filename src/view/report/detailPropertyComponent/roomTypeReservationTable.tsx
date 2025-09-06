@@ -64,6 +64,7 @@ export default function RoomTypeReservationsTable({
   );
 
   const reservations = data?.reservations || [];
+  console.log(reservations);
   const pagination = data?.pagination;
   // Filter handlers
   const handleSearch = (term: string) => {
@@ -188,11 +189,11 @@ export default function RoomTypeReservationsTable({
                     <TableCell>
                       <div>
                         <p className="font-medium">
-                          {reservation.user?.firstName || ""}{" "}
-                          {reservation.user?.lastName || ""}
+                          {reservation.User?.firstName || ""}{" "}
+                          {reservation.User?.lastName || ""}
                         </p>
                         <p className="text-xs text-muted-foreground truncate w-36">
-                          {reservation.user?.email || "N/A"}
+                          {reservation.User?.email || "N/A"}
                         </p>
                       </div>
                     </TableCell>
