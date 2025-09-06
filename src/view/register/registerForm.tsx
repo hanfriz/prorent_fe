@@ -13,7 +13,6 @@ import {
 import { useRegisterForm } from "./component/useRegisterForm";
 import EmailField from "./component/emailField";
 import RoleSelector from "./component/roleSelector";
-import PasswordField from "./component/passwordField";
 import SubmitButton from "./component/submitButton";
 import MessageDisplay from "./component/messageDisplay";
 import { Role } from "@/interface/enumInterface";
@@ -62,22 +61,6 @@ export default function RegisterForm({
 
             {/* Role Field - Only show if showRoleSelector is true */}
             {showRoleSelector && <RoleSelector control={form.control} />}
-
-            {/* Password Field */}
-            <PasswordField
-              control={form.control}
-              name="password"
-              label="Password"
-              placeholder="Enter your password"
-            />
-
-            {/* Confirm Password Field */}
-            <PasswordField
-              control={form.control}
-              name="confirmPassword"
-              label="Confirm Password"
-              placeholder="Confirm your password"
-            />
 
             {/* Message Display */}
             <MessageDisplay

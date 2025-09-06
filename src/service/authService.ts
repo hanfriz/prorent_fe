@@ -6,6 +6,14 @@ import {
   LoginResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
+  ValidateTokenRequest,
+  ValidateTokenResponse,
+  ResendVerificationRequest,
+  ResendVerificationResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
   OAuthLoginRequest,
   OAuthLoginResponse,
   CheckEmailRequest,
@@ -102,6 +110,34 @@ export const authService = {
     data: VerifyEmailRequest
   ): Promise<VerifyEmailResponse> => {
     const response = await Axios.post("/auth/verify-email", data);
+    return response.data;
+  },
+
+  validateToken: async (
+    data: ValidateTokenRequest
+  ): Promise<ValidateTokenResponse> => {
+    const response = await Axios.post("/auth/validate-token", data);
+    return response.data;
+  },
+
+  resendVerification: async (
+    data: ResendVerificationRequest
+  ): Promise<ResendVerificationResponse> => {
+    const response = await Axios.post("/auth/resend-verify", data);
+    return response.data;
+  },
+
+  forgotPassword: async (
+    data: ForgotPasswordRequest
+  ): Promise<ForgotPasswordResponse> => {
+    const response = await Axios.post("/auth/reset-password-request", data);
+    return response.data;
+  },
+
+  resetPassword: async (
+    data: ResetPasswordRequest
+  ): Promise<ResetPasswordResponse> => {
+    const response = await Axios.post("/auth/reset-password-confirm", data);
     return response.data;
   },
 

@@ -79,6 +79,7 @@ export interface OwnerRoom {
   createdAt: string;
   updatedAt: string;
   roomType?: OwnerRoomType;
+  gallery?: OwnerPropertyGalleryItem[];
 }
 
 export interface OwnerProperty {

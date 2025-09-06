@@ -325,7 +325,7 @@ const ManageRooms = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/my-properties")}
+          onClick={() => router.back()}
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />

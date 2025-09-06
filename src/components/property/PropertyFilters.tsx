@@ -79,6 +79,11 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
     "Yogyakarta",
     "Malang",
     "Bali",
+    "Batam",
+    "Denpasar",
+    "Padang",
+    "Balikpapan",
+    "Pekanbaru",
   ];
 
   const categories = [
@@ -88,7 +93,32 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
     "Hotel",
     "Guest House",
     "Kost",
+    "Resort",
+    "Penginapan",
   ];
+
+  const sortOptions = [
+    { value: "name", label: "Property Name" },
+    { value: "price", label: "Price" },
+    { value: "createdAt", label: "Date Added" },
+    { value: "capacity", label: "Capacity" },
+  ];
+
+  const priceRanges = [
+    { label: "Under 100K", min: 0, max: 100000 },
+    { label: "100K - 300K", min: 100000, max: 300000 },
+    { label: "300K - 500K", min: 300000, max: 500000 },
+    { label: "500K - 1M", min: 500000, max: 1000000 },
+    { label: "Above 1M", min: 1000000, max: undefined },
+  ];
+
+  const handlePriceRangeSelect = (range: (typeof priceRanges)[0]) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      minPrice: range.min,
+      maxPrice: range.max,
+    }));
+  };
 
   return (
     <Card className="mb-6">
@@ -161,13 +191,32 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
         {/* Advanced Filters */}
         {showAdvancedFilters && (
           <div className="border-t pt-4 space-y-4">
+            {/* Price Range Quick Select */}
+            <div>
+              <Label>Quick Price Range (IDR per night)</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {priceRanges.map((range, index) => (
+                  <Button
+                    key={index}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePriceRangeSelect(range)}
+                    className="text-xs"
+                  >
+                    {range.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="minPrice">Min Price (IDR)</Label>
                 <Input
                   id="minPrice"
                   type="number"
-                  placeholder="100000"
+                  placeholder="e.g., 100000"
                   value={searchParams.minPrice || ""}
                   onChange={(e) =>
                     handleInputChange(
@@ -176,13 +225,18 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                     )
                   }
                 />
+                {searchParams.minPrice && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Rp {searchParams.minPrice.toLocaleString("id-ID")}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="maxPrice">Max Price (IDR)</Label>
                 <Input
                   id="maxPrice"
                   type="number"
-                  placeholder="1000000"
+                  placeholder="e.g., 1000000"
                   value={searchParams.maxPrice || ""}
                   onChange={(e) =>
                     handleInputChange(
@@ -191,6 +245,11 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                     )
                   }
                 />
+                {searchParams.maxPrice && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Rp {searchParams.maxPrice.toLocaleString("id-ID")}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="capacity">Max Capacity</Label>
@@ -226,15 +285,16 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="name">Name</SelectItem>
-                    <SelectItem value="price">Price</SelectItem>
-                    <SelectItem value="createdAt">Date Created</SelectItem>
-                    <SelectItem value="capacity">Capacity</SelectItem>
+                    {sortOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
               <Label htmlFor="sortOrder">Sort Order:</Label>
               <Select
                 value={searchParams.sortOrder || "asc"}
@@ -242,12 +302,28 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                   handleSelectChange("sortOrder", value)
                 }
               >
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-full sm:w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="asc">Ascending</SelectItem>
-                  <SelectItem value="desc">Descending</SelectItem>
+                  <SelectItem value="asc">
+                    {searchParams.sortBy === "price"
+                      ? "Cheapest First"
+                      : searchParams.sortBy === "name"
+                      ? "A to Z"
+                      : searchParams.sortBy === "capacity"
+                      ? "Smallest First"
+                      : "Oldest First"}
+                  </SelectItem>
+                  <SelectItem value="desc">
+                    {searchParams.sortBy === "price"
+                      ? "Most Expensive First"
+                      : searchParams.sortBy === "name"
+                      ? "Z to A"
+                      : searchParams.sortBy === "capacity"
+                      ? "Largest First"
+                      : "Newest First"}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

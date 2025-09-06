@@ -106,7 +106,7 @@ export default function CreatePropertyForm() {
 
       if (response.success) {
         toast.success("Property created successfully!");
-        router.push("/properties"); // Navigate to properties list
+        router.push("/my-properties"); // Navigate to properties list
       }
     } catch (error: any) {
       const errorMessage =
