@@ -50,6 +50,15 @@ export const USER_ENDPOINTS = {
   REVERIFY_EMAIL: "/users/reverify-email",
 } as const;
 
+// Room Endpoints
+export const ROOM_ENDPOINTS = {
+  SET_BULK_AVAILABILITY: (roomId: string) => `/rooms/${roomId}/availability`,
+  GET_MONTHLY_AVAILABILITY: (roomId: string) => `/rooms/${roomId}/availability`,
+  // Public availability endpoint (no auth required)
+  GET_PUBLIC_AVAILABILITY: (roomId: string) =>
+    `/public/properties/rooms/${roomId}/availability`,
+} as const;
+
 // Reservation Endpoints
 export const RESERVATION_ENDPOINTS = {
   GET_ALL_RESERVATIONS: "/api/reservation",
