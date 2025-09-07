@@ -50,11 +50,11 @@ export default function UserTypeCard({
             <li key={index}>✓ {feature}</li>
           ))}
         </ul>
-        <Link href={href} className="block">
+        {/* <Link href={href} className="block">
           <Button size="lg" variant={buttonVariant} className="w-full">
             {buttonText}
           </Button>
-        </Link>
+        </Link> */}
       </CardContent>
     </Card>
   );

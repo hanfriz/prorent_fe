@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 
 const quickLinks = [
-  { label: "Find Property", href: "/register/user" },
-  { label: "List Property", href: "/register/owner" },
+  { label: "Find Property", href: "/properties" },
+  { label: "List Property", href: "/register" },
   { label: "Sign In", href: "/login" },
 ];
 
