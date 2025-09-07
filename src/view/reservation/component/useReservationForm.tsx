@@ -81,8 +81,6 @@ export function useReservationForm({
   const isFormValid = () => {
     return !!startDate && !!endDate && startDate < endDate;
   };
-  console.log(userId);
-  console.log("form data", formData);
   const form = useForm({
     defaultValues: {
       userId: userId || "",
@@ -116,7 +114,6 @@ export function useReservationForm({
 
       try {
         const res = await createMutation.mutateAsync(payload);
-        console.log("res", res);
         const data = res.reservation;
         if (payload.paymentType === PaymentType.MANUAL_TRANSFER) {
           setReservationId(data.id);
