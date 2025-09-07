@@ -9,8 +9,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import PriceCalendar from "@/components/myUi/customCalender";
 import { Skeleton } from "@/components/ui/skeleton";
+import PriceAvailabilityCalendar from "@/components/myUi/customAvailabilityCalender ";
 
 interface DateSelectionSectionProps {
   startDate?: Date;
@@ -20,6 +20,8 @@ interface DateSelectionSectionProps {
   priceMap: Record<string, number>;
   basePrice: number;
   isLoading?: boolean;
+  unavailableDates?: Set<string>;
+  isAvailabilityLoadings?: boolean;
 }
 
 export default function DateSelectionSection({
@@ -30,6 +32,8 @@ export default function DateSelectionSection({
   priceMap,
   basePrice,
   isLoading,
+  unavailableDates = new Set(),
+  isAvailabilityLoadings = false,
 }: DateSelectionSectionProps) {
   if (isLoading) {
     return (
@@ -61,6 +65,8 @@ export default function DateSelectionSection({
           priceMap={priceMap}
           basePrice={basePrice}
           defaultMonth={startDate ?? new Date()}
+          unavailableDates={unavailableDates}
+          isAvailabilityLoadings={isAvailabilityLoadings}
         />
         <DateField
           label="Check-out"
@@ -70,6 +76,8 @@ export default function DateSelectionSection({
           priceMap={priceMap}
           basePrice={basePrice}
           defaultMonth={endDate ?? startDate ?? new Date()}
+          unavailableDates={unavailableDates}
+          isAvailabilityLoadings={isAvailabilityLoadings}
         />
       </div>
       {startDate && endDate && startDate >= endDate && (
@@ -89,6 +97,8 @@ function DateField({
   priceMap,
   basePrice,
   defaultMonth,
+  unavailableDates = new Set(),
+  isAvailabilityLoadings,
 }: {
   label: string;
   id: string;
@@ -97,6 +107,8 @@ function DateField({
   priceMap: Record<string, number>;
   basePrice: number;
   defaultMonth: Date;
+  unavailableDates?: Set<string>;
+  isAvailabilityLoadings?: boolean;
 }) {
   return (
     <div className="flex-1">
@@ -129,12 +141,14 @@ function DateField({
           align="start"
         >
           <div id={id}>
-            <PriceCalendar
+            <PriceAvailabilityCalendar
               selected={selected}
               onSelect={onSelect}
               priceMap={priceMap}
               basePrice={basePrice}
               defaultMonth={defaultMonth}
+              unavailableDates={unavailableDates}
+              isAvailabilityLoading={isAvailabilityLoadings}
             />
           </div>
         </PopoverContent>

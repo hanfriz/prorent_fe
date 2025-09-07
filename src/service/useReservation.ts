@@ -12,7 +12,8 @@ import {
    rejectReservationByOwner,
    confirmReservationByOwner,
    getReservationWithPayment,
-   getReservationsByPropertyId
+   getReservationsByPropertyId,
+   fetchAvailabilityCalendar
 } from './reservationService';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
 import { CreateReservationInput } from '@/validation/reservationValidation';
@@ -47,6 +48,14 @@ const RESERVATION_KEYS = {
             sortBy: filters?.sortBy,
             sortOrder: filters?.sortOrder
          })
+      ] as const,
+   availability: (roomTypeId: string, startDate?: string, endDate?: string) =>
+      [
+         ...RESERVATION_KEYS.all,
+         'availability',
+         roomTypeId,
+         startDate || 'defaultStart',
+         endDate || 'defaultEnd'
       ] as const
 };
 
@@ -194,5 +203,22 @@ export function usePropertyReservations (propertyId: string, params?: GetUserRes
       }),
       queryFn: () => getReservationsByPropertyId(propertyId, params),
       enabled: !!propertyId && !!params?.roomTypeId
+   });
+}
+
+export function useAvailabilityCalendar (roomTypeId: string | undefined, startDate?: string, endDate?: string) {
+   return useQuery({
+      queryKey: RESERVATION_KEYS.availability(roomTypeId || '', startDate, endDate),
+      queryFn: () => {
+         if (!roomTypeId) {
+            throw new Error('roomTypeId is required');
+         }
+         return fetchAvailabilityCalendar(roomTypeId, startDate, endDate);
+      },
+      enabled: !!roomTypeId, // Only run if roomTypeId is provided
+      staleTime: 1000 * 60 * 5, // Cache for 5 minutes (availability doesn't change often)
+      gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+      refetchOnWindowFocus: false, // Avoid refetching on tab focus (unless you want live updates)
+      retry: 1 // Retry once if fails
    });
 }

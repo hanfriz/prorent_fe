@@ -18,31 +18,30 @@ import Link from "next/link";
 
 const ReservationActions = ({ reservation }: ReservationActionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [dialogAction, setDialogAction] = React.useState<'cancel' | 'reject' | 'confirm' | null>(null);
+  const [dialogAction, setDialogAction] = React.useState<
+    "cancel" | "reject" | "confirm" | null
+  >(null);
 
-  const {
-    cancelMutation,
-    rejectPaymentMutation,
-    confirmPaymentMutation
-  } = useReservationMutations();
+  const { cancelMutation, rejectPaymentMutation, confirmPaymentMutation } =
+    useReservationMutations();
 
   // Handlers for different actions
   const handleCancelClick = () => {
-    setDialogAction('cancel');
+    setDialogAction("cancel");
     setIsDialogOpen(true);
   };
 
   const handleRejectClick = () => {
-    setDialogAction('reject');
+    setDialogAction("reject");
     setIsDialogOpen(true);
   };
 
   const handleConfirmClick = () => {
-    setDialogAction('confirm');
+    setDialogAction("confirm");
     setIsDialogOpen(true);
   };
 
-   const handleConfirmAction = () => {
+  const handleConfirmAction = () => {
     const commonOptions = {
       onSuccess: () => {
         handleCloseDialog();
@@ -55,17 +54,17 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
         });
         // Close dialog on error
         handleCloseDialog();
-      }
+      },
     };
 
     switch (dialogAction) {
-      case 'cancel':
+      case "cancel":
         cancelMutation.mutate(reservation.id, commonOptions);
         break;
-      case 'reject':
+      case "reject":
         rejectPaymentMutation.mutate(reservation.id, commonOptions);
         break;
-      case 'confirm':
+      case "confirm":
         confirmPaymentMutation.mutate(reservation.id, commonOptions);
         break;
     }
@@ -92,21 +91,26 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
-              <Link href={`/reservation/${reservation.id}`} className="capitalize font-semibold">
+              <Link
+                href={`/reservation/${reservation.id}`}
+                className="capitalize font-semibold"
+              >
                 View Details
               </Link>
             </DropdownMenuItem>
-            
+
             {isPaymentButtonActive && (
               <DropdownMenuItem>
-                <Link href={`/payment/${reservation.id}`} className="capitalize font-semibold">
+                <Link
+                  href={`/payment/${reservation.id}`}
+                  className="capitalize font-semibold"
+                >
                   Upload Payment Proof
                 </Link>
               </DropdownMenuItem>
             )}
-            
-            {(reservation.orderStatus === "PENDING_CONFIRMATION" ||
-              reservation.orderStatus === "PENDING_PAYMENT") && (
+
+            {reservation.orderStatus === "PENDING_CONFIRMATION" && (
               <>
                 <DropdownMenuItem
                   onClick={handleRejectClick}
@@ -114,7 +118,7 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
                 >
                   Reject Payment
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuItem
                   onClick={handleConfirmClick}
                   className="text-green-600 focus:text-green-600 font-semibold"
@@ -123,9 +127,8 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
                 </DropdownMenuItem>
               </>
             )}
-            
-            {(reservation.orderStatus === "PENDING_PAYMENT" ||
-              reservation.orderStatus === "PENDING_CONFIRMATION") && (
+
+            {reservation.orderStatus === "PENDING_PAYMENT" && (
               <DropdownMenuItem
                 onClick={handleCancelClick}
                 className="text-red-600 focus:text-red-600 font-semibold"
@@ -144,9 +147,9 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
           onClose={handleCloseDialog}
           onConfirm={handleConfirmAction}
           isLoading={
-            (dialogAction === 'cancel' && cancelMutation.isPending) ||
-            (dialogAction === 'reject' && rejectPaymentMutation.isPending) ||
-            (dialogAction === 'confirm' && confirmPaymentMutation.isPending)
+            (dialogAction === "cancel" && cancelMutation.isPending) ||
+            (dialogAction === "reject" && rejectPaymentMutation.isPending) ||
+            (dialogAction === "confirm" && confirmPaymentMutation.isPending)
           }
           reservationId={reservation.id}
           actionType={dialogAction}

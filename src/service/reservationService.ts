@@ -1,6 +1,6 @@
 import { ReservationWithPayment, RPResPagination, RPResponse } from '@/interface/paymentInterface';
 import { GetUserReservationsParams } from '@/interface/queryInterface';
-import { ReservationResponse } from '@/interface/reservationInterface';
+import { AvailabilityCalendarResponse, ReservationResponse } from '@/interface/reservationInterface';
 import Axios from '@/lib/axios';
 import { paymentProofBrowserFileSchema, uploadPaymentProofFormSchema } from '@/validation/paymentProofValidation';
 import { CreateReservationInput, createReservationSchema } from '@/validation/reservationValidation';
@@ -164,4 +164,31 @@ export async function rejectReservationByOwner (reservationId: string) {
 export async function confirmReservationByOwner (reservationId: string) {
    const response = await Axios.patch(`/reservation/${reservationId}/confirm`);
    return response.data;
+}
+
+export async function fetchAvailabilityCalendar (
+   roomTypeId: string,
+   startDate?: string,
+   endDate?: string
+): Promise<AvailabilityCalendarResponse> {
+   try {
+      const params = new URLSearchParams();
+      if (startDate) {
+         params.append('startDate', startDate);
+      }
+      if (endDate) {
+         params.append('endDate', endDate);
+      }
+
+      const queryString = params.toString();
+      const url = `/reservation/validate/${roomTypeId}${queryString ? `?${queryString}` : ''}`;
+
+      const response = await Axios.get(url, {
+         _skipAuthRedirect: true
+      } as any);
+      return response.data;
+   } catch (error: any) {
+      console.error('Error fetching availability calendar:', error.message);
+      return { unavailableDates: [] };
+   }
 }

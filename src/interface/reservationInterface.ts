@@ -33,6 +33,8 @@ export interface Reservation {
 export type ReservationResponse = {
    reservation: Reservation;
    message: string;
+   paymentUrl: string | null;
+   reservationId: string | null;
 };
 
 export type Props = {
@@ -46,3 +48,12 @@ export type Props = {
 export interface ReservationActionsProps {
    reservation: ReservationWithPayment; // Pass the full reservation object
 }
+
+export type UnavailableDate = {
+   date: string; // "YYYY-MM-DD"
+   isAvailable: false;
+};
+
+export type AvailabilityCalendarResponse = {
+   unavailableDates: UnavailableDate[];
+};
