@@ -13,7 +13,7 @@ const renderImageModal = (
           <div className="flex justify-end">
             <button
               onClick={closeImageModal}
-              className="text-pr-mid font-semibold"
+              className="text-pr-mid font-semibold cursor-pointer"
             >
               Close
             </button>

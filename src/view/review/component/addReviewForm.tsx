@@ -183,7 +183,12 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({
         Error loading eligible reservations:{" "}
         {reservationsError?.message || "Unknown error"}
         <div className="mt-4 flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="cursor-pointer"
+          >
             Cancel
           </Button>
         </div>
@@ -310,6 +315,7 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({
         <Button
           type="submit"
           disabled={isCreatePending || !selectedReservationId || !agreedToTerms}
+          className="cursor-pointer"
         >
           {isCreatePending ? "Submitting..." : "Submit Review"}
         </Button>
