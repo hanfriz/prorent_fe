@@ -28,7 +28,7 @@ import {
 import type {
   RoomType,
   PublicPropertyDetail,
-} from "@/interface/publicPropertyInterface"; // ✅ Import PublicPropertyDetail
+} from "@/interface/publicPropertyInterface";
 import { useReservationStore } from "@/lib/stores/reservationStore";
 import { PaymentType } from "@/interface/enumInterface";
 import { useAvailabilityCalendar } from "@/service/useReservation";
@@ -75,6 +75,7 @@ export default function PropertyCalendar({
   const [currentStep, setCurrentStep] = React.useState<"checkin" | "checkout">(
     "checkin"
   );
+
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const router = useRouter();
@@ -88,15 +89,14 @@ export default function PropertyCalendar({
     data: availabilityData,
     isLoading: isAvailabilityLoading,
     error: availabilityError,
-  } = useAvailabilityCalendar(selectedRoomTypeId, undefined, undefined); // Defaults to current year
+  } = useAvailabilityCalendar(selectedRoomTypeId, undefined, undefined);
 
   // ✅ Create Set of unavailable dates for O(1) lookup
   const unavailableDateSet = React.useMemo(() => {
     if (!availabilityData?.unavailableDates) return new Set<string>();
     return new Set(
       availabilityData.unavailableDates.map((d) => {
-        const date = new Date(d.date + "T17:00:00Z");
-        console.log(date);
+        const date = new Date(d.date + "T00:00:00Z");
         if (isNaN(date.getTime())) {
           throw new Error(
             `Invalid date format: ${d.date}. Use YYYY-MM-DD format`
@@ -135,7 +135,6 @@ export default function PropertyCalendar({
         onDateSelect?.(dateRange);
         setCurrentStep("checkin");
       } else {
-        // If selected date is before or same as checkin, reset
         setCheckInDate(selectedDate);
         setCheckOutDate(undefined);
         setCurrentStep("checkout");
@@ -174,7 +173,7 @@ export default function PropertyCalendar({
     const currentDate = addOneMinute(from);
 
     while (currentDate < to) {
-      const dateKey = formatDateToJakartaYYYYMMDD(currentDate); // ✅ FIXED
+      const dateKey = formatDateToJakartaYYYYMMDD(currentDate);
       if (unavailableDateSet.has(dateKey)) {
         invalidDates.push(dateKey);
       }
@@ -238,6 +237,7 @@ export default function PropertyCalendar({
           roomTypeName: selectedRoomType.name,
           basePrice: selectedRoomType.basePrice,
           mainImageUrl: property.pictures?.main?.url || "",
+          priceMap: priceMap, // ✅ This should be an object like { "2025-09-12": 12700000 }
         });
 
         router.push("/reservation");
@@ -307,16 +307,17 @@ export default function PropertyCalendar({
         </div>
 
         <div className="space-y-2">
-          <PriceAvailabilityCalendar
-            selected={getSelectedDate()}
-            onSelect={handleDateSelect}
-            defaultMonth={checkInDate || new Date()}
-            priceMap={priceMap}
-            basePrice={basePrice}
-            // ✅ Pass unavailable dates to calendar
-            unavailableDates={unavailableDateSet}
-            isAvailabilityLoading={isAvailabilityLoading}
-          />
+          <div>
+            <PriceAvailabilityCalendar
+              selected={getSelectedDate()}
+              onSelect={handleDateSelect}
+              defaultMonth={checkInDate || new Date()}
+              priceMap={priceMap}
+              basePrice={basePrice}
+              unavailableDates={unavailableDateSet}
+              isAvailabilityLoading={isAvailabilityLoading}
+            />
+          </div>
         </div>
 
         <div className="flex gap-2">

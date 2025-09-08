@@ -45,6 +45,7 @@ export function useReservationForm({
     roomTypeName?: string;
     basePrice?: number;
     mainImageUrl?: string;
+    priceMap?: Record<string, number>;
   };
   formData: Partial<CreateReservationInput>;
   startDate?: Date;
@@ -56,33 +57,16 @@ export function useReservationForm({
   const createMutation = useCreateReservation();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
 
-  const [priceMap, setPriceMap] = useState<Record<string, number>>({});
+  const priceMap = displayData.priceMap || {};
+
+  console.log("priceMap", priceMap);
 
   const userId = user?.id;
   const email = user?.email;
 
-  // Simulate dynamic pricing
-  useEffect(() => {
-    const fetchedPriceMap: Record<string, number> = {
-      "2025-08-23": displayData.basePrice
-        ? displayData.basePrice * 1.2
-        : 120000,
-      "2025-08-24": displayData.basePrice
-        ? displayData.basePrice * 1.35
-        : 135000,
-      "2025-08-25": displayData.basePrice || 100000,
-      "2025-08-26": displayData.basePrice
-        ? displayData.basePrice * 1.5
-        : 150000,
-    };
-    setPriceMap(fetchedPriceMap);
-  }, [displayData.basePrice]);
-
   const isFormValid = () => {
     return !!startDate && !!endDate && startDate < endDate;
   };
-  console.log(userId);
-  console.log("form data", formData);
   const form = useForm({
     defaultValues: {
       userId: userId || "",
@@ -106,6 +90,9 @@ export function useReservationForm({
         .toDate();
       const end = moment.tz(endDate, "Asia/Jakarta").startOf("day").toDate();
 
+      console.log("startDate", start);
+      console.log("endDate", end);
+
       const payload = {
         ...value,
         userId: userId,
@@ -116,7 +103,6 @@ export function useReservationForm({
 
       try {
         const res = await createMutation.mutateAsync(payload);
-        console.log("res", res);
         const data = res.reservation;
         if (payload.paymentType === PaymentType.MANUAL_TRANSFER) {
           setReservationId(data.id);
@@ -131,7 +117,6 @@ export function useReservationForm({
     },
   }) as UseReservationFormReturn["form"];
 
-  // Sync Zustand store when dates change
   useEffect(() => {
     if (startDate) {
       const formatted = startDate.toISOString();

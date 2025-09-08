@@ -20,7 +20,6 @@ export const validateDateRange = (
 
   while (currentDate < to) {
     const dateKey = formatDateToJakartaYYYYMMDD(currentDate);
-    console.log(dateKey);
     if (unavailableDateSet.has(dateKey)) {
       invalidDates.push(dateKey);
     }
