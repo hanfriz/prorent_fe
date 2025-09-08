@@ -285,7 +285,7 @@ export default function PromoSection() {
             <Button
               size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8"
+              className="border-white text-blue-600 hover:bg-gray-100 font-semibold px-8"
             >
               Contact Us
             </Button>
