@@ -1,6 +1,41 @@
 import { Location } from "./locationInterface";
 import { PropertyRentalType } from "./enumInterface";
 
+export interface PropertyProps {
+  id: string;
+  name: string;
+  description: string;
+  category: {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  location: {
+    address: string;
+    city: string;
+    province: string;
+  };
+  mainPicture: {
+    id: string;
+    url: string;
+    alt: string;
+    type: string;
+    sizeKB: number;
+    uploadedAt: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  roomCount: number;
+  capacity: number;
+  createdAt: string;
+}
+
 export interface Property {
   id: string;
   name: string;

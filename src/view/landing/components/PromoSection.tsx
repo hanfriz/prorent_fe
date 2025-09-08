@@ -4,58 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Users, Calendar } from "lucide-react";
-
-interface Property {
-  id: string;
-  name: string;
-  description: string;
-  category: {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-  location: {
-    address: string;
-    city: string;
-    province: string;
-  };
-  mainPicture: {
-    id: string;
-    url: string;
-    alt: string;
-    type: string;
-    sizeKB: number;
-    uploadedAt: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-  priceRange: {
-    min: number;
-    max: number;
-  };
-  roomCount: number;
-  capacity: number;
-  createdAt: string;
-}
-
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: Property[];
-  pagination: {
-    currentPage: number;
-    totalItems: number;
-    itemsPerPage: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-}
+import { publicPropertyService } from "@/service/publicPropertyService";
+import { PropertyProps } from "@/interface/propertyInterface";
 
 export default function PromoSection() {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<PropertyProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,20 +31,16 @@ export default function PromoSection() {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "http://localhost:5000/api/public/properties?page=1&limit=10"
-      );
+      const response = await publicPropertyService.getPublicProperties();
 
-      if (!response.ok) {
+      if (!response) {
         throw new Error("Failed to fetch properties");
       }
 
-      const data: ApiResponse = await response.json();
-
-      if (data.success) {
-        setProperties(data.data);
+      if (response.success) {
+        setProperties(response.data);
       } else {
-        throw new Error(data.message || "Failed to load properties");
+        throw new Error(response.message || "Failed to load properties");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
