@@ -116,145 +116,126 @@ const OwnerReservationTable = ({
   return (
     <div className="space-y-4">
       {/* Desktop / Tablet Table */}
-      <div className="hidden md:block border rounded-2xl overflow-x-auto bg-white shadow-pr-soft">
-        <div className="min-w-[1000px]">
-          <Table>
-            <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
-              <TableRow>
-                <TableHead
-                  onClick={() => handleSort("payment.invoiceNumber")}
-                  className="w-[160px] cursor-pointer"
-                >
-                  Invoice {renderSortIndicator("payment.invoiceNumber")}
-                </TableHead>
-                <TableHead
-                  onClick={() => handleSort("property.name")}
-                  className="cursor-pointer"
-                >
-                  Property {renderSortIndicator("property.name")}
-                </TableHead>
-                <TableHead
-                  onClick={() => handleSort("RoomType.name")}
-                  className="cursor-pointer"
-                >
-                  Room Type {renderSortIndicator("RoomType.name")}
-                </TableHead>
-                <TableHead className="cursor-pointer">Proof</TableHead>
-                <TableHead
-                  onClick={() => handleSort("startDate")}
-                  className="cursor-pointer"
-                >
-                  CheckIn {renderSortIndicator("startDate")}
-                </TableHead>
-                <TableHead
-                  onClick={() => handleSort("endDate")}
-                  className="cursor-pointer"
-                >
-                  CheckOut {renderSortIndicator("endDate")}
-                </TableHead>
-                <TableHead
-                  onClick={() => handleSort("payment.amount")}
-                  className="cursor-pointer"
-                >
-                  Amount {renderSortIndicator("payment.amount")}
-                </TableHead>
-                <TableHead
-                  onClick={() => handleSort("orderStatus")}
-                  className="cursor-pointer"
-                >
-                  Status {renderSortIndicator("orderStatus")}
-                </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {reservations.length === 0 ? (
+      <div className="hidden md:block border rounded-2xl bg-white shadow-pr-soft">
+        {/* khusus untuk overflow scroll */}
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[1000px]">
+            <Table>
+              <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
                 <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center py-10 text-pr-mid"
+                  <TableHead
+                    onClick={() => handleSort("payment.invoiceNumber")}
+                    className="w-[160px] cursor-pointer"
                   >
-                    No reservations found.
-                  </TableCell>
+                    Invoice {renderSortIndicator("payment.invoiceNumber")}
+                  </TableHead>
+                  <TableHead
+                    onClick={() => handleSort("property.name")}
+                    className="cursor-pointer"
+                  >
+                    Property {renderSortIndicator("property.name")}
+                  </TableHead>
+                  <TableHead
+                    onClick={() => handleSort("RoomType.name")}
+                    className="cursor-pointer"
+                  >
+                    Room Type {renderSortIndicator("RoomType.name")}
+                  </TableHead>
+                  <TableHead className="cursor-pointer">Proof</TableHead>
+                  <TableHead
+                    onClick={() => handleSort("startDate")}
+                    className="cursor-pointer"
+                  >
+                    CheckIn {renderSortIndicator("startDate")}
+                  </TableHead>
+                  <TableHead
+                    onClick={() => handleSort("endDate")}
+                    className="cursor-pointer"
+                  >
+                    CheckOut {renderSortIndicator("endDate")}
+                  </TableHead>
+                  <TableHead
+                    onClick={() => handleSort("payment.amount")}
+                    className="cursor-pointer"
+                  >
+                    Amount {renderSortIndicator("payment.amount")}
+                  </TableHead>
+                  <TableHead
+                    onClick={() => handleSort("orderStatus")}
+                    className="cursor-pointer"
+                  >
+                    Status {renderSortIndicator("orderStatus")}
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                reservations.map((reservation) => (
-                  <TableRow
-                    key={reservation.id}
-                    className="hover:bg-pr-primary/5 transition"
-                  >
-                    {/* Invoice with tooltip */}
-                    <TableCell className="font-semibold text-pr-dark whitespace-nowrap max-w-[180px]">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="truncate max-w-[180px] cursor-help">
-                            {reservation.payment?.invoiceNumber || "N/A"}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <span>
-                            {reservation.payment?.invoiceNumber || "N/A"}
-                          </span>
-                        </TooltipContent>
-                      </Tooltip>
+              </TableHeader>
+
+              <TableBody>
+                {reservations.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={9}
+                      className="text-center py-10 text-pr-mid"
+                    >
+                      No reservations found.
                     </TableCell>
+                  </TableRow>
+                ) : (
+                  reservations.map((reservation) => (
+                    <TableRow
+                      key={reservation.id}
+                      className="hover:bg-pr-primary/5 transition"
+                    >
+                      {/* Invoice */}
+                      <TableCell className="font-semibold text-pr-dark whitespace-nowrap max-w-[180px]">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="truncate max-w-[180px] cursor-help">
+                              {reservation.payment?.invoiceNumber || "N/A"}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <span>
+                              {reservation.payment?.invoiceNumber || "N/A"}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
 
-                    {/* Property */}
-                    <TableCell className="max-w-[220px] text-sm text-pr-mid">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="truncate max-w-[220px] cursor-help">
-                            {reservation.Property?.name || "N/A"}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <span>{reservation.Property?.name || "N/A"}</span>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
+                      {/* Property */}
+                      <TableCell className="max-w-[220px] text-sm text-pr-mid">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="truncate max-w-[220px] cursor-help">
+                              {reservation.RoomType?.property?.name || "N/A"}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <span>
+                              {reservation.RoomType?.property?.name || "N/A"}
+                            </span>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
 
-                    {/* Room Type */}
-                    <TableCell className="max-w-[200px]">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="truncate max-w-[200px] cursor-help">
-                            {reservation.RoomType?.name || "N/A"}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <span>{reservation.RoomType?.name || "N/A"}</span>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
+                      {/* Room Type */}
+                      <TableCell className="max-w-[200px]">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="truncate max-w-[200px] cursor-help">
+                              {reservation.RoomType?.name || "N/A"}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <span>{reservation.RoomType?.name || "N/A"}</span>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
 
-                    {/* Payment Proof: thumbnail + open modal */}
-                    <TableCell className="max-w-[160px]">
-                      {reservation.PaymentProof?.picture?.url ? (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() =>
-                              openImageModal(
-                                reservation.PaymentProof!.picture!.url!,
-                                reservation.PaymentProof!.picture!.alt ||
-                                  "Payment Proof"
-                              )
-                            }
-                            className="inline-block rounded overflow-hidden border border-pr-mid/20"
-                            aria-label="Open payment proof"
-                          >
-                            <img
-                              src={reservation.PaymentProof.picture.url}
-                              alt={
-                                reservation.PaymentProof.picture.alt ||
-                                "Payment Proof"
-                              }
-                              className="h-12 w-16 object-cover"
-                              loading="lazy"
-                            />
-                          </button>
-
-                          <div className="text-sm">
+                      {/* Payment Proof */}
+                      <TableCell className="max-w-[160px]">
+                        {reservation.PaymentProof?.picture?.url ? (
+                          <div className="flex items-center gap-2">
                             <button
                               onClick={() =>
                                 openImageModal(
@@ -263,53 +244,79 @@ const OwnerReservationTable = ({
                                     "Payment Proof"
                                 )
                               }
-                              className="text-pr-primary hover:underline text-sm"
+                              className="inline-block rounded overflow-hidden border border-pr-mid/20"
+                              aria-label="Open payment proof"
                             >
-                              View
+                              <img
+                                src={reservation.PaymentProof.picture.url}
+                                alt={
+                                  reservation.PaymentProof.picture.alt ||
+                                  "Payment Proof"
+                                }
+                                className="h-12 w-16 object-cover"
+                                loading="lazy"
+                              />
                             </button>
+
+                            <div className="text-sm">
+                              <button
+                                onClick={() =>
+                                  openImageModal(
+                                    reservation.PaymentProof!.picture!.url!,
+                                    reservation.PaymentProof!.picture!.alt ||
+                                      "Payment Proof"
+                                  )
+                                }
+                                className="text-pr-primary hover:underline text-sm"
+                              >
+                                View
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        "N/A"
-                      )}
-                    </TableCell>
+                        ) : (
+                          "N/A"
+                        )}
+                      </TableCell>
 
-                    {/* Dates */}
-                    <TableCell className="whitespace-nowrap text-sm">
-                      {reservation.startDate
-                        ? format(new Date(reservation.startDate), "PPP")
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">
-                      {reservation.endDate
-                        ? format(new Date(reservation.endDate), "PPP")
-                        : "N/A"}
-                    </TableCell>
+                      {/* Dates */}
+                      <TableCell className="whitespace-nowrap text-sm">
+                        {reservation.startDate
+                          ? format(new Date(reservation.startDate), "PPP")
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm">
+                        {reservation.endDate
+                          ? format(new Date(reservation.endDate), "PPP")
+                          : "N/A"}
+                      </TableCell>
 
-                    {/* Amount */}
-                    <TableCell className="whitespace-nowrap">
-                      {formatCurrency(reservation.payment?.amount)}
-                    </TableCell>
+                      {/* Amount */}
+                      <TableCell className="whitespace-nowrap">
+                        {formatCurrency(reservation.payment?.amount)}
+                      </TableCell>
 
-                    {/* Status */}
-                    <TableCell>
-                      <Badge
-                        variant={getStatusBadgeVariant(reservation.orderStatus)}
-                        className="uppercase"
-                      >
-                        {reservation.orderStatus.replace("_", " ")}
-                      </Badge>
-                    </TableCell>
+                      {/* Status */}
+                      <TableCell>
+                        <Badge
+                          variant={getStatusBadgeVariant(
+                            reservation.orderStatus
+                          )}
+                          className="uppercase"
+                        >
+                          {reservation.orderStatus.replace("_", " ")}
+                        </Badge>
+                      </TableCell>
 
-                    {/* Actions */}
-                    <TableCell className="text-right">
-                      <ReservationActions reservation={reservation} />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      {/* Actions */}
+                      <TableCell className="text-right">
+                        <ReservationActions reservation={reservation} />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* Pagination Controls (desktop) */}
@@ -375,7 +382,7 @@ const OwnerReservationTable = ({
                   </div>
 
                   <div className="mt-2 text-sm text-pr-mid truncate">
-                    {r.Property?.name || "N/A"}
+                    {r.RoomType?.property?.name || "N/A"}
                   </div>
                   <div className="mt-1 text-xs text-pr-mid truncate">
                     {r.RoomType?.name || "N/A"}

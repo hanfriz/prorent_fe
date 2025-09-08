@@ -102,12 +102,16 @@ const ReservationFilters = ({
   };
 
   // Handle sort button clicks
-  const handleSortAsc = () => {
-    if (onSortChange) onSortChange("asc");
-  };
+  const handleToggleSort = () => {
+    if (!onSortChange) return;
 
-  const handleSortDesc = () => {
-    if (onSortChange) onSortChange("desc");
+    if (currentSortOrder === "asc") {
+      onSortChange("desc");
+    } else if (currentSortOrder === "desc") {
+      onSortChange(null); // bisa reset kalau klik lagi
+    } else {
+      onSortChange("asc");
+    }
   };
 
   return (
@@ -143,40 +147,6 @@ const ReservationFilters = ({
             >
               Search
             </Button>
-
-            {/* SORT BUTTONS */}
-            <div className="flex gap-1">
-              <Button
-                type="button"
-                variant={currentSortOrder === "asc" ? "default" : "outline"}
-                onClick={handleSortAsc}
-                className={cn(
-                  "h-10 px-3 whitespace-nowrap cursor-pointer",
-                  currentSortOrder === "asc"
-                    ? "bg-pr-primary text-white"
-                    : "border-pr-mid text-pr-mid hover:bg-pr-primary/6"
-                )}
-                aria-label="Sort Ascending"
-              >
-                <ArrowUp className="h-4 w-4 mr-1" />
-                Asc
-              </Button>
-              <Button
-                type="button"
-                variant={currentSortOrder === "desc" ? "default" : "outline"}
-                onClick={handleSortDesc}
-                className={cn(
-                  "h-10 px-3 whitespace-nowrap cursor-pointer",
-                  currentSortOrder === "desc"
-                    ? "bg-pr-primary text-white"
-                    : "border-pr-mid text-pr-mid hover:bg-pr-primary/6"
-                )}
-                aria-label="Sort Descending"
-              >
-                <ArrowDown className="h-4 w-4 mr-1" />
-                Desc
-              </Button>
-            </div>
           </div>
         </div>
       </form>
