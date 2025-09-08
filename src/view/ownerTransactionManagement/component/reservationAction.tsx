@@ -80,20 +80,20 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
 
   return (
     <>
-      <div className="flex items-center justify-end space-x-2">
+      <div className="flex items-center justify-end space-x-2 cursor-pointer">
         {/* Actions Dropdown Menu */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+          <DropdownMenuTrigger asChild className="cursor-pointer">
+            <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+              <span className="sr-only cursor-pointer">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
               <Link
-                href={`/dashboard/reservation/${reservation.id}`}
-                className="capitalize font-semibold"
+                href={`/reservation/details/${reservation.id}`}
+                className="capitalize font-semibold cursor-pointer"
               >
                 View Details
               </Link>
@@ -103,14 +103,14 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
               <>
                 <DropdownMenuItem
                   onClick={handleRejectClick}
-                  className="text-red-600 focus:text-red-600 font-semibold"
+                  className="text-red-600 focus:text-red-600 font-semibold cursor-pointer"
                 >
                   Reject Payment
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={handleConfirmClick}
-                  className="text-green-600 focus:text-green-600 font-semibold"
+                  className="text-green-600 focus:text-green-600 font-semibold cursor-pointer"
                 >
                   Confirm Payment
                 </DropdownMenuItem>
@@ -120,7 +120,7 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
             {reservation.orderStatus === "PENDING_PAYMENT" && (
               <DropdownMenuItem
                 onClick={handleCancelClick}
-                className="text-red-600 focus:text-red-600 font-semibold"
+                className="text-red-600 focus:text-red-600 font-semibold cursor-pointer"
               >
                 Cancel Reservation
               </DropdownMenuItem>
