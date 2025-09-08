@@ -1,7 +1,7 @@
 // components/reservations/ReservationDialog.tsx
 "use client";
 
-import React from 'react';
+import React from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +20,7 @@ interface ReservationDialogProps {
   onConfirm: () => void;
   isLoading?: boolean;
   reservationId: string;
-  actionType: 'cancel' | 'reject' | 'confirm';
+  actionType: "cancel" | "reject" | "confirm";
 }
 
 export const ReservationDialog = ({
@@ -29,42 +29,54 @@ export const ReservationDialog = ({
   onConfirm,
   isLoading,
   reservationId,
-  actionType
+  actionType,
 }: ReservationDialogProps) => {
   // Configuration based on action type
   const getConfig = () => {
     switch (actionType) {
-      case 'cancel':
+      case "cancel":
         return {
-          title: 'Cancel Reservation?',
-          description: `Are you sure you want to cancel reservation #${reservationId.substring(0, 8)}? This action cannot be undone.`,
-          confirmText: isLoading ? 'Cancelling...' : 'Yes, cancel',
-          cancelText: 'No, keep it',
-          buttonVariant: 'destructive' as const,
+          title: "Cancel Reservation?",
+          description: `Are you sure you want to cancel reservation #${reservationId.substring(
+            0,
+            8
+          )}? This action cannot be undone.`,
+          confirmText: isLoading ? "Cancelling..." : "Yes, cancel",
+          cancelText: "No, keep it",
+          buttonVariant: "destructive" as const,
         };
-      case 'reject':
+      case "reject":
         return {
-          title: 'Reject Payment?',
-          description: `Are you sure you want to reject payment for reservation #${reservationId.substring(0, 8)}? This action cannot be undone.`,
-          confirmText: isLoading ? 'Rejecting...' : 'Yes, reject',
-          cancelText: 'No, keep it',
-          buttonVariant: 'destructive' as const,
+          title: "Reject Payment?",
+          description: `Are you sure you want to reject payment for reservation #${reservationId.substring(
+            0,
+            8
+          )}? This action cannot be undone.`,
+          confirmText: isLoading ? "Rejecting..." : "Yes, reject",
+          cancelText: "No, keep it",
+          buttonVariant: "destructive" as const,
         };
-      case 'confirm':
+      case "confirm":
         return {
-          title: 'Confirm Payment?',
-          description: `Are you sure you want to confirm payment for reservation #${reservationId.substring(0, 8)}? This will mark the reservation as confirmed.`,
-          confirmText: isLoading ? 'Confirming...' : 'Yes, confirm',
-          cancelText: 'No, wait',
-          buttonVariant: 'default' as const,
+          title: "Confirm Payment?",
+          description: `Are you sure you want to confirm payment for reservation #${reservationId.substring(
+            0,
+            8
+          )}? This will mark the reservation as confirmed.`,
+          confirmText: isLoading ? "Confirming..." : "Yes, confirm",
+          cancelText: "No, wait",
+          buttonVariant: "default" as const,
         };
       default:
         return {
-          title: 'Are you sure?',
-          description: `Are you sure you want to perform this action on reservation #${reservationId.substring(0, 8)}?`,
-          confirmText: isLoading ? 'Processing...' : 'Yes, proceed',
-          cancelText: 'No, cancel',
-          buttonVariant: 'default' as const,
+          title: "Are you sure?",
+          description: `Are you sure you want to perform this action on reservation #${reservationId.substring(
+            0,
+            8
+          )}?`,
+          confirmText: isLoading ? "Processing..." : "Yes, proceed",
+          cancelText: "No, cancel",
+          buttonVariant: "default" as const,
         };
     }
   };
@@ -76,9 +88,7 @@ export const ReservationDialog = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{config.title}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {config.description}
-          </AlertDialogDescription>
+          <AlertDialogDescription>{config.description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>
@@ -88,6 +98,7 @@ export const ReservationDialog = ({
             variant={config.buttonVariant}
             onClick={onConfirm}
             disabled={isLoading}
+            className="cursor-pointer"
           >
             {config.confirmText}
           </Button>

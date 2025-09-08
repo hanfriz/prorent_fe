@@ -48,13 +48,18 @@ export function OwnerPropertyCard({
   };
 
   const getPriceRange = () => {
-    // If displaying a specific room, show the room type's price
-    if (room && room.roomType) {
-      return formatPrice(room.roomType.basePrice);
+    // Use priceRange from API response if available
+    if (property.priceRange && property.priceRange.min > 0) {
+      const { min, max } = property.priceRange;
+      if (min === max) {
+        return formatPrice(min.toString());
+      }
+      return `${formatPrice(min.toString())} - ${formatPrice(max.toString())}`;
     }
 
-    // Otherwise show property price range
-    if (property.roomTypes.length === 0) return "No pricing set";
+    // Otherwise calculate from roomTypes
+    if (!property.roomTypes || property.roomTypes.length === 0)
+      return "No pricing set";
 
     const prices = property.roomTypes.map((rt) => parseInt(rt.basePrice));
     const minPrice = Math.min(...prices);
@@ -69,6 +74,7 @@ export function OwnerPropertyCard({
   };
 
   const getTotalCapacity = () => {
+    if (!property.roomTypes) return 0;
     return property.roomTypes.reduce(
       (total, rt) => total + rt.capacity * rt.totalQuantity,
       0
@@ -87,7 +93,7 @@ export function OwnerPropertyCard({
           />
           <div className="absolute top-3 left-3">
             <Badge variant="secondary" className="bg-white/90 text-gray-900">
-              {property.category.name}
+              {property.category?.name || "Unknown"}
             </Badge>
           </div>
           <div className="absolute top-3 right-3">
@@ -112,8 +118,10 @@ export function OwnerPropertyCard({
         <div className="flex items-center text-gray-600 mb-2">
           <MapPin className="h-4 w-4 mr-1" />
           <span className="text-sm line-clamp-1">
-            {property.location.city.name},{" "}
-            {property.location.city.province.name}
+            {property.location?.city?.name &&
+            property.location?.city?.province?.name
+              ? `${property.location.city.name}, ${property.location.city.province.name}`.trim()
+              : property.location?.address || "Location not set"}
           </span>
         </div>
 
@@ -125,18 +133,12 @@ export function OwnerPropertyCard({
           <div className="flex items-center text-gray-600">
             <Home className="h-4 w-4 mr-1" />
             <span>
-              {room
-                ? `Room: ${room.name}`
-                : `${property._count?.rooms || property.rooms.length} rooms`}
+              {property.roomCount || property.rooms?.length || 0} rooms
             </span>
           </div>
           <div className="flex items-center text-gray-600">
             <Users className="h-4 w-4 mr-1" />
-            <span>
-              {room
-                ? `${room.roomType?.capacity || 0} guests`
-                : `Max ${getTotalCapacity()}`}
-            </span>
+            <span>Max {property.capacity || getTotalCapacity()} guests</span>
           </div>
           <div className="flex items-center text-gray-600">
             <Calendar className="h-4 w-4 mr-1" />
@@ -144,11 +146,7 @@ export function OwnerPropertyCard({
           </div>
           <div className="flex items-center text-gray-600">
             <DollarSign className="h-4 w-4 mr-1" />
-            <span>
-              {room
-                ? `Available: ${room.isAvailable ? "Yes" : "No"}`
-                : `${property.roomTypes.length} room types`}
-            </span>
+            <span>{property.roomTypes?.length || 0} room types</span>
           </div>
         </div>
 

@@ -96,19 +96,26 @@ export interface OwnerProperty {
   categoryId: string;
   OwnerId: string;
   mainPictureId: string;
-  rentalType: "ROOM_BY_ROOM" | "WHOLE_PROPERTY";
+  rentalType?: "ROOM_BY_ROOM" | "WHOLE_PROPERTY";
   createdAt: string;
   updatedAt: string;
-  category: OwnerPropertyCategory;
-  location: OwnerPropertyLocation;
-  mainPicture: OwnerPropertyPicture;
-  gallery: OwnerPropertyGalleryItem[];
-  rooms: OwnerRoom[];
-  roomTypes: OwnerRoomType[];
+  category?: OwnerPropertyCategory;
+  location?: OwnerPropertyLocation;
+  mainPicture?: OwnerPropertyPicture;
+  gallery?: OwnerPropertyGalleryItem[];
+  rooms?: OwnerRoom[];
+  roomTypes?: OwnerRoomType[];
   _count?: {
     rooms: number;
     Reservation: number;
   };
+  // Fields from API response
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+  roomCount?: number;
+  capacity?: number;
 }
 
 // Search and Pagination

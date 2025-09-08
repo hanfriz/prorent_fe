@@ -23,11 +23,13 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { propertyService } from "@/service/propertyService";
@@ -136,8 +138,15 @@ export function RoomTypeSelector({
             ) : (
               roomTypes.map((roomType) => (
                 <SelectItem key={roomType.id} value={roomType.id}>
-                  <div>
-                    <div className="font-medium">{roomType.name}</div>
+                  <div className="w-full">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium">{roomType.name}</div>
+                      {roomType.isWholeUnit && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                          Unit Utuh
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-500">
                       Capacity: {roomType.capacity} | Price: Rp{" "}
                       {roomType.basePrice.toLocaleString()}
@@ -279,6 +288,37 @@ export function RoomTypeSelector({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="isWholeUnit"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Whole Unit Rental</FormLabel>
+                      <FormDescription>
+                        Check if this room type is rented as a whole unit
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("isWholeUnit") && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    💡 Whole unit rentals are perfect for entire properties like
+                    villas, apartments, or houses. Rooms will be auto-generated
+                    based on quantity with names like Room-001, Room-002, etc.
+                  </p>
+                </div>
+              )}
 
               <div className="flex justify-end space-x-2">
                 <Button
