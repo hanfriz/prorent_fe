@@ -294,7 +294,7 @@ const ReservationTable = ({
                 reservation.PaymentProof!.picture!.alt || "Bukti Pembayaran"
               )
             }
-            className="inline-block rounded overflow-hidden border border-pr-mid/20"
+            className="inline-block rounded overflow-hidden border border-pr-mid/20 cursor-pointer"
             aria-label="Open payment proof"
           >
             <img
@@ -313,7 +313,7 @@ const ReservationTable = ({
                   reservation.PaymentProof!.picture!.alt || "Bukti Pembayaran"
                 )
               }
-              className="text-pr-primary hover:underline"
+              className="text-pr-primary hover:underline cursor-pointer"
             >
               View
             </button>
@@ -344,7 +344,7 @@ const ReservationTable = ({
             size="sm"
             onClick={() => onPageChange(pagination.currentPage - 1)}
             disabled={!pagination.hasPrev}
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             Previous
           </Button>
@@ -356,7 +356,7 @@ const ReservationTable = ({
             size="sm"
             onClick={() => onPageChange(pagination.currentPage + 1)}
             disabled={!pagination.hasNext}
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             Next
           </Button>
@@ -441,7 +441,7 @@ const ReservationTable = ({
               reservation.PaymentProof!.picture!.alt || "Payment Proof"
             )
           }
-          className="inline-block rounded overflow-hidden border border-pr-mid/20 mr-2"
+          className="inline-block rounded overflow-hidden border border-pr-mid/20 mr-2 cursor-pointer"
         >
           <img
             src={reservation.PaymentProof.picture.url}
@@ -457,7 +457,7 @@ const ReservationTable = ({
               reservation.PaymentProof!.picture!.alt || "Payment Proof"
             )
           }
-          className="text-pr-primary text-sm hover:underline"
+          className="text-pr-primary text-sm hover:underline cursor-pointer"
         >
           View Proof
         </button>
@@ -479,7 +479,7 @@ const ReservationTable = ({
             size="sm"
             onClick={() => onPageChange(pagination.currentPage - 1)}
             disabled={!pagination.hasPrev}
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             Previous
           </Button>
@@ -488,7 +488,7 @@ const ReservationTable = ({
             size="sm"
             onClick={() => onPageChange(pagination.currentPage + 1)}
             disabled={!pagination.hasNext}
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             Next
           </Button>
