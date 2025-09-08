@@ -188,10 +188,12 @@ const LoginPromptDialog = ({
         </DialogDescription>
       </DialogHeader>
       <div className="flex justify-end gap-3 mt-4">
-        <Button variant="outline" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel} className="cursor-pointer">
           Cancel
         </Button>
-        <Button onClick={onConfirm}>Go to Login</Button>
+        <Button onClick={onConfirm} className="cursor-pointer">
+          Go to Login
+        </Button>
       </div>
     </DialogContent>
   </Dialog>

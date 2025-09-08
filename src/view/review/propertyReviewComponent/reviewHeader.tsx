@@ -31,7 +31,7 @@ export const ReviewHeader = ({
 
         {/* ✅ Just a Button — no DialogTrigger */}
         <Button
-          className="mt-4 sm:mt-0 ms-4"
+          className="mt-4 sm:mt-0 ms-4 cursor-pointer"
           onClick={onWriteReview}
           disabled={!canWriteReview}
         >

@@ -102,12 +102,16 @@ const ReservationFilters = ({
   };
 
   // Handle sort button clicks
-  const handleSortAsc = () => {
-    if (onSortChange) onSortChange("asc");
-  };
+  const handleToggleSort = () => {
+    if (!onSortChange) return;
 
-  const handleSortDesc = () => {
-    if (onSortChange) onSortChange("desc");
+    if (currentSortOrder === "asc") {
+      onSortChange("desc");
+    } else if (currentSortOrder === "desc") {
+      onSortChange(null); // bisa reset kalau klik lagi
+    } else {
+      onSortChange("asc");
+    }
   };
 
   return (
@@ -139,44 +143,10 @@ const ReservationFilters = ({
           <div className="flex gap-2">
             <Button
               type="submit"
-              className="bg-pr-primary hover:bg-pr-mid text-white whitespace-nowrap"
+              className="bg-pr-primary hover:bg-pr-mid text-white whitespace-nowrap cursor-pointer"
             >
               Search
             </Button>
-
-            {/* SORT BUTTONS */}
-            <div className="flex gap-1">
-              <Button
-                type="button"
-                variant={currentSortOrder === "asc" ? "default" : "outline"}
-                onClick={handleSortAsc}
-                className={cn(
-                  "h-10 px-3 whitespace-nowrap",
-                  currentSortOrder === "asc"
-                    ? "bg-pr-primary text-white"
-                    : "border-pr-mid text-pr-mid hover:bg-pr-primary/6"
-                )}
-                aria-label="Sort Ascending"
-              >
-                <ArrowUp className="h-4 w-4 mr-1" />
-                Asc
-              </Button>
-              <Button
-                type="button"
-                variant={currentSortOrder === "desc" ? "default" : "outline"}
-                onClick={handleSortDesc}
-                className={cn(
-                  "h-10 px-3 whitespace-nowrap",
-                  currentSortOrder === "desc"
-                    ? "bg-pr-primary text-white"
-                    : "border-pr-mid text-pr-mid hover:bg-pr-primary/6"
-                )}
-                aria-label="Sort Descending"
-              >
-                <ArrowDown className="h-4 w-4 mr-1" />
-                Desc
-              </Button>
-            </div>
           </div>
         </div>
       </form>
@@ -225,7 +195,7 @@ const ReservationFilters = ({
                   id="start-date"
                   type="button"
                   className={cn(
-                    "w-full flex items-center gap-2 justify-start rounded-lg border px-3 py-2 text-sm bg-white",
+                    "w-full flex items-center gap-2 justify-start rounded-lg border px-3 py-2 text-sm bg-white cursor-pointer",
                     !localStartDate && "text-muted-foreground"
                   )}
                 >
@@ -242,7 +212,7 @@ const ReservationFilters = ({
                   mode="single"
                   selected={localStartDate}
                   onSelect={handleStartDateChange}
-                  initialFocus
+                  autoFocus
                 />
               </PopoverContent>
             </Popover>
@@ -262,7 +232,7 @@ const ReservationFilters = ({
                   id="end-date"
                   type="button"
                   className={cn(
-                    "w-full flex items-center gap-2 justify-start rounded-lg border px-3 py-2 text-sm bg-white",
+                    "w-full flex items-center gap-2 justify-start rounded-lg border px-3 py-2 text-sm bg-white cursor-pointer",
                     !localEndDate && "text-muted-foreground"
                   )}
                 >
@@ -291,7 +261,7 @@ const ReservationFilters = ({
           <Button
             variant="outline"
             onClick={handleClearFilters}
-            className="w-full md:w-auto mt-6 md:mt-0 border-pr-mid text-pr-mid hover:bg-pr-primary/6 whitespace-nowrap"
+            className="w-full md:w-auto mt-6 md:mt-0 border-pr-mid text-pr-mid hover:bg-pr-primary/6 whitespace-nowrap cursor-pointer"
           >
             <XIcon className="mr-2 h-4 w-4" />
             Clear Filters

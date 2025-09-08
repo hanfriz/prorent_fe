@@ -99,10 +99,11 @@ const AddReviewForm: React.FC<AddReviewFormProps> = ({
           variant="outline"
           onClick={handleSaveDraft}
           disabled={isPending}
+          className="cursor-pointer"
         >
           Save Draft
         </Button>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} className="cursor-pointer">
           {isPending ? "Submitting..." : "Submit Review"}
         </Button>
       </div>
