@@ -128,14 +128,6 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
             <Search className="h-5 w-5 mr-2" />
             Search Properties
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Advanced Filters
-          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -152,7 +144,7 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
               onChange={(e) => handleInputChange("search", e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-5 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="city" className="mb-2 block">
                 City
@@ -192,6 +184,17 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="ml-8 justify-start items-end flex">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-9"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Advanced Filters
+              </Button>
             </div>
           </div>
         </div>
