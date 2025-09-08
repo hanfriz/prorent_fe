@@ -287,26 +287,28 @@ export const useReportFilters = (ownerId: string | undefined) => {
    };
 
    // Update the existing handleDownloadReport to handle property-level downloads
-   const handleDownloadReport = async (propertyId?: string) => {
+   const handleDownloadReport = async (propertyId?: any) => {
       if (!ownerId) {
          toast.error('User not authenticated.');
          return;
       }
 
       try {
-         // Normalisasi: 'all', '', null, undefined dianggap tidak dipilih (-> undefined)
-         const normalize = (v?: string) => {
-            if (v === undefined || v === null) {return undefined;}
-            const s = String(v).trim();
-            if (s === '' || s.toLowerCase() === 'all') {return undefined;}
+         const normalize = (v?: any) => {
+            if (!v) {
+               return undefined;
+            }
+            const raw = typeof v === 'string' ? v : v.value ?? v.id ?? '';
+            const s = String(raw).trim();
+            if (s === '' || s.toLowerCase() === 'all') {
+               return undefined;
+            }
             return s;
          };
 
-         // Ambil sumber property: param function dulu, kalau undefined gunakan selectedPropertyId (state)
          const effectivePropertyId = normalize(propertyId ?? selectedPropertyId);
          const effectiveRoomTypeId = normalize(selectedRoomTypeId);
 
-         // Tentukan format: ROOM_TYPE > PROPERTY > ALL
          let exportFormat: ReportFormat;
          if (effectivePropertyId && effectiveRoomTypeId) {
             exportFormat = ReportFormat.ROOM_TYPE;
@@ -316,25 +318,29 @@ export const useReportFilters = (ownerId: string | undefined) => {
             exportFormat = ReportFormat.ALL;
          }
 
-         // Base filters (selalu ada)
-         const baseFilters: Record<string, any> = {
+         const baseFilters = {
             ownerId,
             startDate: dateRange.startDate,
             endDate: dateRange.endDate
          };
 
-         // Build exportFilters sesuai format. Penting: jika ALL -> hanya baseFilters.
          const exportFilters: Record<string, any> = { ...baseFilters };
 
          if (exportFormat === ReportFormat.PROPERTY) {
             exportFilters.propertyId = effectivePropertyId;
-            // Anda boleh sertakan search pada PROPERTY/ROOM_TYPE, tapi jangan sertakan untuk ALL
-            if (appliedSearchTerm) {exportFilters.search = appliedSearchTerm;}
+            if (appliedSearchTerm) {
+               exportFilters.search = appliedSearchTerm;
+            }
          } else if (exportFormat === ReportFormat.ROOM_TYPE) {
             exportFilters.propertyId = effectivePropertyId;
             exportFilters.roomTypeId = effectiveRoomTypeId;
-            if (appliedSearchTerm) {exportFilters.search = appliedSearchTerm;}
-         } // else ALL -> tetap baseFilters
+            if (appliedSearchTerm) {
+               exportFilters.search = appliedSearchTerm;
+            }
+         }
+         // ALL → biarkan baseFilters saja
+
+         console.log('DEBUG filters:', exportFilters, 'format:', exportFormat);
 
          await reportService.exportExcel(exportFilters, {
             fetchAllData: true,
