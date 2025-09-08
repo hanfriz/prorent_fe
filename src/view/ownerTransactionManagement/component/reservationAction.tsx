@@ -92,23 +92,12 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Link
-                href={`/reservation/${reservation.id}`}
+                href={`/dashboard/reservation/${reservation.id}`}
                 className="capitalize font-semibold"
               >
                 View Details
               </Link>
             </DropdownMenuItem>
-
-            {isPaymentButtonActive && (
-              <DropdownMenuItem>
-                <Link
-                  href={`/payment/${reservation.id}`}
-                  className="capitalize font-semibold"
-                >
-                  Upload Payment Proof
-                </Link>
-              </DropdownMenuItem>
-            )}
 
             {reservation.orderStatus === "PENDING_CONFIRMATION" && (
               <>

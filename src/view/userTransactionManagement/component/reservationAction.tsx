@@ -90,7 +90,7 @@ const ReservationActions = ({ reservation }: ReservationActionsProps) => {
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
               <Link
-                href={`/reservation/${reservation.id}`}
+                href={`/reservation/details/${reservation.id}`}
                 className="capitalize font-semibold cursor-pointer"
               >
                 View Details
