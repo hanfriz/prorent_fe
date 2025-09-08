@@ -11,6 +11,7 @@ interface DisplayData {
    roomTypeName?: string;
    basePrice?: number;
    mainImageUrl?: string;
+   priceMap?: Record<string, number>;
 }
 
 interface ReservationState {
