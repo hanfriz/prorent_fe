@@ -23,6 +23,8 @@ import {
 import * as React from "react";
 import LoadingState from "./helperComponent/loadingState";
 import RightColumn from "./component/rightColumnHelper";
+import { createJakartaDate } from "@/components/reservations/DateHelper";
+import moment from "moment-timezone";
 
 export default function CreateReservationPage() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function CreateReservationPage() {
     if (!availabilityData?.unavailableDates) return new Set<string>();
     return new Set(
       availabilityData.unavailableDates.map((d) => {
-        const date = new Date(d.date + "T17:00:00Z");
+        const date = new Date(d.date + "T07:00:00Z");
         if (isNaN(date.getTime())) {
           throw new Error(
             `Invalid date format: ${d.date}. Use YYYY-MM-DD format`
@@ -49,11 +51,21 @@ export default function CreateReservationPage() {
     );
   }, [availabilityData]);
 
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    formData.startDate ? new Date(formData.startDate) : undefined
+  console.log(
+    "🚀 ~ file: index.tsx:50 ~ unavailableDateSet:",
+    unavailableDateSet
   );
+
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    formData.startDate
+      ? new Date(new Date(formData.startDate).getTime() + 14 * 60 * 60 * 1000)
+      : undefined
+  );
+
   const [endDate, setEndDate] = useState<Date | undefined>(
-    formData.endDate ? new Date(formData.endDate) : undefined
+    formData.endDate
+      ? new Date(new Date(formData.endDate).getTime() + 14 * 60 * 60 * 1000)
+      : undefined
   );
 
   const [isLoading, setIsLoading] = useState(true);
@@ -78,22 +90,28 @@ export default function CreateReservationPage() {
   const { nights, estimatedTotal } = useMemo(() => {
     if (!startDate || !endDate) return { nights: 0, estimatedTotal: 0 };
 
-    // ✅ Calculate nights (safe — time diff is timezone-agnostic)
     const diff = Math.max(
       0,
       Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24))
     );
 
-    // ✅ Calculate total price using Jakarta dates, starting from startDate + 1 minute
     let total = 0;
-    let currentDate = addOneMinute(startDate); // ✅ Start 1 minute after check-in
+    let currentDate = addOneMinute(startDate);
 
     for (let i = 0; i < diff; i++) {
       const dateKey = formatDateToJakartaYYYYMMDD(currentDate);
-      total += priceMap[dateKey] ?? displayData.basePrice ?? 0;
+      console.log("Calculating price for date:", dateKey); // ✅ DEBUG
+      console.log("PriceMap entry:", priceMap[dateKey]); // ✅ DEBUG
+      console.log("Base price fallback:", displayData.basePrice); // ✅ DEBUG
+
+      const dailyPrice = priceMap[dateKey] ?? displayData.basePrice ?? 0;
+      console.log("Daily price used:", dailyPrice); // ✅ DEBUG
+
+      total += dailyPrice;
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
+    console.log("Final estimatedTotal:", total); // ✅ DEBUG
     return { nights: diff, estimatedTotal: total };
   }, [startDate, endDate, priceMap, displayData.basePrice]);
 
@@ -132,6 +150,9 @@ export default function CreateReservationPage() {
     }
   };
 
+  console.log("startDate:", startDate);
+  console.log("endDate:", endDate);
+
   const handleEndDateChange = (date?: Date) => {
     if (date && startDate) {
       const startStr = formatDateToJakartaYYYYMMDD(addOneMinute(startDate));
@@ -157,7 +178,7 @@ export default function CreateReservationPage() {
     e.preventDefault();
     if (!isFormValid()) return;
 
-    // ✅ Validate date range
+    // ✅ Validate date range (frontend)
     if (!startDate || !endDate) {
       alert("Please select both check-in and check-out dates.");
       return;
@@ -190,8 +211,15 @@ export default function CreateReservationPage() {
     setIsSubmitting(true);
     try {
       await form.handleSubmit();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submission error:", error);
+
+      // ✅ Handle backend error
+      if (error?.response?.data?.error) {
+        alert(error.response.data.error); // ← Shows: "The selected accommodation type is not available for the chosen dates."
+      } else {
+        alert("Failed to create reservation. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -36,6 +36,7 @@ import PropertyReviews from "../review/component/propertyReview";
 import Link from "next/link";
 import { useReservationStore } from "@/lib/stores/reservationStore";
 import { PaymentType } from "@/interface/enumInterface";
+import { generatePriceMap } from "@/components/property/PropertyPriceMap";
 
 interface PublicPropertyDetailProps {
   propertyId: string;
@@ -50,6 +51,7 @@ export default function PublicPropertyDetail({
     checkIn: string | null;
     checkOut: string | null;
   }>({ checkIn: null, checkOut: null });
+  const [priceMap, setPriceMap] = useState<Record<string, number>>({});
 
   const {
     data: propertyResponse,
@@ -97,6 +99,20 @@ export default function PublicPropertyDetail({
       }
     }
   }, [property]);
+
+  useEffect(() => {
+    if (property && selectedRoomTypeId) {
+      const selectedRoomType = property.roomTypes.find(
+        (rt) => rt.id === selectedRoomTypeId
+      );
+      if (selectedRoomType) {
+        const map = generatePriceMap(selectedRoomType);
+        setPriceMap(map);
+      } else {
+        setPriceMap({});
+      }
+    }
+  }, [property, selectedRoomTypeId]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -393,7 +409,7 @@ export default function PublicPropertyDetail({
                 }
               }}
               basePrice={getSelectedRoomType()?.basePrice || 0}
-              priceMap={{}}
+              priceMap={priceMap}
             />
 
             {/* Property Quick Info */}

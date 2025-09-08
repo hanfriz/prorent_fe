@@ -73,6 +73,9 @@ const ReservationList = () => {
 
   return (
     <div className="space-y-6 m-5 p-5">
+      <h1 className="text-2xl font-semibold text-pr-dark">
+        My Reservation Transaction List
+      </h1>
       <ReservationFilters
         onSearch={handleSearch}
         onStatusFilter={handleStatusFilter}

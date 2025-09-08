@@ -10,8 +10,8 @@ import { z } from 'zod';
 
 export const createReservation = async (Input: CreateReservationInput): Promise<ReservationResponse> => {
    try {
-      console.log(Input);
       const validated = createReservationSchema.parse(Input);
+      console.log(validated);
       const res = await Axios.post<ReservationResponse>('/reservation/', validated);
       return res.data;
    } catch (error) {
