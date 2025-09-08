@@ -117,90 +117,95 @@ const ReservationTable = ({
     v ? `Rp ${v.toLocaleString()}` : "N/A";
 
   const renderDesktopTable = () => (
-    <div className="hidden md:block border rounded-2xl overflow-x-auto bg-white shadow-pr-soft">
-      <div className="min-w-[1000px]">
-        <Table>
-          <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
-            <TableRow>
-              <TableHead
-                onClick={() => handleSort("payment.invoiceNumber")}
-                className="w-[130px] cursor-pointer"
-              >
-                Invoice {renderSortIndicator("payment.invoiceNumber")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("property.name")}
-                className="cursor-pointer"
-              >
-                Property {renderSortIndicator("property.name")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("RoomType.name")}
-                className="cursor-pointer"
-              >
-                Room Type {renderSortIndicator("RoomType.name")}
-              </TableHead>
-              <TableHead
-                onClick={() =>
-                  handleSort("reservation.PaymentProof?.picture?.url")
-                }
-                className="cursor-pointer"
-              >
-                Bukti Pembayaran{" "}
-                {renderSortIndicator("reservation.PaymentProof?.picture?.url")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("startDate")}
-                className="cursor-pointer"
-              >
-                Start {renderSortIndicator("startDate")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("endDate")}
-                className="cursor-pointer"
-              >
-                End {renderSortIndicator("endDate")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("payment.amount")}
-                className="cursor-pointer"
-              >
-                Amount {renderSortIndicator("payment.amount")}
-              </TableHead>
-              <TableHead
-                onClick={() => handleSort("orderStatus")}
-                className="cursor-pointer"
-              >
-                Status {renderSortIndicator("orderStatus")}
-              </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {reservations.length === 0 ? (
+    <div className="hidden md:block border rounded-2xl bg-white shadow-pr-soft">
+      {/* Wrapper scroll */}
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[800px]">
+          <Table>
+            <TableHeader className="bg-gradient-to-r from-pr-primary/6 to-pr-mid/6">
               <TableRow>
-                <TableCell
-                  colSpan={9}
-                  className="text-center py-10 text-pr-mid"
+                <TableHead
+                  onClick={() => handleSort("payment.invoiceNumber")}
+                  className="w-[130px] cursor-pointer"
                 >
-                  No reservations found.
-                </TableCell>
+                  Invoice {renderSortIndicator("payment.invoiceNumber")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("property.name")}
+                  className="cursor-pointer"
+                >
+                  Property {renderSortIndicator("property.name")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("RoomType.name")}
+                  className="cursor-pointer"
+                >
+                  Room Type {renderSortIndicator("RoomType.name")}
+                </TableHead>
+                <TableHead
+                  onClick={() =>
+                    handleSort("reservation.PaymentProof?.picture?.url")
+                  }
+                  className="cursor-pointer"
+                >
+                  Bukti Pembayaran{" "}
+                  {renderSortIndicator(
+                    "reservation.PaymentProof?.picture?.url"
+                  )}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("startDate")}
+                  className="cursor-pointer"
+                >
+                  Start {renderSortIndicator("startDate")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("endDate")}
+                  className="cursor-pointer"
+                >
+                  End {renderSortIndicator("endDate")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("payment.amount")}
+                  className="cursor-pointer"
+                >
+                  Amount {renderSortIndicator("payment.amount")}
+                </TableHead>
+                <TableHead
+                  onClick={() => handleSort("orderStatus")}
+                  className="cursor-pointer"
+                >
+                  Status {renderSortIndicator("orderStatus")}
+                </TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              reservations.map((reservation) => (
-                <TableRow
-                  key={reservation.id}
-                  className="hover:bg-pr-primary/5 transition"
-                >
-                  {renderDesktopCellContent(reservation)}
+            </TableHeader>
+
+            <TableBody>
+              {reservations.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="text-center py-10 text-pr-mid"
+                  >
+                    No reservations found.
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                reservations.map((reservation) => (
+                  <TableRow
+                    key={reservation.id}
+                    className="hover:bg-pr-primary/5 transition"
+                  >
+                    {renderDesktopCellContent(reservation)}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {renderPaginationControls()}
       </div>
-      {renderPaginationControls()}
     </div>
   );
 
@@ -223,11 +228,11 @@ const ReservationTable = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="truncate max-w-[220px] cursor-help">
-              {reservation.Property?.name || "N/A"}
+              {reservation.RoomType?.property?.name || "N/A"}
             </div>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <span>{reservation.Property?.name || "N/A"}</span>
+            <span>{reservation.RoomType?.property?.name || "N/A"}</span>
           </TooltipContent>
         </Tooltip>
       </TableCell>
@@ -277,7 +282,7 @@ const ReservationTable = ({
         </Badge>
       </TableCell>
 
-      <TableCell className="text-right">
+      <TableCell className="text-right cursor-pointer">
         <ReservationActions reservation={reservation} />
       </TableCell>
     </>
@@ -377,7 +382,7 @@ const ReservationTable = ({
           </div>
 
           <div className="mt-2 text-sm text-pr-mid truncate">
-            {reservation.Property?.name || "N/A"}
+            {reservation.RoomType?.property?.name || "N/A"}
           </div>
           <div className="mt-1 text-xs text-pr-mid truncate">
             {reservation.RoomType?.name || "N/A"}
@@ -422,7 +427,7 @@ const ReservationTable = ({
       <div className="mt-3 flex items-center justify-between">
         <div>{renderMobilePaymentProof(reservation)}</div>
 
-        <div>
+        <div className="cursor-pointer">
           <ReservationActions reservation={reservation} />
         </div>
       </div>

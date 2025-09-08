@@ -7,10 +7,7 @@ export const VIEW_MODES = [
    { value: 'daily', label: 'Daily', icon: TrendingUp }
 ];
 
-export const CHART_TYPES = [
-   { value: 'line', label: 'Line Chart', icon: Activity },
-   { value: 'bar', label: 'Bar Chart', icon: BarChart3 }
-];
+export const CHART_TYPES = [ { value: 'line', label: 'Line Chart', icon: Activity } ];
 
 export const DAYS_OPTIONS = [
    { value: 7, label: 'Last 7 days' },
