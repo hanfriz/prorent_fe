@@ -294,26 +294,51 @@ export const useReportFilters = (ownerId: string | undefined) => {
       }
 
       try {
-         const exportFilters = {
-            ownerId,
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-            propertyId: propertyId !== 'all' ? propertyId : undefined,
-            roomTypeId: selectedRoomTypeId !== 'all' ? selectedRoomTypeId : undefined,
-            search: appliedSearchTerm || undefined
+         // Normalisasi: 'all', '', null, undefined dianggap tidak dipilih (-> undefined)
+         const normalize = (v?: string) => {
+            if (v === undefined || v === null) {return undefined;}
+            const s = String(v).trim();
+            if (s === '' || s.toLowerCase() === 'all') {return undefined;}
+            return s;
          };
 
-         let exportFormat: ReportFormat = ReportFormat.ALL;
+         // Ambil sumber property: param function dulu, kalau undefined gunakan selectedPropertyId (state)
+         const effectivePropertyId = normalize(propertyId ?? selectedPropertyId);
+         const effectiveRoomTypeId = normalize(selectedRoomTypeId);
 
-         if (propertyId && propertyId !== 'all') {
+         // Tentukan format: ROOM_TYPE > PROPERTY > ALL
+         let exportFormat: ReportFormat;
+         if (effectivePropertyId && effectiveRoomTypeId) {
+            exportFormat = ReportFormat.ROOM_TYPE;
+         } else if (effectivePropertyId) {
             exportFormat = ReportFormat.PROPERTY;
-         } else if (selectedPropertyId !== 'all') {
-            exportFormat = ReportFormat.PROPERTY;
+         } else {
+            exportFormat = ReportFormat.ALL;
          }
+
+         // Base filters (selalu ada)
+         const baseFilters: Record<string, any> = {
+            ownerId,
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate
+         };
+
+         // Build exportFilters sesuai format. Penting: jika ALL -> hanya baseFilters.
+         const exportFilters: Record<string, any> = { ...baseFilters };
+
+         if (exportFormat === ReportFormat.PROPERTY) {
+            exportFilters.propertyId = effectivePropertyId;
+            // Anda boleh sertakan search pada PROPERTY/ROOM_TYPE, tapi jangan sertakan untuk ALL
+            if (appliedSearchTerm) {exportFilters.search = appliedSearchTerm;}
+         } else if (exportFormat === ReportFormat.ROOM_TYPE) {
+            exportFilters.propertyId = effectivePropertyId;
+            exportFilters.roomTypeId = effectiveRoomTypeId;
+            if (appliedSearchTerm) {exportFilters.search = appliedSearchTerm;}
+         } // else ALL -> tetap baseFilters
 
          await reportService.exportExcel(exportFilters, {
             fetchAllData: true,
-            format: exportFormat || ReportFormat.ALL
+            format: exportFormat
          });
 
          toast.success('Report download started!');
