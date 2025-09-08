@@ -64,7 +64,6 @@ export default function RoomTypeReservationsTable({
   );
 
   const reservations = data?.reservations || [];
-  console.log(reservations);
   const pagination = data?.pagination;
   // Filter handlers
   const handleSearch = (term: string) => {

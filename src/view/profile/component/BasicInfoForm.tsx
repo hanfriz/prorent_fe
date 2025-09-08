@@ -52,18 +52,7 @@ export default function BasicInfoForm({ user }: BasicInfoFormProps) {
 
   // Update form values when user data changes (after fresh fetch)
   useEffect(() => {
-    console.log("BasicInfoForm: user data changed:", user);
     if (user?.profile) {
-      console.log("BasicInfoForm: populating form with:", {
-        firstName: user.profile.firstName || "",
-        lastName: user.profile.lastName || "",
-        phone: user.profile.phone || "",
-        address: user.profile.address || "",
-        birthDate: user.profile.birthDate
-          ? user.profile.birthDate.split("T")[0]
-          : "",
-      });
-      
       form.reset({
         firstName: user.profile.firstName || "",
         lastName: user.profile.lastName || "",

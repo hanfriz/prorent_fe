@@ -51,11 +51,6 @@ export default function CreateReservationPage() {
     );
   }, [availabilityData]);
 
-  console.log(
-    "🚀 ~ file: index.tsx:50 ~ unavailableDateSet:",
-    unavailableDateSet
-  );
-
   const [startDate, setStartDate] = useState<Date | undefined>(
     formData.startDate
       ? new Date(new Date(formData.startDate).getTime() + 14 * 60 * 60 * 1000)
@@ -100,18 +95,12 @@ export default function CreateReservationPage() {
 
     for (let i = 0; i < diff; i++) {
       const dateKey = formatDateToJakartaYYYYMMDD(currentDate);
-      console.log("Calculating price for date:", dateKey); // ✅ DEBUG
-      console.log("PriceMap entry:", priceMap[dateKey]); // ✅ DEBUG
-      console.log("Base price fallback:", displayData.basePrice); // ✅ DEBUG
-
       const dailyPrice = priceMap[dateKey] ?? displayData.basePrice ?? 0;
-      console.log("Daily price used:", dailyPrice); // ✅ DEBUG
 
       total += dailyPrice;
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    console.log("Final estimatedTotal:", total); // ✅ DEBUG
     return { nights: diff, estimatedTotal: total };
   }, [startDate, endDate, priceMap, displayData.basePrice]);
 
@@ -149,9 +138,6 @@ export default function CreateReservationPage() {
       }
     }
   };
-
-  console.log("startDate:", startDate);
-  console.log("endDate:", endDate);
 
   const handleEndDateChange = (date?: Date) => {
     if (date && startDate) {

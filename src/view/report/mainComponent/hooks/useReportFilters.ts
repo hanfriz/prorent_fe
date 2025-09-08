@@ -287,33 +287,61 @@ export const useReportFilters = (ownerId: string | undefined) => {
    };
 
    // Update the existing handleDownloadReport to handle property-level downloads
-   const handleDownloadReport = async (propertyId?: string) => {
+   const handleDownloadReport = async (propertyId?: any) => {
       if (!ownerId) {
          toast.error('User not authenticated.');
          return;
       }
 
       try {
-         const exportFilters = {
-            ownerId,
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-            propertyId: propertyId !== 'all' ? propertyId : undefined,
-            roomTypeId: selectedRoomTypeId !== 'all' ? selectedRoomTypeId : undefined,
-            search: appliedSearchTerm || undefined
+         const normalize = (v?: any) => {
+            if (!v) {
+               return undefined;
+            }
+            const raw = typeof v === 'string' ? v : v.value ?? v.id ?? '';
+            const s = String(raw).trim();
+            if (s === '' || s.toLowerCase() === 'all') {
+               return undefined;
+            }
+            return s;
          };
 
-         let exportFormat: ReportFormat = ReportFormat.ALL;
+         const effectivePropertyId = normalize(propertyId ?? selectedPropertyId);
+         const effectiveRoomTypeId = normalize(selectedRoomTypeId);
 
-         if (propertyId && propertyId !== 'all') {
+         let exportFormat: ReportFormat;
+         if (effectivePropertyId && effectiveRoomTypeId) {
+            exportFormat = ReportFormat.ROOM_TYPE;
+         } else if (effectivePropertyId) {
             exportFormat = ReportFormat.PROPERTY;
-         } else if (selectedPropertyId !== 'all') {
-            exportFormat = ReportFormat.PROPERTY;
+         } else {
+            exportFormat = ReportFormat.ALL;
+         }
+
+         const baseFilters = {
+            ownerId,
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate
+         };
+
+         const exportFilters: Record<string, any> = { ...baseFilters };
+
+         if (exportFormat === ReportFormat.PROPERTY) {
+            exportFilters.propertyId = effectivePropertyId;
+            if (appliedSearchTerm) {
+               exportFilters.search = appliedSearchTerm;
+            }
+         } else if (exportFormat === ReportFormat.ROOM_TYPE) {
+            exportFilters.propertyId = effectivePropertyId;
+            exportFilters.roomTypeId = effectiveRoomTypeId;
+            if (appliedSearchTerm) {
+               exportFilters.search = appliedSearchTerm;
+            }
          }
 
          await reportService.exportExcel(exportFilters, {
             fetchAllData: true,
-            format: exportFormat || ReportFormat.ALL
+            format: exportFormat
          });
 
          toast.success('Report download started!');

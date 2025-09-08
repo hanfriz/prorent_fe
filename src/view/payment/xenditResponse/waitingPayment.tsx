@@ -20,12 +20,9 @@ export default function PaymentWaitingPage() {
     search: reservationId,
   });
 
-  console.log(data);
-
   // Monitor orderStatus
   useEffect(() => {
     const orderStatus = data?.reservations[0]?.orderStatus;
-    console.log(orderStatus);
     if (orderStatus === "CONFIRMED") {
       router.push(`/payment/success?reservationId=${reservationId}`);
     } else if (orderStatus === "CANCELLED") {

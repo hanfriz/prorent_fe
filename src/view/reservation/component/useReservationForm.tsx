@@ -59,8 +59,6 @@ export function useReservationForm({
 
   const priceMap = displayData.priceMap || {};
 
-  console.log("priceMap", priceMap);
-
   const userId = user?.id;
   const email = user?.email;
 
@@ -90,9 +88,6 @@ export function useReservationForm({
         .toDate();
       const end = moment.tz(endDate, "Asia/Jakarta").startOf("day").toDate();
 
-      console.log("startDate", start);
-      console.log("endDate", end);
-
       const payload = {
         ...value,
         userId: userId,
@@ -106,7 +101,6 @@ export function useReservationForm({
         const data = res.reservation;
         const paymentUrl = res.paymentUrl;
         const reservationId = res.reservationId;
-        console.log("data", res);
         if (payload.paymentType === PaymentType.MANUAL_TRANSFER) {
           setReservationId(data.id);
           router.push(`/payment/${data.id}`);
