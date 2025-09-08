@@ -338,9 +338,6 @@ export const useReportFilters = (ownerId: string | undefined) => {
                exportFilters.search = appliedSearchTerm;
             }
          }
-         // ALL → biarkan baseFilters saja
-
-         console.log('DEBUG filters:', exportFilters, 'format:', exportFormat);
 
          await reportService.exportExcel(exportFilters, {
             fetchAllData: true,
