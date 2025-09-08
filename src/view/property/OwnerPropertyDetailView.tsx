@@ -131,7 +131,7 @@ export function OwnerPropertyDetailView({
   };
 
   const getAvailableRooms = () => {
-    return property?.rooms.filter((room) => room.isAvailable) || [];
+    return property?.rooms?.filter((room) => room.isAvailable) || [];
   };
 
   const handleDeleteProperty = () => {
@@ -288,13 +288,13 @@ export function OwnerPropertyDetailView({
                     <div className="flex items-center text-gray-600 mb-2">
                       <MapPin className="w-4 h-4 mr-1" />
                       <span className="text-sm">
-                        {property.location.city.name},{" "}
-                        {property.location.city.province.name}
+                        {property.location?.city?.name},{" "}
+                        {property.location?.city?.province?.name}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
                       <Badge variant="secondary">
-                        {property.category.name}
+                        {property.category?.name}
                       </Badge>
                       <Badge
                         variant={
@@ -359,7 +359,7 @@ export function OwnerPropertyDetailView({
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <Home className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                     <div className="text-2xl font-bold text-blue-600">
-                      {property.rooms.length}
+                      {property.rooms?.length || 0}
                     </div>
                     <div className="text-sm text-gray-600">Total Rooms</div>
                   </div>
@@ -373,7 +373,7 @@ export function OwnerPropertyDetailView({
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <Settings className="h-8 w-8 mx-auto mb-2 text-purple-600" />
                     <div className="text-2xl font-bold text-purple-600">
-                      {property.roomTypes.length}
+                      {property.roomTypes?.length || 0}
                     </div>
                     <div className="text-sm text-gray-600">Room Types</div>
                   </div>
@@ -405,7 +405,7 @@ export function OwnerPropertyDetailView({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {property.roomTypes.map((roomType) => (
+                  {property.roomTypes?.map((roomType) => (
                     <div
                       key={roomType.id}
                       className="border rounded-lg p-4 hover:shadow-sm transition-shadow"
@@ -464,7 +464,7 @@ export function OwnerPropertyDetailView({
                     </div>
                   ))}
 
-                  {property.roomTypes.length === 0 && (
+                  {property.roomTypes?.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <Settings className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                       <p className="mb-4">No room types created yet</p>
@@ -497,7 +497,7 @@ export function OwnerPropertyDetailView({
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {property.rooms.map((room) => (
+                  {property.rooms?.map((room) => (
                     <div
                       key={room.id}
                       className="border rounded-lg p-4 hover:shadow-sm transition-shadow"
@@ -620,7 +620,7 @@ export function OwnerPropertyDetailView({
                     </div>
                   ))}
 
-                  {property.rooms.length === 0 && (
+                  {property.rooms?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-500">
                       <Home className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                       <p className="mb-4">No rooms created yet</p>
@@ -628,7 +628,7 @@ export function OwnerPropertyDetailView({
                         Create room types first, then add individual rooms
                       </p>
                       <div className="flex gap-2 justify-center">
-                        {property.roomTypes.length === 0 ? (
+                        {(property.roomTypes?.length || 0) === 0 ? (
                           <Link
                             href={`/my-properties/${property.id}/room-types/create`}
                           >
@@ -751,23 +751,23 @@ export function OwnerPropertyDetailView({
                           Address
                         </h4>
                         <p className="text-gray-700 text-sm leading-relaxed">
-                          {property.location.address}
+                          {property.location?.address}
                         </p>
                         <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
                           <div>
                             <span className="text-gray-500">City:</span>
                             <span className="ml-2 font-medium">
-                              {property.location.city.name}
+                              {property.location?.city?.name}
                             </span>
                           </div>
                           <div>
                             <span className="text-gray-500">Province:</span>
                             <span className="ml-2 font-medium">
-                              {property.location.city.province.name}
+                              {property.location?.city?.province?.name}
                             </span>
                           </div>
-                          {property.location.latitude &&
-                            property.location.longitude && (
+                          {property.location?.latitude &&
+                            property.location?.longitude && (
                               <div className="col-span-2">
                                 <span className="text-gray-500">
                                   Coordinates:
@@ -791,15 +791,15 @@ export function OwnerPropertyDetailView({
                     <p className="text-sm text-gray-600">
                       Exact location of {property.name} on the map
                     </p>
-                    {property.location.latitude &&
-                    property.location.longitude &&
+                    {property.location?.latitude &&
+                    property.location?.longitude &&
                     !isNaN(parseFloat(property.location.latitude)) &&
                     !isNaN(parseFloat(property.location.longitude)) ? (
                       <PropertyMap
                         latitude={parseFloat(property.location.latitude)}
                         longitude={parseFloat(property.location.longitude)}
                         propertyName={property.name}
-                        address={property.location.address}
+                        address={property.location?.address ?? ""}
                       />
                     ) : (
                       <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -896,7 +896,7 @@ export function OwnerPropertyDetailView({
                     <div className="flex justify-between">
                       <span className="text-gray-600">Occupancy Rate:</span>
                       <span className="font-semibold">
-                        {property.rooms.length > 0
+                        {property.rooms?.length && property.rooms.length > 0
                           ? `${Math.round(
                               (availableRooms.length / property.rooms.length) *
                                 100
@@ -931,7 +931,7 @@ export function OwnerPropertyDetailView({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Location:</span>
-                  <span>{property.location.city.name}</span>
+                  <span>{property.location?.city?.name}</span>
                 </div>
               </CardContent>
             </Card>

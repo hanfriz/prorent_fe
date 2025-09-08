@@ -142,7 +142,9 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
         {/* Basic Search */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="search">Search Keywords</Label>
+            <Label htmlFor="search" className="mb-2 block">
+              Search Keywords
+            </Label>
             <Input
               id="search"
               placeholder="e.g., villa, apartment, beach..."
@@ -150,41 +152,47 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
               onChange={(e) => handleInputChange("search", e.target.value)}
             />
           </div>
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Select
-              value={searchParams.city || undefined}
-              onValueChange={(value) => handleSelectChange("city", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select city" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={searchParams.category || undefined}
-              onValueChange={(value) => handleSelectChange("category", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="city" className="mb-2 block">
+                City
+              </Label>
+              <Select
+                value={searchParams.city || undefined}
+                onValueChange={(value) => handleSelectChange("city", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="category" className="mb-2 block">
+                Category
+              </Label>
+              <Select
+                value={searchParams.category || undefined}
+                onValueChange={(value) => handleSelectChange("category", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -193,7 +201,9 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
           <div className="border-t pt-4 space-y-4">
             {/* Price Range Quick Select */}
             <div>
-              <Label>Quick Price Range (IDR per night)</Label>
+              <Label className="mb-2 block">
+                Quick Price Range (IDR per night)
+              </Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {priceRanges.map((range, index) => (
                   <Button
@@ -212,7 +222,9 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="minPrice">Min Price (IDR)</Label>
+                <Label htmlFor="minPrice" className="mb-2 block">
+                  Min Price (IDR)
+                </Label>
                 <Input
                   id="minPrice"
                   type="number"
@@ -225,14 +237,17 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                     )
                   }
                 />
-                {searchParams.minPrice && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Rp {searchParams.minPrice.toLocaleString("id-ID")}
-                  </p>
-                )}
+                {searchParams.minPrice !== undefined &&
+                  searchParams.minPrice !== null && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Rp {searchParams.minPrice.toLocaleString("id-ID")}
+                    </p>
+                  )}
               </div>
               <div>
-                <Label htmlFor="maxPrice">Max Price (IDR)</Label>
+                <Label htmlFor="maxPrice" className="mb-2 block">
+                  Max Price (IDR)
+                </Label>
                 <Input
                   id="maxPrice"
                   type="number"
@@ -245,14 +260,17 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                     )
                   }
                 />
-                {searchParams.maxPrice && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Rp {searchParams.maxPrice.toLocaleString("id-ID")}
-                  </p>
-                )}
+                {searchParams.maxPrice !== undefined &&
+                  searchParams.maxPrice !== null && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Rp {searchParams.maxPrice.toLocaleString("id-ID")}
+                    </p>
+                  )}
               </div>
               <div>
-                <Label htmlFor="capacity">Max Capacity</Label>
+                <Label htmlFor="capacity" className="mb-2 block">
+                  Max Capacity
+                </Label>
                 <Select
                   value={searchParams.capacity?.toString() || undefined}
                   onValueChange={(value) => {
@@ -276,7 +294,9 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="sortBy">Sort By</Label>
+                <Label htmlFor="sortBy" className="mb-2 block">
+                  Sort By
+                </Label>
                 <Select
                   value={searchParams.sortBy || "name"}
                   onValueChange={(value) => handleSelectChange("sortBy", value)}
@@ -295,7 +315,12 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
-              <Label htmlFor="sortOrder">Sort Order:</Label>
+              <Label
+                htmlFor="sortOrder"
+                className="mb-2 sm:mb-0 block sm:inline"
+              >
+                Sort Order:
+              </Label>
               <Select
                 value={searchParams.sortOrder || "asc"}
                 onValueChange={(value) =>

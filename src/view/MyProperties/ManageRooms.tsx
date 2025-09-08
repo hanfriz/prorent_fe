@@ -331,9 +331,29 @@ const ManageRooms = () => {
           <ArrowLeft className="w-4 h-4" />
           Kembali
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Kelola Kamar</h1>
-          <p className="text-gray-600">{propertyData?.name}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-gray-600">{propertyData?.name}</p>
+            <Badge
+              variant={
+                propertyData?.rentalType === "WHOLE_PROPERTY"
+                  ? "default"
+                  : "secondary"
+              }
+              className="text-xs"
+            >
+              {propertyData?.rentalType === "WHOLE_PROPERTY"
+                ? "Sewa Seluruh Properti"
+                : "Sewa Per Kamar"}
+            </Badge>
+          </div>
+          {propertyData?.rentalType === "WHOLE_PROPERTY" && (
+            <p className="text-sm text-blue-600 mt-1">
+              💡 Untuk properti whole property, room akan otomatis dibuat
+              berdasarkan quantity
+            </p>
+          )}
         </div>
       </div>
 
@@ -398,9 +418,17 @@ const ManageRooms = () => {
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-lg">
-                            {roomType.name}
-                          </CardTitle>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-lg">
+                              {roomType.name}
+                            </CardTitle>
+                            {roomType.isWholeUnit && (
+                              <Badge variant="outline" className="text-xs">
+                                <Home className="w-3 h-3 mr-1" />
+                                Utuh
+                              </Badge>
+                            )}
+                          </div>
                           <CardDescription className="flex items-center gap-1 mt-1">
                             <Users className="w-4 h-4" />
                             {roomType.capacity} orang
@@ -417,17 +445,37 @@ const ManageRooms = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {roomType.description}
-                        </p>
+                        {roomType.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {roomType.description}
+                          </p>
+                        )}
+
+                        {roomType.isWholeUnit && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-xs text-blue-800">
+                              💡 Tipe kamar ini disewakan sebagai unit utuh.
+                              Room akan otomatis dibuat dengan nama Room-001,
+                              Room-002, dst.
+                            </p>
+                          </div>
+                        )}
 
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold text-blue-600">
                             {formatPrice(roomType.basePrice)}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            {roomType.totalQuantity} kamar
-                          </span>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-500">
+                              {roomType.totalQuantity}{" "}
+                              {roomType.isWholeUnit ? "unit" : "kamar"}
+                            </div>
+                            {roomType.rooms && roomType.rooms.length > 0 && (
+                              <div className="text-xs text-green-600">
+                                {roomType.rooms.length} room dibuat
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex gap-2 pt-2">
@@ -472,7 +520,12 @@ const ManageRooms = () => {
         {activeTab === "rooms" && (
           <div className="space-y-6 mt-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Kamar</h2>
+              <div>
+                <h2 className="text-xl font-semibold">Kamar</h2>
+                <p className="text-sm text-gray-600">
+                  Room otomatis dibuat berdasarkan quantity di tipe kamar
+                </p>
+              </div>
               <Button
                 onClick={() => {
                   setEditingRoom(null);
@@ -482,9 +535,30 @@ const ManageRooms = () => {
                 className="gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Tambah Kamar
+                Tambah Kamar Manual
               </Button>
             </div>
+
+            {/* Info Card */}
+            {roomTypes.length > 0 && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-2">
+                    <Home className="w-4 h-4 text-blue-600 mt-1" />
+                    <div>
+                      <p className="text-sm text-blue-800 font-medium">
+                        Sistem Auto-Generation Room
+                      </p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Room akan otomatis dibuat dengan nama Room-001,
+                        Room-002, dst berdasarkan quantity di tipe kamar. Anda
+                        juga bisa menambah room manual jika diperlukan.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {roomTypes.length === 0 ? (
               <Card>
@@ -509,8 +583,20 @@ const ManageRooms = () => {
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-lg">{room.name}</CardTitle>
-                          <CardDescription>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-lg">
+                              {room.name}
+                            </CardTitle>
+                            {room.name?.includes("Room-") && (
+                              <Badge variant="outline" className="text-xs">
+                                Auto
+                              </Badge>
+                            )}
+                          </div>
+                          <CardDescription className="flex items-center gap-1">
+                            {room.roomType?.isWholeUnit && (
+                              <Home className="w-3 h-3" />
+                            )}
                             {room.roomType?.name}
                           </CardDescription>
                         </div>
@@ -523,6 +609,14 @@ const ManageRooms = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
+                        {room.roomType?.isWholeUnit && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                            <p className="text-xs text-blue-800">
+                              💡 Room ini otomatis dibuat untuk unit utuh
+                            </p>
+                          </div>
+                        )}
+
                         {room.roomType && (
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">
@@ -555,6 +649,12 @@ const ManageRooms = () => {
                               setDeleteDialogOpen(true);
                             }}
                             className="flex-1 gap-1"
+                            disabled={room.name?.includes("Room-")}
+                            title={
+                              room.name?.includes("Room-")
+                                ? "Auto-generated room tidak bisa dihapus manual"
+                                : ""
+                            }
                           >
                             <Trash2 className="w-3 h-3" />
                             Hapus
@@ -725,8 +825,12 @@ const ManageRooms = () => {
                 />
               </div>
 
-              {/* <div className="space-y-2">
-                <Label htmlFor="total-quantity">Jumlah Kamar *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="total-quantity">
+                  {roomTypeForm.isWholeUnit
+                    ? "Jumlah Unit *"
+                    : "Jumlah Kamar *"}
+                </Label>
                 <Input
                   id="total-quantity"
                   type="number"
@@ -740,7 +844,12 @@ const ManageRooms = () => {
                   }
                   required
                 />
-              </div> */}
+                <p className="text-xs text-gray-500">
+                  {roomTypeForm.isWholeUnit
+                    ? "Jumlah unit utuh yang tersedia untuk disewa"
+                    : "Room akan otomatis dibuat sebanyak quantity ini"}
+                </p>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -759,15 +868,55 @@ const ManageRooms = () => {
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="is-whole-unit"
-                checked={roomTypeForm.isWholeUnit}
-                onCheckedChange={(checked: boolean) =>
-                  setRoomTypeForm((prev) => ({ ...prev, isWholeUnit: checked }))
-                }
-              />
-              <Label htmlFor="is-whole-unit">Sewa Unit Utuh</Label>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="is-whole-unit"
+                  checked={roomTypeForm.isWholeUnit}
+                  onCheckedChange={(checked: boolean) =>
+                    setRoomTypeForm((prev) => ({
+                      ...prev,
+                      isWholeUnit: checked,
+                    }))
+                  }
+                />
+                <Label htmlFor="is-whole-unit" className="cursor-pointer">
+                  Sewa Unit Utuh
+                </Label>
+              </div>
+
+              {roomTypeForm.isWholeUnit ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Home className="w-4 h-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-blue-800 font-medium">
+                        Unit Utuh
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        Tipe kamar ini akan disewakan sebagai unit utuh. Room
+                        dengan nama Room-001, Room-002, dst akan otomatis dibuat
+                        sesuai quantity.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Bed className="w-4 h-4 text-gray-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-gray-800 font-medium">
+                        Per Kamar
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Tipe kamar standar. Room dengan nama Room-001, Room-002,
+                        dst akan otomatis dibuat sesuai quantity.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter>
