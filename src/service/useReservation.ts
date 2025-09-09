@@ -219,6 +219,6 @@ export function useAvailabilityCalendar (roomTypeId: string | undefined, startDa
       staleTime: 1000 * 60 * 5, // Cache for 5 minutes (availability doesn't change often)
       gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
       refetchOnWindowFocus: false, // Avoid refetching on tab focus (unless you want live updates)
-      retry: 1 // Retry once if fails
+      retry: 1
    });
 }
