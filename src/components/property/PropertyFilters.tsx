@@ -132,7 +132,8 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Basic Search */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-4">
+          {/* Search Keywords - Full Width */}
           <div>
             <Label htmlFor="search" className="mb-2 block">
               Search Keywords
@@ -144,8 +145,10 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
               onChange={(e) => handleInputChange("search", e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-5 md:grid-cols-3 gap-4">
-            <div>
+
+          {/* City, Category, and Advanced Filters Button */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="">
               <Label htmlFor="city" className="mb-2 block">
                 City
               </Label>
@@ -165,7 +168,7 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            <div className="">
               <Label htmlFor="category" className="mb-2 block">
                 Category
               </Label>
@@ -185,15 +188,15 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="ml-8 justify-start items-end flex">
+            <div className="w-full md:w-48 flex items-end">
               <Button
                 variant="outline"
-                size="lg"
-                className="h-9"
+                size="default"
+                className="w-full"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Advanced Filters
+                {showAdvancedFilters ? "Hide Filters" : "Advanced Filters"}
               </Button>
             </div>
           </div>
@@ -223,7 +226,7 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="minPrice" className="mb-2 block">
                   Min Price (IDR)
@@ -359,11 +362,12 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
         )}
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button
             onClick={handleSearch}
             disabled={loading}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none sm:min-w-[160px]"
+            size="default"
           >
             <Search className="h-4 w-4 mr-2" />
             {loading ? "Searching..." : "Search Properties"}
@@ -371,7 +375,8 @@ export function PropertyFilters({ onSearch, loading }: PropertyFiltersProps) {
           <Button
             variant="outline"
             onClick={handleReset}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none sm:min-w-[120px]"
+            size="default"
           >
             <X className="h-4 w-4 mr-2" />
             Reset Filters
